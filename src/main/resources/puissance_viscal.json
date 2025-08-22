@@ -1,0 +1,141 @@
+{
+    "titre": "TAUX D’IMPÔT REEL SUR LES VÉHICULES ET DE LA TAXE SPECIALE DE CIRCULATION ROUTIÈRE (VIGNETTES AUTOMOBILES)",
+    "categories": [
+        {
+            "nom": "Personnes Physiques",
+            "types": [
+                {
+                    "plage": "1-10CV",
+                    "tscr_usd": 35,
+                    "impot_reel_cdf": 19,
+                    "total_cdf": 54
+                },
+                {
+                    "plage": "11-15CV",
+                    "tscr_usd": 44,
+                    "impot_reel_cdf": 25,
+                    "total_cdf": 69
+                },
+                {
+                    "plage": "+15CV",
+                    "tscr_usd": 49,
+                    "impot_reel_cdf": 25,
+                    "total_cdf": 74
+                }
+            ]
+        },
+        {
+            "nom": "Personnes Morales",
+            "types": [
+                {
+                    "plage": "1-10CV",
+                    "tscr_usd": 64,
+                    "impot_reel_cdf": 35,
+                    "total_cdf": 99
+                },
+                {
+                    "plage": "11-15CV",
+                    "tscr_usd": 84,
+                    "impot_reel_cdf": 55,
+                    "total_cdf": 139
+                },
+                {
+                    "plage": "+15CV",
+                    "tscr_usd": 101,
+                    "impot_reel_cdf": 78,
+                    "total_cdf": 179
+                }
+            ]
+        },
+        {
+            "nom": "Véhicules Utilitaires",
+            "types": [
+                {
+                    "plage": "-2,5T",
+                    "tscr_usd": 47,
+                    "impot_reel_cdf": 112,
+                    "total_cdf": 159
+                },
+                {
+                    "plage": "2,5 à 10 T",
+                    "tscr_usd": 51,
+                    "impot_reel_cdf": 183,
+                    "total_cdf": 234
+                },
+                {
+                    "plage": "+10 T",
+                    "tscr_usd": 54,
+                    "impot_reel_cdf": 270,
+                    "total_cdf": 324
+                }
+            ]
+        },
+        {
+            "nom": "RéMORQUES",
+            "types": []
+        },
+        {
+            "nom": "Moto",
+            "types": [
+                {
+                    "plage": "-2,5T",
+                    "tscr_usd": null,
+                    "impot_reel_cdf": 112,
+                    "total_cdf": 112
+                },
+                {
+                    "plage": "2,5 à 10 T",
+                    "tscr_usd": null,
+                    "impot_reel_cdf": 183,
+                    "total_cdf": 183
+                },
+                {
+                    "plage": "+10 T",
+                    "tscr_usd": null,
+                    "impot_reel_cdf": 270,
+                    "total_cdf": 270
+                }
+            ]
+        },
+        {
+            "nom": "Bateaux",
+            "types": [
+                {
+                    "type": "Moto",
+                    "tscr_usd": 5,
+                    "impot_reel_cdf": 5,
+                    "total_cdf": 10
+                },
+                {
+                    "type": "TMRT",
+                    "tscr_usd": "18/CV",
+                    "impot_reel_cdf": null,
+                    "total_cdf": "18/CV"
+                },
+                {
+                    "type": "T.M.R",
+                    "tscr_usd": "15/CV",
+                    "impot_reel_cdf": null,
+                    "total_cdf": "15/CV"
+                },
+                {
+                    "type": "BBER",
+                    "tscr_usd": "23/m² de jauge",
+                    "impot_reel_cdf": null,
+                    "total_cdf": "23/m² de jauge"
+                },
+                {
+                    "type": "EPPM",
+                    "tscr_usd": "35/CV",
+                    "impot_reel_cdf": null,
+                    "total_cdf": "35/CV"
+                }
+            ]
+        }
+    ],
+    "notes": [
+        "TSCR : Taxe Spéciale de Circulation Routière",
+        "Contre-Valeur au cours vendeur du jour de paiement (USD-CDF) appliqué à la banque",
+        "Total par exercice fiscal"
+    ]
+}
