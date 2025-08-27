@@ -36,7 +36,7 @@ public class TaxationController {
     private ConcessionMinierRepository concessionMinierRepository;
 
     @PostMapping("/property/{propertyId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION','ADMIN')")
     public ResponseEntity<?> generateTaxNoteForProperty(@PathVariable UUID propertyId, Authentication authentication) {
         try {
             // Get the authenticated agent
@@ -71,7 +71,7 @@ public class TaxationController {
     }
 
     @PostMapping("/concession/{concessionId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION','ADMIN')")
     public ResponseEntity<?> generateTaxNoteForConcession(@PathVariable UUID concessionId, Authentication authentication) {
         try {
             // Get the authenticated agent
@@ -106,7 +106,7 @@ public class TaxationController {
     }
 
     @GetMapping("/calculate/if/property/{propertyId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> calculateIFTaxForProperty(@PathVariable UUID propertyId) {
         try {
             // Calculate IF tax
@@ -130,7 +130,7 @@ public class TaxationController {
     }
 
     @GetMapping("/calculate/icm/concession/{concessionId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> calculateICMTaxForConcession(@PathVariable UUID concessionId) {
         try {
             // Calculate ICM tax
@@ -154,7 +154,7 @@ public class TaxationController {
     }
 
     @GetMapping("/calculate/irl/property/{propertyId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> calculateIRLForProperty(@PathVariable UUID propertyId) {
         try {
             // Calculate IRL tax
@@ -178,7 +178,7 @@ public class TaxationController {
     }
 
     @GetMapping("/calculate/irv")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> calculateIRV(
             @RequestParam double puissanceCV,
             @RequestParam double poids) {

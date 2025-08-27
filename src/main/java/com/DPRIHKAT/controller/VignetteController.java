@@ -29,7 +29,7 @@ public class VignetteController {
     private UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/generate/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR')")
+    @PreAuthorize("hasAnyRole('TAXATEUR','ADMIN')")
     public ResponseEntity<?> generateVignette(
             @PathVariable UUID vehiculeId,
             @RequestParam("dateExpirationMillis") long dateExpirationMillis,
@@ -63,7 +63,7 @@ public class VignetteController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getVignetteById(@PathVariable UUID id) {
         try {
             Vignette vignette = vignetteService.findById(id);
@@ -81,7 +81,7 @@ public class VignetteController {
     }
 
     @GetMapping("/vehicle/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getVignettesByVehicle(
             @PathVariable UUID vehiculeId,
             @RequestParam(defaultValue = "0") int page,
@@ -104,7 +104,7 @@ public class VignetteController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getActiveVignettes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -126,7 +126,7 @@ public class VignetteController {
     }
 
     @GetMapping("/expired")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getExpiredVignettes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

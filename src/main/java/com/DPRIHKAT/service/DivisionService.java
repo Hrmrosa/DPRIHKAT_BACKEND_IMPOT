@@ -2,6 +2,8 @@ package com.DPRIHKAT.service;
 
 import com.DPRIHKAT.entity.Division;
 import com.DPRIHKAT.repository.DivisionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,10 @@ public class DivisionService {
 
     public List<Division> findAll() {
         return divisionRepository.findAll();
+    }
+
+    public Page<Division> findAll(Pageable pageable) {
+        return divisionRepository.findAll(pageable);
     }
 
     public Division findById(UUID id) {

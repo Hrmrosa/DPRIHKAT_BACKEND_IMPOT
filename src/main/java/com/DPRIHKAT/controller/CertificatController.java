@@ -29,7 +29,7 @@ public class CertificatController {
     private UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/property/{declarationId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT','ADMIN')")
     public ResponseEntity<?> generatePropertyCertificate(
             @PathVariable UUID declarationId,
             Authentication authentication) {
@@ -59,7 +59,7 @@ public class CertificatController {
     }
 
     @PostMapping("/vehicle/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT','ADMIN')")
     public ResponseEntity<?> generateVehicleCertificate(
             @PathVariable UUID vehiculeId,
             Authentication authentication) {
@@ -89,7 +89,7 @@ public class CertificatController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getCertificatById(@PathVariable UUID id) {
         try {
             Certificat certificat = certificatService.getCertificatById(id);
@@ -103,7 +103,7 @@ public class CertificatController {
     }
 
     @GetMapping("/declaration/{declarationId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getCertificatsByDeclaration(
             @PathVariable UUID declarationId,
             @RequestParam(defaultValue = "0") int page,
@@ -126,7 +126,7 @@ public class CertificatController {
     }
 
     @GetMapping("/vehicle/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getCertificatsByVehicle(
             @PathVariable UUID vehiculeId,
             @RequestParam(defaultValue = "0") int page,
@@ -149,7 +149,7 @@ public class CertificatController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getActiveCertificats(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -171,7 +171,7 @@ public class CertificatController {
     }
 
     @GetMapping("/expired")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getExpiredCertificats(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

@@ -3,14 +3,24 @@ package com.DPRIHKAT.controller;
 import com.DPRIHKAT.entity.Bureau;
 import com.DPRIHKAT.service.BureauService;
 import com.DPRIHKAT.util.ResponseUtil;
+import com.DPRIHKAT.dto.AgentSimpleDTO;
+import com.DPRIHKAT.dto.BureauResponseDTO;
+import com.DPRIHKAT.dto.DivisionSimpleDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -22,10 +32,29 @@ public class BureauController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
-    public ResponseEntity<?> getAllBureaux() {
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getAllBureaux(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nom") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
         try {
-            List<Bureau> bureaux = bureauService.findAll();
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureaux", bureaux)));
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            Page<Bureau> bureauPage = bureauService.findAll(pageable);
+
+            List<BureauResponseDTO> content = bureauPage.getContent().stream()
+                    .map(this::mapToBureauResponseDTO)
+                    .collect(Collectors.toList());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("bureaux", content);
+            response.put("currentPage", bureauPage.getNumber());
+            response.put("totalItems", bureauPage.getTotalElements());
+            response.put("totalPages", bureauPage.getTotalPages());
+
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
@@ -35,6 +64,7 @@ public class BureauController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getBureauById(@PathVariable UUID id) {
         try {
             Bureau bureau = bureauService.findById(id);
@@ -43,7 +73,8 @@ public class BureauController {
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("BUREAU_NOT_FOUND", "Bureau non trouvé", "Aucun bureau trouvé avec l'ID fourni"));
             }
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", bureau)));
+            BureauResponseDTO dto = mapToBureauResponseDTO(bureau);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", dto)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
@@ -56,7 +87,8 @@ public class BureauController {
     public ResponseEntity<?> createBureau(@RequestBody Bureau bureau) {
         try {
             Bureau createdBureau = bureauService.save(bureau);
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", createdBureau)));
+            BureauResponseDTO dto = mapToBureauResponseDTO(createdBureau);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", dto)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
@@ -69,7 +101,8 @@ public class BureauController {
     public ResponseEntity<?> updateBureau(@PathVariable UUID id, @RequestBody Bureau bureau) {
         try {
             Bureau updatedBureau = bureauService.update(id, bureau);
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", updatedBureau)));
+            BureauResponseDTO dto = mapToBureauResponseDTO(updatedBureau);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", dto)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
@@ -88,5 +121,29 @@ public class BureauController {
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("BUREAU_DELETE_ERROR", "Erreur lors de la suppression du bureau", e.getMessage()));
         }
+    }
+
+    private BureauResponseDTO mapToBureauResponseDTO(Bureau bureau) {
+        if (bureau == null) return null;
+        DivisionSimpleDTO divisionDTO = null;
+        if (bureau.getDivision() != null) {
+            divisionDTO = new DivisionSimpleDTO(
+                    bureau.getDivision().getId(),
+                    bureau.getDivision().getNom(),
+                    bureau.getDivision().getCode()
+            );
+        }
+
+        List<AgentSimpleDTO> agents = bureau.getAgents() == null ? List.of() : bureau.getAgents().stream()
+                .map(a -> new AgentSimpleDTO(a.getId(), a.getNom()))
+                .collect(Collectors.toList());
+
+        return new BureauResponseDTO(
+                bureau.getId(),
+                bureau.getNom(),
+                bureau.getCode(),
+                divisionDTO,
+                agents
+        );
     }
 }

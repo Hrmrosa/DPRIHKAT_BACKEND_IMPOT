@@ -23,7 +23,7 @@ public class PaiementController {
     private PaiementService paiementService;
 
     @PostMapping("/process/{declarationId}")
-    @PreAuthorize("hasAnyRole('RECEVEUR_DES_IMPOTS')")
+    @PreAuthorize("hasAnyRole('RECEVEUR_DES_IMPOTS','ADMIN')")
     public ResponseEntity<?> processPayment(
             @PathVariable UUID declarationId,
             @RequestParam String bordereauBancaire,
@@ -43,7 +43,7 @@ public class PaiementController {
     }
 
     @GetMapping("/declaration/{declarationId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getPaymentByDeclarationId(@PathVariable UUID declarationId) {
         try {
             Paiement paiement = paiementService.getPaymentByDeclarationId(declarationId);
@@ -63,7 +63,7 @@ public class PaiementController {
     }
 
     @GetMapping("")
-    @PreAuthorize("hasAnyRole('RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getAllPayments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

@@ -30,7 +30,7 @@ public class ApurementController {
     private UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/create/{declarationId}")
-    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS')")
+    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS','ADMIN')")
     public ResponseEntity<?> createApurement(
             @PathVariable UUID declarationId,
             @RequestParam TypeApurement type,
@@ -61,7 +61,7 @@ public class ApurementController {
     }
 
     @PostMapping("/validate/{apurementId}")
-    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS')")
+    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS','ADMIN')")
     public ResponseEntity<?> validateApurement(
             @PathVariable UUID apurementId,
             Authentication authentication) {
@@ -91,7 +91,7 @@ public class ApurementController {
     }
 
     @GetMapping("/declaration/{declarationId}")
-    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS', 'TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS', 'TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getApurementByDeclarationId(@PathVariable UUID declarationId) {
         try {
             Apurement apurement = apurementService.getApurementByDeclarationId(declarationId);
@@ -111,7 +111,7 @@ public class ApurementController {
     }
 
     @GetMapping("")
-    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS', 'TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('APUREUR', 'RECEVEUR_DES_IMPOTS', 'TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getAllApurements(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

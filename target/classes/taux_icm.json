@@ -1,0 +1,38 @@
+{
+  "recherche": {
+    "A": {
+      "physique": 0.12,
+      "morale": 0.12
+    },
+    "B": {
+      "physique": 0.09,
+      "morale": 0.09
+    },
+    "C": {
+      "physique": 0.06,
+      "morale": 0.06
+    },
+    "D": {
+      "physique": 0.03,
+      "morale": 0.03
+    }
+  },
+  "exploitation": {
+    "A": {
+      "physique": 0.12,
+      "morale": 0.12
+    },
+    "B": {
+      "physique": 0.09,
+      "morale": 0.09
+    },
+    "C": {
+      "physique": 0.06,
+      "morale": 0.06
+    },
+    "D": {
+      "physique": 0.03,
+      "morale": 0.03
+    }
+  }
+}

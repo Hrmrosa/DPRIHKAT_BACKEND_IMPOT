@@ -30,7 +30,7 @@ public class ControleFiscalController {
     private UtilisateurRepository utilisateurRepository;
 
     @GetMapping("/anomalies")
-    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> findAnomalies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -64,7 +64,7 @@ public class ControleFiscalController {
     }
 
     @GetMapping("/rapport")
-    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> generateFiscalReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
@@ -95,7 +95,7 @@ public class ControleFiscalController {
     }
 
     @GetMapping("/top-contributors")
-    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getTopContributors(
             @RequestParam(defaultValue = "10") int limit,
             Authentication authentication) {
@@ -125,7 +125,7 @@ public class ControleFiscalController {
     }
 
     @GetMapping("/delinquents")
-    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('CONTROLLEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getDelinquentContributors(Authentication authentication) {
         try {
             // Get the authenticated user

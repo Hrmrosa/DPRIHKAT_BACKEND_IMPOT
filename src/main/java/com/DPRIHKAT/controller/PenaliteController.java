@@ -28,7 +28,7 @@ public class PenaliteController {
     private UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/calculer/{declarationId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS','ADMIN')")
     public ResponseEntity<?> calculatePenalties(@PathVariable UUID declarationId) {
         try {
             penaliteService.calculateAndApplyPenalties(declarationId);
@@ -44,7 +44,7 @@ public class PenaliteController {
     }
 
     @PostMapping("/ajuster/{penaltyId}")
-    @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> adjustPenalty(
             @PathVariable UUID penaltyId,
             @RequestParam double newAmount,
@@ -64,7 +64,7 @@ public class PenaliteController {
     }
 
     @GetMapping("/declaration/{declarationId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getPenaltiesForDeclaration(
             @PathVariable UUID declarationId,
             @RequestParam(defaultValue = "0") int page,
@@ -87,7 +87,7 @@ public class PenaliteController {
     }
 
     @GetMapping("/contribuable")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getPenaltiesForContribuable(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,

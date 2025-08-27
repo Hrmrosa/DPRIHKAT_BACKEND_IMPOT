@@ -27,7 +27,7 @@ public class ConcessionMinierController {
     private UtilisateurRepository utilisateurRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN','ADMIN')")
     public ResponseEntity<?> getAllConcessions() {
         try {
             List<ConcessionMinier> concessions = concessionMinierRepository.findAll();
@@ -40,7 +40,7 @@ public class ConcessionMinierController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN','ADMIN')")
     public ResponseEntity<?> getConcessionById(@PathVariable UUID id) {
         try {
             ConcessionMinier concession = concessionMinierRepository.findById(id).orElse(null);
@@ -58,7 +58,7 @@ public class ConcessionMinierController {
     }
 
     @GetMapping("/mine")
-    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    @PreAuthorize("hasRole('CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getMyConcessions(Authentication authentication) {
         try {
             String login = authentication.getName();

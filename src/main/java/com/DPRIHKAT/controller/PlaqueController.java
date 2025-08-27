@@ -28,7 +28,7 @@ public class PlaqueController {
     private UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/assign/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES')")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES','ADMIN')")
     public ResponseEntity<?> assignPlaqueToVehicle(
             @PathVariable UUID vehiculeId,
             Authentication authentication) {
@@ -58,7 +58,7 @@ public class PlaqueController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getPlaqueById(@PathVariable UUID id) {
         try {
             Plaque plaque = plaqueService.getPlaqueById(id);
@@ -72,7 +72,7 @@ public class PlaqueController {
     }
 
     @GetMapping("")
-    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getAllPlaques(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -104,7 +104,7 @@ public class PlaqueController {
     }
 
     @GetMapping("/vehicule/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getPlaquesByVehicle(
             @PathVariable UUID vehiculeId,
             @RequestParam(defaultValue = "0") int page,
@@ -127,7 +127,7 @@ public class PlaqueController {
     }
 
     @GetMapping("/stock")
-    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> checkPlaqueStock() {
         try {
             boolean available = plaqueService.isPlaqueAvailable();

@@ -1,0 +1,18 @@
+[Unit]
+Description=DPRI Impots Spring Boot API
+After=network.target
+
+[Service]
+User=dpri
+EnvironmentFile=/etc/dpri-impots/env
+WorkingDirectory=/opt/dpri-impots
+ExecStart=/usr/bin/java -XX:+UseG1GC -Xms256m -Xmx512m -Duser.timezone=UTC -Dserver.port=${PORT} -jar /opt/dpri-impots/app.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

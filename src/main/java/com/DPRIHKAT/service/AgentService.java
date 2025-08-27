@@ -3,6 +3,8 @@ package com.DPRIHKAT.service;
 import com.DPRIHKAT.entity.Agent;
 import com.DPRIHKAT.repository.AgentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,10 @@ public class AgentService {
 
     public List<Agent> findAll() {
         return agentRepository.findAll();
+    }
+
+    public Page<Agent> findAll(Pageable pageable) {
+        return agentRepository.findAll(pageable);
     }
 
     public Agent findById(UUID id) {

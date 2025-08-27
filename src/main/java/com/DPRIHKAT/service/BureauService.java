@@ -2,6 +2,8 @@ package com.DPRIHKAT.service;
 
 import com.DPRIHKAT.entity.Bureau;
 import com.DPRIHKAT.repository.BureauRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,10 @@ public class BureauService {
 
     public List<Bureau> findAll() {
         return bureauRepository.findAll();
+    }
+
+    public Page<Bureau> findAll(Pageable pageable) {
+        return bureauRepository.findAll(pageable);
     }
 
     public Bureau findById(UUID id) {

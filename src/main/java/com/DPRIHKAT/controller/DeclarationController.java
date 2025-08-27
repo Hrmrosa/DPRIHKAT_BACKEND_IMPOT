@@ -42,7 +42,7 @@ public class DeclarationController {
     private UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/soumettre")
-    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    @PreAuthorize("hasRole('CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> soumettreDeclaration(@Valid @RequestBody DeclarationRequest declarationRequest, Authentication authentication) {
         try {
             // Check if the submission period is valid (2 Jan to 1 Feb)
@@ -91,7 +91,7 @@ public class DeclarationController {
     }
 
     @PostMapping("/manuelle")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS','ADMIN')")
     public ResponseEntity<?> enregistrerDeclarationManuelle(@Valid @RequestBody DeclarationRequest declarationRequest, Authentication authentication) {
         try {
             // Get the authenticated agent
@@ -117,7 +117,7 @@ public class DeclarationController {
     }
 
     @GetMapping("")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getAllDeclarations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -156,7 +156,7 @@ public class DeclarationController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getDeclarationById(@PathVariable UUID id, Authentication authentication) {
         try {
             Declaration declaration = declarationRepository.findById(id)
@@ -189,7 +189,7 @@ public class DeclarationController {
     }
 
     @GetMapping("/type/{type}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getDeclarationsByType(
             @PathVariable TypeImpot type,
             @RequestParam(defaultValue = "0") int page,
@@ -217,7 +217,7 @@ public class DeclarationController {
     }
 
     @GetMapping("/statut/{statut}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getDeclarationsByStatut(
             @PathVariable StatutDeclaration statut,
             @RequestParam(defaultValue = "0") int page,
