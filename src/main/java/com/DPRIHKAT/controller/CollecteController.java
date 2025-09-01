@@ -34,7 +34,7 @@ public class CollecteController {
     private ProprieteRepository proprieteRepository;
 
     @PostMapping("/contribuables")
-    @PreAuthorize("hasRole('CONTROLLEUR','ADMIN')")
+    @PreAuthorize("hasAnyRole('CONTROLLEUR','ADMIN','INFORMATICIEN')")
     public ResponseEntity<?> creerContribuableAvecBiens(@RequestBody CollecteContribuableRequest request) {
         try {
             if (request == null) {

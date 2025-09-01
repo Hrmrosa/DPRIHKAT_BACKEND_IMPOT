@@ -47,7 +47,6 @@ public class BureauController {
             List<BureauResponseDTO> content = bureauPage.getContent().stream()
                     .map(this::mapToBureauResponseDTO)
                     .collect(Collectors.toList());
-
             Map<String, Object> response = new HashMap<>();
             response.put("bureaux", content);
             response.put("currentPage", bureauPage.getNumber());

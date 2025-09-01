@@ -35,11 +35,11 @@ The system implements a comprehensive role-based access control with the followi
 - **Directeur**: Views all movements across the organization
 - **Chef de cellules**: Views taxation and contributors in their assigned office
 - **Vérificateur**: Views contributors and taxation that have been processed
-- **Controlleur**: Views problematic notes (incorrectly declared, missing declarations, overdue notes...)
+- **Controlleur**: Views contributors and problematic notes (incorrectly declared, missing declarations, overdue notes...)
 - **Apureur**: Views taxation and validates payments in the system
 - **Receveur des impôts**: Views overdue notes, payments, and files in recovery procedures
 - **Admin**: Full administrative access
-- **Informaticien**: Manages users
+- **Informaticien**: Manages users and system configuration, can participate in field data collection
 - **Contribuable**: Submits tax declarations online
 
 ## Technical Stack

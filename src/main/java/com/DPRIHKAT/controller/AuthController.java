@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -83,9 +84,7 @@ public class AuthController {
 
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "token", jwtResponse.getAccessToken(),
-                    "type", jwtResponse.getTokenType(),
-                    "login", jwtResponse.getLogin(),
-                    "role", jwtResponse.getRole()
+                    "type", jwtResponse.getTokenType()
             )));
         } catch (Exception e) {
             return ResponseEntity

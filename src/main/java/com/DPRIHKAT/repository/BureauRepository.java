@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface BureauRepository extends JpaRepository<Bureau, UUID> {
+    boolean existsByNom(String nom);
+    boolean existsByNomAndIdNot(String nom, UUID id);
 }

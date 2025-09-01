@@ -94,11 +94,18 @@ src/
 
 ## Rôles et autorisations
 
-- **ROLE_CONTRIBUTOR** : Accès limité aux fonctionnalités de déclaration
-- **ROLE_AGENT** : Accès aux fonctionnalités de taxation et de vérification
-- **ROLE_SUPERVISOR** : Accès étendu aux fonctionnalités de supervision
-- **ROLE_ADMIN** : Accès complet à toutes les fonctionnalités
-- **ROLE_SUPER_ADMIN** : Accès à la gestion des utilisateurs et des rôles
+- **Taxateur** : Gère les contribuables, les propriétés et la taxation
+- **Chef de bureau** : Visualise toutes les informations sur les contribuables et la taxation dans son bureau
+- **Chef de division** : Visualise tous les mouvements dans sa division
+- **Directeur** : Visualise tous les mouvements à travers l'organisation
+- **Chef de cellules** : Visualise la taxation et les contribuables dans le bureau qui lui est assigné
+- **Vérificateur** : Visualise les contribuables et la taxation qui ont été traités
+- **Controlleur** : Visualise les contribuables et les notes problématiques (mal déclarées, déclarations manquantes, notes en retard...)
+- **Apureur** : Visualise la taxation et valide les paiements dans le système
+- **Receveur des impôts** : Visualise les notes en retard, les paiements et les dossiers en procédure de recouvrement
+- **Admin** : Accès administratif complet
+- **Informaticien** : Gère les utilisateurs et la configuration du système, peut participer à la collecte de données sur le terrain
+- **Contribuable** : Soumet des déclarations fiscales en ligne
 
 ## Journal d'audit
 

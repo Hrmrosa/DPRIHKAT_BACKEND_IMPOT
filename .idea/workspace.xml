@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/DPRIHKAT_BACKEND_IMPOT.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AUTHENTIFICATION.md" beforeDir="false" afterPath="$PROJECT_DIR$/AUTHENTIFICATION.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HOWTOUSE.md" beforeDir="false" afterPath="$PROJECT_DIR$/HOWTOUSE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_FR.md" beforeDir="false" afterPath="$PROJECT_DIR$/README_FR.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/API_REFERENCE.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/API_REFERENCE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/BureauController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/BureauController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/CollecteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/CollecteController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Bureau.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Bureau.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Division.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Division.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/BureauRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/BureauRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DivisionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DivisionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/security/JwtAuthFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/security/JwtAuthFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/security/JwtUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/security/JwtUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/security/UserDetailsServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/security/UserDetailsServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/BureauService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/BureauService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DivisionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DivisionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/AuthController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/AuthController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/BureauController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/BureauController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Bureau.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Bureau.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Division.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Division.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/BureauRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/BureauRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DivisionRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DivisionRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/security/JwtAuthFilter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/security/JwtAuthFilter.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/security/JwtUtils.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/security/JwtUtils.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/security/UserDetailsServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/security/UserDetailsServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/BureauService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/BureauService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DivisionService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DivisionService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar.original" beforeDir="false" afterPath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar.original" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Hrmrosa&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Hrmrosa/DPRIHKAT_BACKEND_IMPOT.git&quot;,
+    &quot;accountId&quot;: &quot;e3766368-297f-4f53-83b5-08f82c44bd2e&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="31uXIRqLfhwrFVOmXCUa2iFSGTu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.DpriImpotsApplication.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="DPRIHKAT_BACKEND_IMPOT" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="DPRIHKAT_BACKEND_IMPOT" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="" />
+      <created>1756374852897</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1756374852897</updated>
+    </task>
+    <servers />
+  </component>
+</project>

@@ -53,49 +53,68 @@ Toutes les réponses suivent cette structure :
 ```
 
 **Messages d'erreur :**
-- `"Utilisateur non trouvé"` - Login incorrect
-- `"Mot de passe incorrect"` - Mot de passe invalide
-- `"Compte bloqué"` - Utilisateur bloqué
-- `"Première connexion requise"` - Changement de mot de passe obligatoire
+- `"Identifiants invalides"` - Login ou mot de passe incorrect
+- `"Compte bloqué"` - Le compte utilisateur est bloqué
+- `"Première connexion requise"` - L'utilisateur doit changer son mot de passe
 
-### Changement de mot de passe
+### Changer mot de passe (première connexion)
 **POST** `/api/auth/change-password`
 
 **Payload :**
 ```json
 {
   "login": "nom_utilisateur",
-  "oldPassword": "ancien_mot_de_passe",
-  "newPassword": "nouveau_mot_de_passe"
+  "ancienMotDePasse": "mot_de_passe_temporaire",
+  "nouveauMotDePasse": "nouveau_mot_de_passe"
 }
 ```
 
 **Messages de sortie :**
 - Succès : `"Mot de passe changé avec succès"`
-- Erreur : `"Ancien mot de passe incorrect"`, `"Utilisateur non trouvé"`
+- Erreur : `"Ancien mot de passe incorrect"`, `"Nouveau mot de passe invalide"`
+
+### Rafraîchir token
+**POST** `/api/auth/refresh`
+
+**Payload :** Aucun (utilise le token existant dans l'en-tête)
+
+**Réponse de succès :**
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "type": "Bearer",
+    "login": "nom_utilisateur",
+    "role": "ADMIN"
+  }
+}
+```
 
 ---
 
-## 👥 GESTION DES UTILISATEURS
-**Base path:** `/api/users` | **Rôles requis:** ADMIN, INFORMATICIEN
+## 👤 UTILISATEURS
+**Base path:** `/api/users`
 
-### Lister tous les utilisateurs
-**GET** `/api/users`
+### Lister les utilisateurs
+**GET** `/api/users`  
+**Rôles:** ADMIN, INFORMATICIEN, CONTROLLEUR
 
 **Paramètres de requête :**
-- `page` (int, défaut: 0) - Numéro de page
-- `size` (int, défaut: 10) - Taille de page
+- `page` (défaut: 0) - Numéro de page
+- `size` (défaut: 10) - Taille de page
+- `sort` (défaut: "id,asc") - Champ et direction de tri
 
 **Réponse :**
 ```json
 {
   "success": true,
   "data": {
-    "utilisateurs": [
+    "users": [
       {
         "id": "uuid",
-        "login": "admin01",
-        "role": "ADMIN",
+        "login": "username",
+        "role": "ROLE_NAME",
         "premierConnexion": false,
         "bloque": false,
         "contribuable": null,
@@ -109,7 +128,8 @@ Toutes les réponses suivent cette structure :
 ```
 
 ### Créer un utilisateur
-**POST** `/api/users`
+**POST** `/api/users`  
+**Rôles:** ADMIN, INFORMATICIEN, CONTROLLEUR
 
 **Payload :**
 ```json
@@ -128,7 +148,8 @@ Toutes les réponses suivent cette structure :
 
 ### Bloquer/Débloquer un utilisateur
 **POST** `/api/users/{id}/block`  
-**POST** `/api/users/{id}/unblock`
+**POST** `/api/users/{id}/unblock`  
+**Rôles:** ADMIN, INFORMATICIEN, CONTROLLEUR
 
 **Messages de sortie :**
 - `"Utilisateur bloqué avec succès"`
@@ -149,54 +170,76 @@ Toutes les réponses suivent cette structure :
   "date": "2024-01-15T00:00:00Z",
   "montant": 50000.00,
   "typeImpot": "IF",
-  "exoneration": false,
-  "proprieteId": "propriete_uuid",
-  "concessionId": null,
-  "location": {
-    "type": "Point",
-    "coordinates": [-15.123456, 4.654321]
-  }
+  "proprieteId": "uuid",
+  "exercice": 2024,
+  "commentaire": "Déclaration impôt foncier 2024"
 }
 ```
 
-**Types d'impôts :**
-- `IF` - Impôt Foncier
-- `IRL` - Impôt sur les Revenus Locatifs
-- `ICM` - Impôt sur les Concessions Minières
-- `IRV` - Impôt sur les Revenus des Véhicules
-
 **Messages de sortie :**
 - Succès : `"Déclaration soumise avec succès"`
-- Erreur : `"Période de soumission fermée (autorisée du 2 janvier au 1er février)"`
-- Erreur : `"Géolocalisation obligatoire pour ce type d'impôt"`
-- Erreur : `"Propriété non trouvée"`
+- Erreur : `"Propriété non trouvée"`, `"Montant invalide"`, `"Période de déclaration fermée"`
 
-### Enregistrement manuel (Agent)
-**POST** `/api/declarations/manuelle`  
-**Rôles:** TAXATEUR, RECEVEUR_DES_IMPOTS
+### Valider une déclaration (Agent)
+**POST** `/api/declarations/{id}/valider`  
+**Rôles:** TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION
 
-**Payload :** Même structure que la soumission
+**Payload :**
+```json
+{
+  "commentaire": "Déclaration validée après vérification",
+  "montantCorrige": 55000.00
+}
+```
 
-### Lister les déclarations
-**GET** `/api/declarations`  
-**Rôles:** TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE
+**Messages de sortie :**
+- Succès : `"Déclaration validée avec succès"`
+- Erreur : `"Déclaration non trouvée"`, `"Déclaration déjà validée"`
 
-**Paramètres :** `page`, `size`, `typeImpot`, `statut`
+### Rejeter une déclaration (Agent)
+**POST** `/api/declarations/{id}/rejeter`  
+**Rôles:** TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION
 
-**Statuts de déclaration :**
-- `SOUMISE` - En attente de validation
-- `VALIDEE` - Validée par un agent
-- `REJETEE` - Rejetée
-- `PAYEE` - Payée
+**Payload :**
+```json
+{
+  "motifRejet": "Montant sous-évalué",
+  "commentaire": "Veuillez recalculer selon la formule officielle"
+}
+```
+
+**Messages de sortie :**
+- Succès : `"Déclaration rejetée avec succès"`
+- Erreur : `"Déclaration non trouvée"`, `"Déclaration déjà traitée"`
 
 ---
 
 ## 💰 GESTION DES PAIEMENTS
 **Base path:** `/api/paiements`
 
+### Enregistrer un paiement
+**POST** `/api/paiements`  
+**Rôles:** APUREUR, RECEVEUR_DES_IMPOTS, ADMIN, CONTROLLEUR
+
+**Payload :**
+```json
+{
+  "declarationId": "uuid",
+  "date": "2024-01-15T10:30:00Z",
+  "montant": 50000.00,
+  "mode": "BANQUE",
+  "bordereauBancaire": "BR2024001234",
+  "commentaire": "Paiement complet"
+}
+```
+
+**Messages de sortie :**
+- Succès : `"Paiement enregistré avec succès"`
+- Erreur : `"Déclaration non trouvée"`, `"Montant invalide"`
+
 ### Traiter un paiement
 **POST** `/api/paiements/process/{declarationId}`  
-**Rôles:** RECEVEUR_DES_IMPOTS
+**Rôles:** APUREUR, RECEVEUR_DES_IMPOTS, ADMIN, CONTROLLEUR
 
 **Paramètres de requête :**
 - `bordereauBancaire` (string, requis) - Numéro de bordereau bancaire
@@ -252,51 +295,37 @@ Toutes les réponses suivent cette structure :
 {
   "success": true,
   "data": {
-    "montantCalcule": 75000.00,
-    "tauxApplique": 0.15,
-    "baseCalcul": 500000.00,
-    "propriete": {
-      "superficie": 500.0,
-      "adresse": "123 Avenue de la Paix"
+    "montantBase": 45000.00,
+    "montantPenalites": 0.00,
+    "montantTotal": 45000.00,
+    "details": {
+      "superficie": 500,
+      "tauxZone": 3.5,
+      "coefficientType": 1.2
     }
   }
 }
 ```
 
-### Calculer IRV (Impôt sur Revenus Véhicules)
-**GET** `/api/taxation/calculate/irv`  
-**Rôles:** TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, CONTRIBUABLE
-
-**Paramètres de requête :**
-- `puissanceCV` (double, requis) - Puissance en chevaux
-- `poids` (double, requis) - Poids du véhicule
-
-**Exemple :** `GET /api/taxation/calculate/irv?puissanceCV=120&poids=1500`
-
 ---
 
-## 🗂️ COLLECTE DE TERRAIN
+## 📱 COLLECTE MOBILE
 **Base path:** `/api/collecte`
 
 ### Créer contribuable avec biens
 **POST** `/api/collecte/contribuables`  
-**Rôles:** CONTROLLEUR
+**Rôles:** CONTROLLEUR, ADMIN, INFORMATICIEN
 
 **Payload :**
 ```json
 {
-  "nom": "Jean Dupont",
-  "adressePrincipale": "123 Avenue de la Paix",
-  "adresseSecondaire": "Appartement 4B",
-  "telephonePrincipal": "+243123456789",
-  "telephoneSecondaire": "+243987654321",
-  "email": "jean.dupont@email.com",
-  "nationalite": "Congolaise",
-  "type": "PERSONNE_PHYSIQUE",
-  "idNat": "ID123456789",
-  "nrc": "NRC987654321",
-  "sigle": "JD",
-  "numeroIdentificationContribuable": "NIC001234567",
+  "contribuable": {
+    "nom": "Société XYZ",
+    "adresse": "456 Avenue du Commerce",
+    "telephone": "+243123456789",
+    "email": "contact@xyz.cd",
+    "type": "PERSONNE_MORALE"
+  },
   "biens": [
     {
       "type": "AP",
@@ -331,7 +360,7 @@ Toutes les réponses suivent cette structure :
 
 ### Créer un contribuable
 **POST** `/api/contribuables`  
-**Rôles:** ADMIN, DIRECTEUR, INFORMATICIEN
+**Rôles:** ADMIN, DIRECTEUR, INFORMATICIEN, CONTROLLEUR
 
 **Payload :**
 ```json
@@ -351,31 +380,122 @@ Toutes les réponses suivent cette structure :
 }
 ```
 
-**Types de contribuables :**
-- `PERSONNE_PHYSIQUE`
-- `PERSONNE_MORALE`
+### Lister tous les contribuables
+**GET** `/api/contribuables`  
+**Rôles:** ADMIN, DIRECTEUR, INFORMATICIEN, CONTROLLEUR, CHEF_DE_BUREAU
 
-**Messages de sortie :**
-- Succès : `"Contribuable créé avec succès"`
-- Erreur : `"NIC déjà existant"`, `"Email invalide"`, `"Données obligatoires manquantes"`
+**Paramètres de requête :**
+- `page` (défaut: 0) - Numéro de page
+- `size` (défaut: 10) - Taille de page
+- `sort` (défaut: "id,asc") - Champ et direction de tri
 
-## Divisions
-Controller: `DivisionController` — Base path: `/api/divisions`
+**Réponse :**
+```json
+{
+  "success": true,
+  "data": {
+    "contribuables": [
+      {
+        "id": "uuid",
+        "nom": "Société ABC SARL",
+        "adressePrincipale": "123 Avenue de la Paix",
+        "email": "contact@abc.cd",
+        "type": "PERSONNE_MORALE"
+      }
+    ],
+    "totalElements": 25,
+    "totalPages": 3
+  }
+}
+```
 
-- GET `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN
-- GET `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, CHEF_DE_BUREAU, CHEF_DE_DIVISION
-- POST `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN — Body: `Division`
-- PUT `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN — Body: `Division`
-- DELETE `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN
+---
 
-## Dossiers de Recouvrement
-Controller: `DossierRecouvrementController` — Base path: `/api/dossiers-recouvrement`
+## 🏠 GESTION DES PROPRIÉTÉS
+**Base path:** `/api/proprietes`
 
-- GET `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, CONTROLLEUR
-- GET `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, CONTROLLEUR, CHEF_DE_BUREAU
-- POST `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, CONTROLLEUR — Body: `DossierRecouvrement`
-- PUT `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, CONTROLLEUR — Body: `DossierRecouvrement`
-- DELETE `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN
+### Créer une propriété
+**POST** `/api/proprietes`  
+**Rôles:** ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CONTROLLEUR
+
+**Payload :**
+```json
+{
+  "designation": "Immeuble commercial",
+  "adresse": "123 Avenue du Commerce",
+  "superficie": 1500.0,
+  "latitude": -4.123456,
+  "longitude": 15.654321,
+  "contribuableId": "uuid",
+  "typeProprieteBatie": "IMMEUBLE_COMMERCIAL",
+  "nombreNiveaux": 5,
+  "nombrePieces": 20,
+  "materiaux": "DURABLE"
+}
+```
+
+### Lister les propriétés d'un contribuable
+**GET** `/api/proprietes/contribuable/{contribuableId}`  
+**Rôles:** ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU, CONTRIBUABLE, CONTROLLEUR
+
+**Réponse :**
+```json
+{
+  "success": true,
+  "data": {
+    "proprietes": [
+      {
+        "id": "uuid",
+        "designation": "Immeuble commercial",
+        "adresse": "123 Avenue du Commerce",
+        "superficie": 1500.0,
+        "latitude": -4.123456,
+        "longitude": 15.654321,
+        "typeProprieteBatie": "IMMEUBLE_COMMERCIAL"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 🔍 CONTRÔLE FISCAL
+**Base path:** `/api/controles`
+
+### Initier un contrôle fiscal
+**POST** `/api/controles`  
+**Rôles:** VERIFICATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, CONTROLLEUR
+
+**Payload :**
+```json
+{
+  "contribuableId": "uuid",
+  "dateDebut": "2024-01-15T00:00:00Z",
+  "dateFin": "2024-01-30T00:00:00Z",
+  "motif": "Vérification périodique",
+  "agentId": "uuid"
+}
+```
+
+### Valider un contrôle fiscal
+**POST** `/api/controles/{id}/valider`  
+**Rôles:** CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTROLLEUR
+
+**Payload :**
+```json
+{
+  "rapport": "Contrôle effectué avec succès. Aucune irrégularité détectée.",
+  "conclusion": "CONFORME"
+}
+```
+
+**Conclusions possibles :**
+- `CONFORME` - Aucune irrégularité
+- `NON_CONFORME` - Irrégularités détectées
+- `PARTIELLEMENT_CONFORME` - Quelques irrégularités mineures
+
+---
 
 ## Poursuites
 Controller: `PoursuiteController` — Base path: `/api/poursuites`
@@ -398,117 +518,40 @@ Controller: `RelanceController` — Base path: `/api/relances`
 ## Références (Publiques)
 Controller: `ReferenceDataController` — Base path: `/api/ref`
 
-- GET `/communes`
-- GET `/communes/{commune}/quartiers`
-- GET `/communes/{commune}/quartiers/{quartier}/avenues`
-- GET `/voitures/marques`
-- GET `/voitures/marques/{marque}/models`
+- GET `/types-contribuables` — Public
+- GET `/types-proprietes` — Public
+- GET `/types-materiaux` — Public
+- GET `/types-impots` — Public
+- GET `/taux-impots` — Public
 
-## Propriétés
-Controller: `ProprieteController` — Base path: `/api/proprietes`
-
-- GET `/` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, ADMIN, INFORMATICIEN
-- GET `/{id}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, ADMIN, INFORMATICIEN
-- GET `/mine` — Roles: CONTRIBUABLE
-- PATCH `/{id}/location` — Roles: CONTROLLEUR — Body: JSON map (latitude, longitude, etc.)
-- GET `/by-contribuable/{contribuableId}` — Roles: CONTROLLEUR
-
-## Concessions Minières
-Controller: `ConcessionMinierController` — Base path: `/api/concessions`
-
-- GET `/` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, ADMIN, INFORMATICIEN
-- GET `/{id}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, ADMIN, INFORMATICIEN
-- GET `/mine` — Roles: CONTRIBUABLE
-
-## Déclarations
-Controller: `DeclarationController` — Base path: `/api/declarations`
-
-- POST `/soumettre` — Roles: CONTRIBUABLE — Body: `DeclarationRequest`
-- POST `/manuelle` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS — Body: `DeclarationRequest`
-- GET `/` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`, (others per implementation)
-- GET `/{id}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE
-- GET `/type/{type}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-- GET `/statut/{statut}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-
-## Apurements
-Controller: `ApurementController` — Base path: `/api/apurements`
-
-- POST `/create/{declarationId}` — Roles: APUREUR, RECEVEUR_DES_IMPOTS — Query: `type` (TypeApurement)
-- POST `/validate/{apurementId}` — Roles: APUREUR, RECEVEUR_DES_IMPOTS
-- GET `/declaration/{declarationId}` — Roles: APUREUR, RECEVEUR_DES_IMPOTS, TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR
-- GET `/` — Roles: APUREUR, RECEVEUR_DES_IMPOTS, TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-
-## Paiements
-Controller: `PaiementController` — Base path: `/api/paiements`
-
-- POST `/process/{declarationId}` — Roles: RECEVEUR_DES_IMPOTS — Query: `bordereauBancaire` (string)
-- GET `/declaration/{declarationId}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE
-- GET `/` — Roles: RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-
-## Pénalités
-Controller: `PenaliteController` — Base path: `/api/penalites`
-
-- POST `/calculer/{declarationId}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS
-- POST `/ajuster/{penaltyId}` — Roles: CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `newAmount` (double)
-- GET `/declaration/{declarationId}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`
-- GET `/contribuable` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`
-
-## Taxation
+## Calcul IRV
 Controller: `TaxationController` — Base path: `/api/taxation`
 
-- POST `/property/{propertyId}` — Roles: TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION
-- POST `/concession/{concessionId}` — Roles: TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION
-- GET `/calculate/if/property/{propertyId}` — Roles: TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, CONTRIBUABLE
-- GET `/calculate/icm/concession/{concessionId}` — Roles: TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, CONTRIBUABLE
-- GET `/calculate/irl/property/{propertyId}` — Roles: TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, CONTRIBUABLE
 - GET `/calculate/irv` — Roles: TAXATEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, CONTRIBUABLE — Query: `puissanceCV`, `poids`
 
 ## Vignettes
 Controller: `VignetteController` — Base path: `/api/vignettes`
 
-- POST `/generate/{vehiculeId}` — Roles: TAXATEUR — Query: `dateExpirationMillis` (long)
-- GET `/{id}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE
-- GET `/vehicle/{vehiculeId}` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`
-- GET `/active` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-- GET `/expired` — Roles: TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
+- GET `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU
+- GET `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU
+- POST `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR — Body: `Vignette`
+- PUT `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR — Body: `Vignette`
+- DELETE `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN
 
 ## Plaques
 Controller: `PlaqueController` — Base path: `/api/plaques`
 
-- POST `/assign/{vehiculeId}` — Roles: AGENT_DE_PLAQUES
-- GET `/{id}` — Roles: AGENT_DE_PLAQUES, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR
-- GET `/` — Roles: AGENT_DE_PLAQUES, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-- GET `/vehicule/{vehiculeId}` — Roles: AGENT_DE_PLAQUES, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`
-- GET `/stock` — Roles: AGENT_DE_PLAQUES, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR
+- GET `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU
+- GET `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU
+- POST `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR — Body: `Plaque`
+- PUT `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR — Body: `Plaque`
+- DELETE `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN
 
 ## Certificats
 Controller: `CertificatController` — Base path: `/api/certificats`
 
-- POST `/property/{declarationId}` — Roles: AGENT_CERTIFICAT
-- POST `/vehicle/{vehiculeId}` — Roles: AGENT_CERTIFICAT
-- GET `/{id}` — Roles: AGENT_CERTIFICAT, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE
-- GET `/declaration/{declarationId}` — Roles: AGENT_CERTIFICAT, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`
-- GET `/vehicle/{vehiculeId}` — Roles: AGENT_CERTIFICAT, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, CONTRIBUABLE — Query: `page`, `size`
-- GET `/active` — Roles: AGENT_CERTIFICAT, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-- GET `/expired` — Roles: AGENT_CERTIFICAT, TAXATEUR, RECEVEUR_DES_IMPOTS, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size`
-
-## Collecte (Saisie Terrain)
-Controller: `CollecteController` — Base path: `/api/collecte`
-
-- POST `/contribuables` — Roles: CONTROLLEUR — Body: `CollecteContribuableRequest`
-
-## Contrôle Fiscal
-Controller: `ControleFiscalController` — Base path: `/api/controle-fiscal`
-
-- GET `/anomalies` — Roles: CONTROLLEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `page`, `size` (others per implementation)
-- GET `/rapport` — Roles: CONTROLLEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `startDate`, `endDate` (ISO date)
-- GET `/top-contributors` — Roles: CONTROLLEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR — Query: `limit`
-- GET `/delinquents` — Roles: CONTROLLEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR
-- GET `/dashboard` — Roles: CONTROLLEUR, CHEF_DE_BUREAU, CHEF_DE_DIVISION, DIRECTEUR, ADMIN, INFORMATICIEN
-
----
-
-## Notes
-- Most list endpoints support pagination via `page` and `size` query params.
-- Request/response schemas (DTOs and entities) can be found in the corresponding `model`, `dto`, `request`, or `entity` packages. Additions welcome to include JSON examples per endpoint.
-- Error responses include `error.code`, `error.message`, and optional `error.details`.
+- GET `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU
+- GET `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR, CHEF_DE_BUREAU
+- POST `/` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR — Body: `Certificat`
+- PUT `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN, TAXATEUR — Body: `Certificat`
+- DELETE `/{id}` — Roles: ADMIN, DIRECTEUR, INFORMATICIEN

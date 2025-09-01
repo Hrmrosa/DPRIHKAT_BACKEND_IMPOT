@@ -17,6 +17,10 @@ Ce guide explique comment installer, configurer, démarrer et utiliser l’API d
 - receveur1 / Tabc@123 — ROLE: RECEVEUR_DES_IMPOTS (login direct)
 - contrib1 / Tabc@123 — ROLE: CONTRIBUABLE (première connexion requise)
 - contrib2 / Tabc@123 — ROLE: CONTRIBUABLE (login direct) — à utiliser pour tester `/api/proprietes/mine` et `/api/concessions/mine`
+- controlleur1 / Controlleur@2025 — ROLE: CONTROLLEUR (login direct) — à utiliser pour tester la collecte mobile et la visualisation des contribuables
+- informaticien1 / Informaticien@2025 — ROLE: INFORMATICIEN (login direct) — à utiliser pour tester la collecte mobile
+
+---
 
 ## 1) Prérequis
 - Java 17
@@ -69,7 +73,7 @@ D’après `SecurityConfig`:
 - `PUT /api/penalites/ajuster`: `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `DIRECTEUR`
 - Autres: authentification requise
 
-Collecte de données (mobile) — uniquement `CONTROLLEUR`:
+Collecte de données (mobile) — uniquement `CONTROLLEUR`, `INFORMATICIEN`:
 - `PATCH /api/proprietes/{id}/location` (mise à jour du point géo d’un bien existant)
 - `GET /api/proprietes/by-contribuable/{contribuableId}` (lister les biens d’un contribuable)
 - `POST /api/collecte/contribuables` (créer un contribuable et ses biens avec géolocalisation)
@@ -136,7 +140,7 @@ Renvoie uniquement les biens du contribuable authentifié.
 
 ---
 
-### 6.7 Collecte mobile (uniquement CONTROLLEUR)
+### 6.7 Collecte mobile (CONTROLLEUR, INFORMATICIEN)
 
 Mettre à jour la localisation d’un bien existant:
 ```bash

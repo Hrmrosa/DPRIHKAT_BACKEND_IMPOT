@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtils {
@@ -22,10 +23,10 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
-        String username = authentication.getName();
+        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userPrincipal.getId().toString()) // Utiliser l'UUID au lieu du login
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key(), SignatureAlgorithm.HS256)
@@ -36,9 +37,14 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String getUserNameFromJwtToken(String token) {
+    public String getUserIdFromJwtToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key()).build()
                 .parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public UUID getUserUUIDFromJwtToken(String token) {
+        String id = getUserIdFromJwtToken(token);
+        return UUID.fromString(id);
     }
 
     public boolean validateJwtToken(String authToken) {

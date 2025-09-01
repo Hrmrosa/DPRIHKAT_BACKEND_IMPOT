@@ -1,6 +1,6 @@
-# Authentification JWT — Guide d’utilisation (FR)
+# Authentification JWT — Guide d'utilisation (FR)
 
-Ce document décrit en détail les endpoints d’authentification, le flux de connexion et de changement de mot de passe, la génération/validation de JWT, ainsi que les règles d’accès par rôle pour l’API des Impôts du Haut-Katanga.
+Ce document décrit en détail les endpoints d'authentification, le flux de connexion et de changement de mot de passe, la génération/validation de JWT, ainsi que les règles d'accès par rôle pour l'API des Impôts du Haut-Katanga.
 
 Références code:
 - Contrôleur: `src/main/java/com/DPRIHKAT/controller/AuthController.java`
@@ -9,11 +9,11 @@ Références code:
 - Filtre JWT: `src/main/java/com/DPRIHKAT/security/JwtAuthFilter.java`
 - DTOs: `src/main/java/com/DPRIHKAT/dto/LoginRequest.java`, `src/main/java/com/DPRIHKAT/dto/JwtResponse.java`
 - Rôles: `src/main/java/com/DPRIHKAT/entity/enums/Role.java`
-- Propriétés: `src/main/resources/application.properties` (ou `target/classes/application.properties` à l’exécution)
+- Propriétés: `src/main/resources/application.properties` (ou `target/classes/application.properties` à l'exécution)
 
 ---
 
-## 1) Endpoints d’authentification
+## 1) Endpoints d'authentification
 
 ### 1.1 Connexion
 - Méthode/URL: `POST /api/auth/login`
@@ -99,54 +99,151 @@ curl -X POST http://localhost:8080/api/auth/change-password \
 
 ---
 
-## 2) JWT: génération, validation et usage
+## 2) Structure et fonctionnement du JWT
 
-- Génération: `JwtUtils.generateJwtToken(Authentication)`
-  - Algorithme: HS256
-  - Subject: le login de l’utilisateur
-  - Paramètres: `app.jwtSecret`, `app.jwtExpirationMs`
-- Validation: `JwtUtils.validateJwtToken(token)`
-- Filtrage des requêtes: `JwtAuthFilter`
-  - Extrait le token depuis l’en-tête `Authorization: Bearer <JWT>`
-  - Valide le token et charge l’utilisateur dans le contexte Spring Security
+### 2.1 Contenu du token
+Le token JWT contient les informations suivantes:
+- **Subject**: UUID de l'utilisateur (identifiant unique)
+- **Issued At**: Date d'émission du token
+- **Expiration**: Date d'expiration du token (configurable via `jwt.expirationMs`)
+- **Signature**: Signature HMAC-SHA256 avec la clé secrète
 
-### En-têtes requis pour les endpoints protégés
-- `Authorization: Bearer <JWT_TOKEN>`
+> **Sécurité améliorée**: Le token ne contient plus directement le login ni le rôle de l'utilisateur. Ces informations sont récupérées depuis la base de données à chaque requête authentifiée, ce qui renforce la sécurité et permet de révoquer des droits sans avoir à invalider les tokens existants.
 
-### Durée de vie
-- Le jeton expire après `app.jwtExpirationMs` millisecondes.
+### 2.2 Configuration
+La configuration JWT se fait via les propriétés suivantes:
+- `jwt.secret`: Clé secrète pour signer les tokens (OBLIGATOIRE)
+- `jwt.expirationMs`: Durée de validité en millisecondes (défaut: 86400000 = 24h)
 
-### Propriétés (exemple)
+Ces propriétés peuvent être définies dans `application.properties` ou via des variables d'environnement:
+```properties
+# Dans application.properties
+jwt.secret=votre_clé_secrète_très_longue_et_complexe
+jwt.expirationMs=86400000
 ```
-app.jwtSecret=...votre clef secrète...
-app.jwtExpirationMs=86400000
-app.jwtRefreshExpirationMs=864000000 # présent mais pas utilisé (pas d’endpoint de refresh)
+
+```bash
+# Variables d'environnement
+export JWT_SECRET=votre_clé_secrète_très_longue_et_complexe
+export JWT_EXPIRATION_MS=86400000
 ```
+
+### 2.3 Flux d'authentification
+1. L'utilisateur envoie ses identifiants (login/mot de passe)
+2. Le serveur vérifie les identifiants et génère un token JWT contenant l'UUID de l'utilisateur
+3. Le client stocke ce token et l'inclut dans l'en-tête `Authorization: Bearer <token>` pour les requêtes suivantes
+4. Pour chaque requête authentifiée:
+   - Le serveur extrait l'UUID du token
+   - Il récupère l'utilisateur complet depuis la base de données
+   - Il vérifie les autorisations basées sur le rôle actuel de l'utilisateur
 
 ---
 
-## 3) Contrôle d’accès par rôle (extrait)
+## 3) Rôles et autorisations
 
-Source: `SecurityConfig`
-- Accès public: `/api/auth/**`
-- `POST /api/declarations/soumettre`: `CONTRIBUABLE`
-- `POST /api/declarations/manuelle`: `TAXATEUR`, `RECEVEUR_DES_IMPOTS`
-- `/api/plaques/**`: `TAXATEUR`, `RECEVEUR_DES_IMPOTS`
-- `PUT /api/penalites/ajuster`: `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `DIRECTEUR`
-- Autres endpoints: authentification requise
+Le système utilise les rôles suivants avec leurs permissions associées:
 
-Enum des rôles: voir `Role.java`.
+### 3.1 Rôles administratifs
+- **ADMIN**: Accès complet à toutes les fonctionnalités
+- **INFORMATICIEN**: Gestion des utilisateurs, configuration système, participation à la collecte de données terrain
+- **CONTROLLEUR**: Visualisation des contribuables et collecte de données terrain
+
+### 3.2 Rôles de direction
+- **DIRECTEUR**: Visualisation de toutes les données et statistiques
+- **CHEF_DE_DIVISION**: Gestion des bureaux et agents de sa division
+- **CHEF_DE_BUREAU**: Gestion des agents de son bureau
+
+### 3.3 Rôles opérationnels
+- **TAXATEUR**: Gestion des contribuables, propriétés et taxation
+- **VERIFICATEUR**: Contrôles fiscaux et vérifications
+- **APUREUR**: Validation des paiements
+- **RECEVEUR_DES_IMPOTS**: Gestion des recouvrements
+
+### 3.4 Rôle externe
+- **CONTRIBUABLE**: Accès limité à ses propres données et déclarations
+
+### 3.5 Matrice d'accès par endpoint
+
+| Endpoint                | ADMIN | INFORMATICIEN | DIRECTEUR | CHEF_DIV | CHEF_BUR | TAXATEUR | VERIF | CONTROLLEUR | APUREUR | RECEVEUR | CONTRIB |
+|-------------------------|-------|---------------|-----------|----------|----------|----------|-------|-------------|---------|----------|---------|
+| /api/users/**           | ✓     | ✓             |           |          |          |          |       |             |         |          |         |
+| /api/contribuables/**   | ✓     | ✓             | ✓         | ✓        | ✓        | ✓        | ✓     | ✓           |         |          | (self)  |
+| /api/proprietes/**      | ✓     | ✓             | ✓         | ✓        | ✓        | ✓        | ✓     |             |         |          | (self)  |
+| /api/declarations/**    | ✓     | ✓             | ✓         | ✓        | ✓        | ✓        | ✓     |             | ✓       | ✓        | (self)  |
+| /api/paiements/**       | ✓     | ✓             | ✓         | ✓        | ✓        |          |       |             | ✓       | ✓        | (self)  |
+| /api/collecte/**        | ✓     | ✓             |           |          |          |          |       | ✓           |         |          |         |
+| /api/controles/**       | ✓     | ✓             | ✓         | ✓        | ✓        |          | ✓     |             |         |          |         |
+| /api/poursuites/**      | ✓     | ✓             | ✓         |          |          |          |       | ✓           |         | ✓        |         |
+| /api/relances/**        | ✓     | ✓             | ✓         |          |          |          |       | ✓           |         | ✓        |         |
+
+> Note: (self) indique que l'utilisateur n'a accès qu'à ses propres données
 
 ---
 
-## 4) Flux de première connexion
+## 4) Sécurité JWT
 
-1) Appel `POST /api/auth/login` avec identifiants initiaux
-2) Réponse:
-   - `premiereConnexion=true` (pas de token) + message
-3) L’application cliente doit afficher le formulaire de changement de mot de passe
-4) Appel `POST /api/auth/change-password` avec `login`, `oldPassword`, `newPassword`
-5) En cas de succès, l’utilisateur peut relancer `login` et recevra un JWT
+### 4.1 Structure du Token
+
+Le token JWT est généré avec une structure sécurisée:
+
+- **Payload**: Contient uniquement l'identifiant unique (UUID) de l'utilisateur
+- **Signature**: Utilise l'algorithme HMAC-SHA256 avec une clé secrète
+- **Expiration**: Configurée via la propriété `jwt.expirationMs` (par défaut: 86400000 ms = 24h)
+
+> **Note de sécurité**: Le token ne contient pas directement le login ou le rôle de l'utilisateur. Ces informations sont récupérées depuis la base de données lors de la validation du token, ce qui renforce la sécurité et garantit que les informations sont toujours à jour.
+
+### 4.2 Flux d'authentification
+
+1. L'utilisateur envoie ses identifiants (login/mot de passe)
+2. Le serveur vérifie les identifiants et génère un token JWT contenant uniquement l'UUID de l'utilisateur
+3. Le client stocke ce token et l'inclut dans l'en-tête `Authorization: Bearer <token>` pour les requêtes suivantes
+4. Pour chaque requête authentifiée:
+   - Le serveur extrait l'UUID du token
+   - Il récupère l'utilisateur complet depuis la base de données
+   - Il vérifie les autorisations basées sur le rôle actuel de l'utilisateur
+
+### 4.3 Configuration
+
+La configuration JWT se trouve dans `application.properties`:
+
+```properties
+# JWT Properties
+jwt.secret=votreCléSecrète
+jwt.expirationMs=86400000
+```
+
+Pour des raisons de sécurité, il est recommandé de définir ces valeurs via des variables d'environnement en production:
+
+```properties
+jwt.secret=${JWT_SECRET}
+jwt.expirationMs=${JWT_EXPIRATION_MS:86400000}
+```
+
+### 4.4 Nouvelle structure du token JWT
+
+La nouvelle structure du token JWT a été améliorée pour renforcer la sécurité :
+
+- **Header**: Contient le type de token (JWT) et l'algorithme de signature (HS256)
+- **Payload**: Contient **uniquement** l'identifiant unique (UUID) de l'utilisateur comme sujet du token
+  - Ne contient plus directement le login ni le rôle de l'utilisateur
+- **Signature**: Utilise l'algorithme HMAC-SHA256 avec une clé secrète pour garantir l'intégrité et l'authenticité du token
+
+Voici un exemple simplifié du payload du token JWT avec la nouvelle structure :
+
+```json
+{
+  "sub": "550e8400-e29b-41d4-a716-446655440000", // UUID de l'utilisateur
+  "iat": 1516239022,                             // Date d'émission
+  "exp": 1516325422                              // Date d'expiration
+}
+```
+
+Cette nouvelle approche présente plusieurs avantages :
+1. **Sécurité renforcée** : Les informations sensibles comme le login et le rôle ne sont pas exposées dans le token
+2. **Données toujours à jour** : Les informations de l'utilisateur sont récupérées depuis la base de données à chaque requête
+3. **Révocation facilitée** : Si un utilisateur est bloqué ou si son rôle change, les modifications sont prises en compte immédiatement
+
+> **Note importante** : Bien que le token ne contienne plus le login et le rôle, la réponse d'authentification envoyée au client contient toujours ces informations pour maintenir la compatibilité avec le frontend existant.
 
 ---
 
