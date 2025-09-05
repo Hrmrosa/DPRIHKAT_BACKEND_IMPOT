@@ -7,6 +7,7 @@ com/DPRIHKAT/entity/enums/StatutPaiement.class
 com/DPRIHKAT/entity/Agent.class
 com/DPRIHKAT/entity/enums/TypePoursuite.class
 com/DPRIHKAT/entity/enums/TypeContribuable.class
+com/DPRIHKAT/controller/GeoDataController.class
 com/DPRIHKAT/controller/ReferenceDataController.class
 com/DPRIHKAT/security/UserDetailsServiceImpl.class
 com/DPRIHKAT/controller/CollecteController.class
@@ -39,8 +40,10 @@ com/DPRIHKAT/controller/DeclarationController.class
 com/DPRIHKAT/service/ReferenceDataService$2.class
 com/DPRIHKAT/entity/Penalite.class
 com/DPRIHKAT/entity/enums/StatutDeclaration.class
+com/DPRIHKAT/dto/BureauRequestDTO.class
 com/DPRIHKAT/service/VignetteService$VehicleInfo.class
 com/DPRIHKAT/repository/UtilisateurRepository.class
+com/DPRIHKAT/dto/ContribuableSimpleDTO.class
 com/DPRIHKAT/dto/MessageResponse.class
 com/DPRIHKAT/config/TestDataSeeder.class
 com/DPRIHKAT/entity/enums/Sexe.class
@@ -98,6 +101,8 @@ com/DPRIHKAT/service/PoursuiteService.class
 com/DPRIHKAT/service/TaxationService.class
 com/DPRIHKAT/service/RelanceService.class
 com/DPRIHKAT/entity/enums/TypeImpot.class
+com/DPRIHKAT/dto/ProprieteGeoDTO.class
+com/DPRIHKAT/config/LubumbashiGeoDataSeeder.class
 com/DPRIHKAT/repository/DossierRecouvrementRepository.class
 com/DPRIHKAT/dto/BureauResponseDTO.class
 com/DPRIHKAT/entity/enums/TypeApurement.class

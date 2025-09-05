@@ -1,5 +1,6 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/DpriImpotsApplication.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/JpaConfig.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/LubumbashiGeoDataSeeder.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/SecurityConfig.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/TestDataSeeder.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/AgentController.java
@@ -14,6 +15,7 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/DeclarationController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/DivisionController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/DossierRecouvrementController.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/GeoDataController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/PaiementController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/PenaliteController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/PlaqueController.java
@@ -27,9 +29,11 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/AgentResponseDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/AgentSimpleDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/BienDTO.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/BureauRequestDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/BureauResponseDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/BureauSimpleDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/CollecteContribuableRequest.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/ContribuableSimpleDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/DashboardStatsDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/DeclarationRequest.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/DivisionResponseDTO.java
@@ -37,6 +41,7 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/JwtResponse.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/LoginRequest.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/MessageResponse.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/ProprieteGeoDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/RapportFiscalDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Agent.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Apurement.java

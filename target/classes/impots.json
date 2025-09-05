@@ -1,0 +1,29 @@
+{
+  "impots": [
+    {
+      "code": "IF",
+      "nom": "Impot foncier",
+      "description": "Impot sur les propriétés foncières"
+    },
+    {
+      "code": "ICM",
+      "nom": "Impot sur les concession minière",
+      "description": "Impot sur les concessions minières"
+    },
+    {
+      "code": "IRV",
+      "nom": "Impot réel sur le véhicule",
+      "description": "Impot réel sur le véhicule ou vignette"
+    },
+    {
+      "code": "IRL",
+      "nom": "Impot sur revenu locatif",
+      "description": "Impot sur les revenus locatifs"
+    },
+    {
+      "code": "RL",
+      "nom": "Retenue locative",
+      "description": "Retenue locative correspondant à 20% de l'IRL"
+    }
+  ]
+}

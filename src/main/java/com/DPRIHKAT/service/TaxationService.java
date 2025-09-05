@@ -1,13 +1,15 @@
 package com.DPRIHKAT.service;
 
-import com.DPRIHKAT.entity.Agent;
-import com.DPRIHKAT.entity.ConcessionMinier;
-import com.DPRIHKAT.entity.Declaration;
-import com.DPRIHKAT.entity.Propriete;
+import com.DPRIHKAT.entity.*;
+import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
-import com.DPRIHKAT.repository.DeclarationRepository;
+import com.DPRIHKAT.repository.ProprieteImpotRepository;
+import com.DPRIHKAT.repository.ProprieteRepository;
+import com.DPRIHKAT.repository.TaxationRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -15,88 +17,175 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+/**
+ * Service pour gérer les taxations des biens et concessions
+ * @author amateur
+ */
 @Service
 public class TaxationService {
 
-    @Autowired
-    private DeclarationRepository declarationRepository;
+    private static final Logger logger = LoggerFactory.getLogger(TaxationService.class);
 
     @Autowired
-    private DeclarationService declarationService;
+    private TaxationRepository taxationRepository;
+    
+    @Autowired
+    private ProprieteRepository proprieteRepository;
+    
+    @Autowired
+    private ProprieteImpotRepository proprieteImpotRepository;
 
     /**
-     * Generate tax note for a property
+     * Récupère toutes les taxations
+     * @return Liste de toutes les taxations
      */
-    public Declaration generateTaxNoteForProperty(Propriete propriete, Agent agent) throws IOException {
-        // Check if a tax note already exists for this property and year
-        int year = LocalDate.now().getYear();
-        int count = declarationRepository.countByProprieteAndTypeAndAnnee(
-                propriete.getId(),
-                TypeImpot.IF,  // Assuming IF for property taxation
-                year);
-        
-        if (count > 0) {
-            throw new RuntimeException("Une note de taxation pour ce bien et cette année existe déjà");
-        }
-
-        // Create a declaration for taxation
-        Declaration declaration = new Declaration();
-        declaration.setTypeImpot(TypeImpot.IF);
-        declaration.setPropriete(propriete); // Utiliser setPropriete au lieu de setLocation
-        declaration.setAgentValidateur(agent);
-        
-        // Calculate tax amount
-        double montant = calculateTaxForProperty(propriete);
-        declaration.setMontant(montant);
-        
-        // Set status to TAXED
-        // declaration.setStatut(StatutDeclaration.TAXEE); // Uncomment when StatutDeclaration is available
-        
-        return declarationRepository.save(declaration);
+    public List<Taxation> getAllTaxations() {
+        return taxationRepository.findAll();
     }
 
     /**
-     * Generate tax note for a mining concession
+     * Récupère toutes les taxations actives
+     * @return Liste des taxations actives
      */
-    public Declaration generateTaxNoteForConcession(ConcessionMinier concession, Agent agent) throws IOException {
-        // Check if a tax note already exists for this concession and year
-        int year = LocalDate.now().getYear();
-        int count = declarationRepository.countByConcessionAndTypeAndAnnee(
-                concession.getId(),
-                TypeImpot.ICM,
-                year);
-        
-        if (count > 0) {
-            throw new RuntimeException("Une note de taxation pour cette concession et cette année existe déjà");
-        }
-
-        // Create a declaration for taxation
-        Declaration declaration = new Declaration();
-        declaration.setTypeImpot(TypeImpot.ICM);
-        declaration.setConcession(concession); // Utiliser setConcession
-        declaration.setAgentValidateur(agent);
-        
-        // Calculate tax amount
-        double montant = calculateTaxForConcession(concession);
-        declaration.setMontant(montant);
-        
-        // Set status to TAXED
-        // declaration.setStatut(StatutDeclaration.TAXEE); // Uncomment when StatutDeclaration is available
-        
-        return declarationRepository.save(declaration);
+    public List<Taxation> getAllActiveTaxations() {
+        return taxationRepository.findByActifTrue();
     }
 
     /**
-     * Calculate IF tax for a property based on rates in taux_if.json
+     * Récupère une taxation par son ID
+     * @param id L'ID de la taxation
+     * @return La taxation correspondante, si elle existe
+     */
+    public Optional<Taxation> getTaxationById(UUID id) {
+        return taxationRepository.findById(id);
+    }
+
+    /**
+     * Récupère toutes les taxations pour une propriété donnée
+     * @param proprieteId L'ID de la propriété
+     * @return Liste des taxations pour cette propriété
+     */
+    public List<Taxation> getTaxationsByProprieteId(UUID proprieteId) {
+        return proprieteRepository.findById(proprieteId)
+                .map(propriete -> taxationRepository.findByProprieteAndActifTrue(propriete))
+                .orElse(Collections.emptyList());
+    }
+
+    /**
+     * Récupère toutes les taxations pour un exercice donné
+     * @param exercice L'exercice (année fiscale)
+     * @return Liste des taxations pour cet exercice
+     */
+    public List<Taxation> getTaxationsByExercice(Integer exercice) {
+        return taxationRepository.findByExerciceAndActifTrue(exercice);
+    }
+
+    /**
+     * Récupère toutes les taxations pour un type d'impôt donné
+     * @param typeImpot Le type d'impôt
+     * @return Liste des taxations pour ce type d'impôt
+     */
+    public List<Taxation> getTaxationsByTypeImpot(TypeImpot typeImpot) {
+        return taxationRepository.findByTypeImpotAndActifTrue(typeImpot);
+    }
+
+    /**
+     * Récupère toutes les taxations pour un statut donné
+     * @param statut Le statut de la taxation
+     * @return Liste des taxations pour ce statut
+     */
+    public List<Taxation> getTaxationsByStatut(StatutTaxation statut) {
+        return taxationRepository.findByStatutAndActifTrue(statut);
+    }
+
+    /**
+     * Génère une taxation pour une propriété
+     * @param proprieteId L'ID de la propriété
+     * @param natureImpotId L'ID de la nature d'impôt
+     * @param exercice L'exercice (année fiscale)
+     * @param agentTaxateurId L'ID de l'agent taxateur
+     * @return La taxation générée
+     */
+    public Taxation generateTaxationForProperty(UUID proprieteId, UUID natureImpotId, Integer exercice, UUID agentTaxateurId) throws Exception {
+        // Vérifier si la propriété existe
+        Propriete propriete = proprieteRepository.findById(proprieteId)
+                .orElseThrow(() -> new Exception("Propriété non trouvée avec l'ID: " + proprieteId));
+        
+        // Vérifier si le lien propriété-impôt existe
+        ProprieteImpot proprieteImpot = proprieteImpotRepository.findById(natureImpotId)
+                .orElseThrow(() -> new Exception("Nature d'impôt non trouvée avec l'ID: " + natureImpotId));
+        
+        // Vérifier si une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice
+        List<Taxation> existingTaxations = taxationRepository.findByProprieteAndTypeImpotAndExerciceAndActifTrue(
+                propriete, proprieteImpot.getNatureImpot().getCode(), exercice);
+        
+        if (!existingTaxations.isEmpty()) {
+            throw new Exception("Une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice");
+        }
+        
+        // Créer la taxation
+        Taxation taxation = new Taxation();
+        taxation.setDateTaxation(new Date());
+        taxation.setExercice(exercice);
+        taxation.setStatut(StatutTaxation.EN_ATTENTE);
+        taxation.setTypeImpot(proprieteImpot.getNatureImpot().getCode());
+        taxation.setExoneration(false);
+        taxation.setPropriete(propriete);
+        taxation.setProprieteImpot(proprieteImpot);
+        
+        // Calculer le montant de la taxation
+        double montant = calculateTaxAmount(propriete, proprieteImpot);
+        taxation.setMontant(montant);
+        
+        // Définir la date d'échéance (par défaut, fin de l'année fiscale)
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(exercice, Calendar.DECEMBER, 31);
+        taxation.setDateEcheance(calendar.getTime());
+        
+        // Sauvegarder la taxation
+        return taxationRepository.save(taxation);
+    }
+
+    /**
+     * Calcule le montant de la taxation pour une propriété et une nature d'impôt
+     * @param propriete La propriété
+     * @param proprieteImpot Le lien propriété-impôt
+     * @return Le montant de la taxation
+     */
+    private double calculateTaxAmount(Propriete propriete, ProprieteImpot proprieteImpot) throws IOException {
+        // Si un taux d'imposition est défini dans le lien propriété-impôt, l'utiliser
+        if (proprieteImpot.getTauxImposition() != null) {
+            // Selon le type de propriété, appliquer le taux différemment
+            switch (propriete.getType()) {
+                case VI:
+                case AT:
+                    // Pour les villas et ateliers, le taux est appliqué à la superficie
+                    return proprieteImpot.getTauxImposition() * propriete.getSuperficie();
+                case AP:
+                case CITERNE:
+                case DEPOT:
+                case CH:
+                case TE:
+                    // Pour les autres types, le taux est un montant fixe
+                    return proprieteImpot.getTauxImposition();
+                default:
+                    return 0.0;
+            }
+        } else {
+            // Sinon, utiliser les taux définis dans le fichier JSON
+            return calculateTaxForProperty(propriete);
+        }
+    }
+
+    /**
+     * Calcule le montant de la taxation pour une propriété selon les taux définis dans taux_if.json
+     * @param propriete La propriété
+     * @return Le montant de la taxation
      */
     public double calculateTaxForProperty(Propriete propriete) throws IOException {
-        // Load IF rates from JSON file
+        // Charger les taux depuis le fichier JSON
         ClassPathResource resource = new ClassPathResource("taux_if.json");
         InputStream inputStream = resource.getInputStream();
         ObjectMapper mapper = new ObjectMapper();
@@ -113,12 +202,12 @@ public class TaxationService {
 
         double rate = rateNode.asDouble();
         
-        // Calculate based on property type
+        // Calculer selon le type de propriété
         if ("villas".equals(propertyType) || "commercial".equals(propertyType)) {
-            // Rate per square meter
+            // Taux par mètre carré
             return rate * propriete.getSuperficie();
         } else if ("appartements".equals(propertyType) || "domestic".equals(propertyType)) {
-            // Fixed rate
+            // Taux fixe
             return rate;
         }
         
@@ -126,113 +215,107 @@ public class TaxationService {
     }
 
     /**
-     * Calculate ICM tax for a mining concession based on rates in taux_icm.json
+     * Met à jour le statut d'une taxation
+     * @param id L'ID de la taxation
+     * @param statut Le nouveau statut
+     * @return La taxation mise à jour, si elle existe
      */
-    public double calculateTaxForConcession(ConcessionMinier concession) throws IOException {
-        // Load ICM rates from JSON file
-        ClassPathResource resource = new ClassPathResource("taux_icm.json");
-        InputStream inputStream = resource.getInputStream();
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(inputStream);
-
-        String concessionType = concession.getType().name().toLowerCase();
-        String annexe = concession.getAnnexe();
-        String contribuableType = concession.getTitulaire().getType().name().toLowerCase();
-
-        JsonNode rateNode = rootNode.path(concessionType).path(annexe).path(contribuableType);
-        if (rateNode.isMissingNode()) {
-            throw new RuntimeException("Taux ICM non trouvé pour le type de concession: " + concessionType + ", annexe: " + annexe + ", contribuable: " + contribuableType);
-        }
-
-        double rate = rateNode.asDouble();
-        
-        // Rate per hectare
-        return rate * concession.getNombreCarresMinier();
+    public Optional<Taxation> updateTaxationStatus(UUID id, StatutTaxation statut) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setStatut(statut);
+                    return taxationRepository.save(taxation);
+                });
     }
 
     /**
-     * Calculate IRL tax (22% of property value)
+     * Marque une taxation comme payée
+     * @param id L'ID de la taxation
+     * @param paiement Le paiement associé
+     * @return La taxation mise à jour, si elle existe
      */
-    public double calculateIRL(Propriete propriete) {
-        // 22% rate for IRL
-        return propriete.getMontantImpot() * 0.22;
+    public Optional<Taxation> markTaxationAsPaid(UUID id, Paiement paiement) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setPaiement(paiement);
+                    taxation.setStatut(StatutTaxation.PAYEE);
+                    return taxationRepository.save(taxation);
+                });
     }
 
     /**
-     * Calculate IRV tax based on vehicle characteristics
+     * Marque une taxation comme partiellement payée
+     * @param id L'ID de la taxation
+     * @param paiement Le paiement associé
+     * @return La taxation mise à jour, si elle existe
      */
-    public double calculateIRV(double puissanceCV, double poids) {
-        // Base rate + additional based on weight
-        double baseRate = 54.0; // Base rate for <2.5T person
-        
-        if (poids < 2500) { // <2.5T
-            return baseRate + (19.0); // TSCR
-        } else {
-            // For heavier vehicles, adjust calculation as needed
-            return baseRate + (poids / 1000) * 10; // Example calculation
-        }
+    public Optional<Taxation> markTaxationAsPartiallyPaid(UUID id, Paiement paiement) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setPaiement(paiement);
+                    taxation.setStatut(StatutTaxation.PAYEE_PARTIELLEMENT);
+                    return taxationRepository.save(taxation);
+                });
     }
 
     /**
-     * Get all taxed declarations for an agent
+     * Marque une taxation comme apurée
+     * @param id L'ID de la taxation
+     * @param apurement L'apurement associé
+     * @return La taxation mise à jour, si elle existe
      */
-    public List<Declaration> getTaxedDeclarationsForAgent(UUID agentId) {
-        // This would need a custom query in DeclarationRepository
-        // return declarationRepository.findByAgentValidateurIdAndStatut(agentId, StatutDeclaration.TAXEE);
-        return null; // Placeholder
-    }
-
-    public double calculateIF(Declaration declaration) {
-        try {
-            Propriete propriete = declaration.getPropriete();
-            if (propriete == null) {
-                throw new RuntimeException("Aucune propriété associée à la déclaration IF");
-            }
-            return calculateTaxForProperty(propriete);
-        } catch (IOException e) {
-            throw new RuntimeException("Erreur lors du calcul de l'IF: " + e.getMessage());
-        }
-    }
-    
-    public double calculateICM(Declaration declaration) {
-        try {
-            ConcessionMinier concession = declaration.getConcession();
-            if (concession == null) {
-                throw new RuntimeException("Aucune concession associée à la déclaration ICM");
-            }
-            return calculateTaxForConcession(concession);
-        } catch (IOException e) {
-            throw new RuntimeException("Erreur lors du calcul de l'ICM: " + e.getMessage());
-        }
+    public Optional<Taxation> markTaxationAsSettled(UUID id, Apurement apurement) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setApurement(apurement);
+                    taxation.setStatut(StatutTaxation.APUREE);
+                    return taxationRepository.save(taxation);
+                });
     }
 
     /**
-     * Load tax rules from JSON file
+     * Accorde une exonération pour une taxation
+     * @param id L'ID de la taxation
+     * @param motif Le motif de l'exonération
+     * @return La taxation mise à jour, si elle existe
      */
-    private JsonNode loadTaxRules(String fileName) throws IOException {
-        ClassPathResource resource = new ClassPathResource(fileName);
-        InputStream inputStream = resource.getInputStream();
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readTree(inputStream);
+    public Optional<Taxation> grantExemption(UUID id, String motif) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setExoneration(true);
+                    taxation.setMotifExoneration(motif);
+                    taxation.setStatut(StatutTaxation.EXONEREE);
+                    return taxationRepository.save(taxation);
+                });
     }
 
     /**
-     * Check if surface is in range
+     * Désactive une taxation (suppression logique)
+     * @param id L'ID de la taxation à désactiver
+     * @return true si la taxation a été désactivée, false sinon
      */
-    private boolean isSurfaceInRange(double surface, String range) {
-        // Parse range string like "0-100", "101-200", etc.
-        if (range.contains("-")) {
-            String[] parts = range.split("-");
-            double min = Double.parseDouble(parts[0]);
-            double max = Double.parseDouble(parts[1]);
-            return surface >= min && surface <= max;
-        } else if (range.startsWith(">")) {
-            double min = Double.parseDouble(range.substring(1));
-            return surface > min;
-        } else if (range.startsWith("<")) {
-            double max = Double.parseDouble(range.substring(1));
-            return surface < max;
-        }
-        return false;
+    public boolean deactivateTaxation(UUID id) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setActif(false);
+                    taxationRepository.save(taxation);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    /**
+     * Active une taxation
+     * @param id L'ID de la taxation à activer
+     * @return true si la taxation a été activée, false sinon
+     */
+    public boolean activateTaxation(UUID id) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    taxation.setActif(true);
+                    taxationRepository.save(taxation);
+                    return true;
+                })
+                .orElse(false);
     }
 }

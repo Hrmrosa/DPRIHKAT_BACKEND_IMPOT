@@ -51,6 +51,8 @@ public class Contribuable {
     private String sigle;
 
     private String numeroIdentificationContribuable;
+    
+    private boolean actif = true; // Champ pour la suppression logique
 
     @OneToMany(mappedBy = "proprietaire")
     private List<Propriete> proprietes = new ArrayList<>();
@@ -60,6 +62,10 @@ public class Contribuable {
 
     @OneToOne(mappedBy = "contribuable")
     private Utilisateur utilisateur;
+    
+    @OneToOne
+    @JoinColumn(name = "agent_id")
+    private Agent agent; // Relation avec l'agent associé au contribuable
 
     @Transient
     private transient EntityManager entityManager;
@@ -80,6 +86,7 @@ public class Contribuable {
         this.NRC = NRC;
         this.sigle = sigle;
         this.numeroIdentificationContribuable = numeroIdentificationContribuable;
+        this.actif = true;
     }
 
     public void declarerImpôtEnLigne() {
@@ -250,6 +257,14 @@ public class Contribuable {
     public void setNumeroIdentificationContribuable(String numeroIdentificationContribuable) {
         this.numeroIdentificationContribuable = numeroIdentificationContribuable;
     }
+    
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
+    }
 
     public List<Propriete> getProprietes() {
         return proprietes;
@@ -274,14 +289,12 @@ public class Contribuable {
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
     }
-
-    @JsonIgnore
-    public EntityManager getEntityManager() {
-        return entityManager;
+    
+    public Agent getAgent() {
+        return agent;
     }
 
-    @JsonIgnore
-    public void setEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public void setAgent(Agent agent) {
+        this.agent = agent;
     }
 }

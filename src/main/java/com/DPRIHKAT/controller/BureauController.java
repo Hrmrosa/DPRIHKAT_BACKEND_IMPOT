@@ -1,9 +1,12 @@
 package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.entity.Bureau;
+import com.DPRIHKAT.entity.Division;
 import com.DPRIHKAT.service.BureauService;
+import com.DPRIHKAT.service.DivisionService;
 import com.DPRIHKAT.util.ResponseUtil;
 import com.DPRIHKAT.dto.AgentSimpleDTO;
+import com.DPRIHKAT.dto.BureauRequestDTO;
 import com.DPRIHKAT.dto.BureauResponseDTO;
 import com.DPRIHKAT.dto.DivisionSimpleDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,9 @@ public class BureauController {
 
     @Autowired
     private BureauService bureauService;
+    
+    @Autowired
+    private DivisionService divisionService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
@@ -83,8 +89,25 @@ public class BureauController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
-    public ResponseEntity<?> createBureau(@RequestBody Bureau bureau) {
+    public ResponseEntity<?> createBureau(@RequestBody BureauRequestDTO bureauDTO) {
         try {
+            // Récupérer la division à partir de l'ID
+            Division division = null;
+            if (bureauDTO.getDivisionId() != null) {
+                division = divisionService.findById(bureauDTO.getDivisionId());
+                if (division == null) {
+                    return ResponseEntity
+                            .badRequest()
+                            .body(ResponseUtil.createErrorResponse("DIVISION_NOT_FOUND", "Division non trouvée", "Aucune division trouvée avec l'ID fourni"));
+                }
+            }
+            
+            // Créer le bureau avec la division
+            Bureau bureau = new Bureau();
+            bureau.setNom(bureauDTO.getNom());
+            bureau.setCode(bureauDTO.getCode());
+            bureau.setDivision(division);
+            
             Bureau createdBureau = bureauService.save(bureau);
             BureauResponseDTO dto = mapToBureauResponseDTO(createdBureau);
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", dto)));
@@ -97,9 +120,33 @@ public class BureauController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
-    public ResponseEntity<?> updateBureau(@PathVariable UUID id, @RequestBody Bureau bureau) {
+    public ResponseEntity<?> updateBureau(@PathVariable UUID id, @RequestBody BureauRequestDTO bureauDTO) {
         try {
-            Bureau updatedBureau = bureauService.update(id, bureau);
+            // Vérifier si le bureau existe
+            Bureau existingBureau = bureauService.findById(id);
+            if (existingBureau == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("BUREAU_NOT_FOUND", "Bureau non trouvé", "Aucun bureau trouvé avec l'ID fourni"));
+            }
+            
+            // Récupérer la division à partir de l'ID
+            Division division = null;
+            if (bureauDTO.getDivisionId() != null) {
+                division = divisionService.findById(bureauDTO.getDivisionId());
+                if (division == null) {
+                    return ResponseEntity
+                            .badRequest()
+                            .body(ResponseUtil.createErrorResponse("DIVISION_NOT_FOUND", "Division non trouvée", "Aucune division trouvée avec l'ID fourni"));
+                }
+            }
+            
+            // Mettre à jour le bureau
+            existingBureau.setNom(bureauDTO.getNom());
+            existingBureau.setCode(bureauDTO.getCode());
+            existingBureau.setDivision(division);
+            
+            Bureau updatedBureau = bureauService.update(id, existingBureau);
             BureauResponseDTO dto = mapToBureauResponseDTO(updatedBureau);
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("bureau", dto)));
         } catch (Exception e) {

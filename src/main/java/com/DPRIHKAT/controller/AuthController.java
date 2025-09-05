@@ -12,6 +12,7 @@ import com.DPRIHKAT.util.ResponseUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -84,7 +85,9 @@ public class AuthController {
 
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "token", jwtResponse.getAccessToken(),
-                    "type", jwtResponse.getTokenType()
+                    "type", jwtResponse.getTokenType(),
+                    "login", jwtResponse.getLogin(),
+                    "role", jwtResponse.getRole()
             )));
         } catch (Exception e) {
             return ResponseEntity
@@ -131,6 +134,45 @@ public class AuthController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PASSWORD_CHANGE_ERROR", "Erreur lors du changement de mot de passe", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody Map<String, String> request) {
+        try {
+            String userId = request.get("userId");
+            
+            if (userId == null || userId.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_REQUEST", "Requête invalide", "L'identifiant de l'utilisateur est requis"));
+            }
+            
+            // Trouver l'utilisateur par son ID
+            Utilisateur utilisateur = utilisateurRepository.findById(UUID.fromString(userId))
+                    .orElse(null);
+
+            if (utilisateur == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("USER_NOT_FOUND", "Utilisateur non trouvé", "Aucun utilisateur avec cet ID n'existe"));
+            }
+
+            // Réinitialiser le mot de passe à "Tabc@123"
+            String defaultPassword = "Tabc@123";
+            String hashedPassword = LetsCrypt.crypt(defaultPassword);
+            utilisateur.setMotDePasse(hashedPassword);
+            utilisateur.setPremierConnexion(true); // Forcer le changement de mot de passe à la prochaine connexion
+            utilisateurRepository.save(utilisateur);
+
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "message", "Mot de passe réinitialisé avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PASSWORD_RESET_ERROR", "Erreur lors de la réinitialisation du mot de passe", e.getMessage()));
         }
     }
 }

@@ -1,4 +1,3 @@
-
 package com.DPRIHKAT.entity;
 
 /**
@@ -56,6 +55,8 @@ public class Propriete {
     private List<Declaration> declarations = new ArrayList<>();
 
     private Double montantImpot;
+    
+    private boolean actif = true;
 
     public Propriete() {
     }
@@ -202,5 +203,13 @@ public class Propriete {
 
     public void setMontantImpot(Double montantImpot) {
         this.montantImpot = montantImpot;
+    }
+
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
     }
 }

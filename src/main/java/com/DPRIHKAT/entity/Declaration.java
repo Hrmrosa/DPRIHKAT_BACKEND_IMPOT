@@ -34,6 +34,8 @@ public class Declaration {
     private TypeImpot typeImpot; // IF, IRL, ICM
 
     private boolean exoneration; // Gestion des exonérations
+    
+    private boolean actif = true; // Champ pour la suppression logique
 
     @ManyToOne
     @JoinColumn(name = "propriete_id")
@@ -70,6 +72,7 @@ public class Declaration {
         setPropriete(propriete); // Utiliser la méthode set pour synchronisation
         setConcession(concession); // Utiliser la méthode set pour synchronisation
         this.agentValidateur = agentValidateur;
+        this.actif = true;
     }
 
     // Méthode utilitaire pour gérer la relation bidirectionnelle avec Propriete
@@ -150,6 +153,14 @@ public class Declaration {
 
     public void setExoneration(boolean exoneration) {
         this.exoneration = exoneration;
+    }
+    
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
     }
 
     public Propriete getPropriete() {

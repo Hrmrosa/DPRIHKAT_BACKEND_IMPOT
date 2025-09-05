@@ -34,6 +34,12 @@ public class BureauService {
         if (bureauRepository.existsByNom(bureau.getNom())) {
             throw new DataIntegrityViolationException("Un bureau avec le nom '" + bureau.getNom() + "' existe déjà");
         }
+        
+        // Vérifier que la division est spécifiée
+        if (bureau.getDivision() == null || bureau.getDivision().getId() == null) {
+            throw new IllegalArgumentException("La division est obligatoire pour créer un bureau");
+        }
+        
         return bureauRepository.save(bureau);
     }
 
@@ -45,6 +51,11 @@ public class BureauService {
         // Check if another bureau with the same name exists (excluding this one)
         if (bureauRepository.existsByNomAndIdNot(bureau.getNom(), id)) {
             throw new DataIntegrityViolationException("Un bureau avec le nom '" + bureau.getNom() + "' existe déjà");
+        }
+        
+        // Vérifier que la division est spécifiée
+        if (bureau.getDivision() == null || bureau.getDivision().getId() == null) {
+            throw new IllegalArgumentException("La division est obligatoire pour mettre à jour un bureau");
         }
         
         bureau.setId(id);

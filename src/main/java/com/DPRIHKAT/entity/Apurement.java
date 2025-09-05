@@ -46,6 +46,8 @@ public class Apurement {
     private StatutApurement statut;
 
     private boolean provisoire; // Provisoire ou définitif
+    
+    private boolean actif = true; // Champ pour la suppression logique
 
     // Agent qui a initié la demande d'apurement
     @ManyToOne
@@ -195,5 +197,13 @@ public class Apurement {
 
     public void setDossierRecouvrement(DossierRecouvrement dossierRecouvrement) {
         this.dossierRecouvrement = dossierRecouvrement;
+    }
+    
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
     }
 }
