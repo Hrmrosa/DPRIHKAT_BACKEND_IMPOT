@@ -99,14 +99,14 @@ public class ContribuableService {
                 .orElseGet(() -> {
                     Bureau newBureau = new Bureau();
                     newBureau.setNom("Bureau des Contribuables");
-                    newBureau.setAdresse("Direction Provinciale des Recettes");
+                    newBureau.setCode("BUREAU_CONT");
                     return bureauRepository.save(newBureau);
                 });
         
         // Créer un agent pour le contribuable
         Agent agent = new Agent();
         agent.setNom(contribuable.getNom());
-        agent.setSexe(Sexe.MASCULIN); // Par défaut, à modifier si nécessaire
+        agent.setSexe(Sexe.M); // Par défaut, à modifier si nécessaire
         agent.setMatricule("CONT-" + contribuable.getNumeroIdentificationContribuable());
         agent.setBureau(bureau);
         
@@ -209,6 +209,15 @@ public class ContribuableService {
         } catch (Exception e) {
             logger.error("Erreur lors de l'envoi des identifiants par email", e);
         }
+    }
+
+    /**
+     * Sauvegarde un contribuable
+     * @param contribuable Le contribuable à sauvegarder
+     * @return Le contribuable sauvegardé
+     */
+    public Contribuable save(Contribuable contribuable) {
+        return contribuableRepository.save(contribuable);
     }
 
     /**

@@ -352,19 +352,19 @@ public class TestDataSeeder implements CommandLineRunner {
         
         // 15) Natures d'impôt
         NatureImpot ni1 = new NatureImpot();
-        ni1.setCode(TypeImpot.IF);
+        ni1.setCode(TypeImpot.IF.toString());
         ni1.setNom("Impôt Foncier");
         ni1.setDescription("Impôt sur les propriétés foncières");
         ni1.setActif(true);
         
         NatureImpot ni2 = new NatureImpot();
-        ni2.setCode(TypeImpot.IRL);
+        ni2.setCode(TypeImpot.IRL.toString());
         ni2.setNom("Impôt sur Revenu Locatif");
         ni2.setDescription("Impôt sur les revenus locatifs des propriétés");
         ni2.setActif(true);
         
         NatureImpot ni3 = new NatureImpot();
-        ni3.setCode(TypeImpot.ICM);
+        ni3.setCode(TypeImpot.ICM.toString());
         ni3.setNom("Impôt sur Concessions Minières");
         ni3.setDescription("Impôt sur les concessions minières");
         ni3.setActif(true);

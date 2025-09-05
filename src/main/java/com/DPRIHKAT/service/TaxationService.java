@@ -119,7 +119,7 @@ public class TaxationService {
         
         // Vérifier si une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice
         List<Taxation> existingTaxations = taxationRepository.findByProprieteAndTypeImpotAndExerciceAndActifTrue(
-                propriete, proprieteImpot.getNatureImpot().getCode(), exercice);
+                propriete, TypeImpot.valueOf(proprieteImpot.getNatureImpot().getCode()), exercice);
         
         if (!existingTaxations.isEmpty()) {
             throw new Exception("Une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice");
@@ -130,7 +130,11 @@ public class TaxationService {
         taxation.setDateTaxation(new Date());
         taxation.setExercice(exercice);
         taxation.setStatut(StatutTaxation.EN_ATTENTE);
-        taxation.setTypeImpot(proprieteImpot.getNatureImpot().getCode());
+        try {
+            taxation.setTypeImpot(TypeImpot.valueOf(proprieteImpot.getNatureImpot().getCode()));
+        } catch (IllegalArgumentException e) {
+            throw new Exception("Type d'impôt non valide: " + proprieteImpot.getNatureImpot().getCode());
+        }
         taxation.setExoneration(false);
         taxation.setPropriete(propriete);
         taxation.setProprieteImpot(proprieteImpot);
