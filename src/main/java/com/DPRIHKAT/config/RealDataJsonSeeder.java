@@ -1,4 +1,4 @@
-package com.DPRIHKAT.config;
+/*package com.DPRIHKAT.config;
 
 import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.*;
@@ -21,10 +21,6 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.*;
 
-/**
- * Seeder pour les données réelles des contribuables depuis le fichier GeoJSON
- * Utilise des requêtes SQL directes pour éviter les problèmes d'héritage
- */
 @Component
 @Order(10)
 public class RealDataJsonSeeder implements CommandLineRunner {
@@ -83,7 +79,7 @@ public class RealDataJsonSeeder implements CommandLineRunner {
             UUID contribuableId = createContribuable(agent, nom, bureau);
 
             // Créer les propriétés
-            createPropertiesFromGeoJson(
+            createPropertiesFromJson(
                 contribuableId, 
                 biensNode, 
                 localisationNode, 
@@ -93,63 +89,83 @@ public class RealDataJsonSeeder implements CommandLineRunner {
         }
     }
     
-    private int createPropertiesFromGeoJson(UUID contribuableId, JsonNode biensNode, 
+    private int createPropertiesFromJson(UUID contribuableId, JsonNode biensNode, 
                                    JsonNode localisationNode, JsonNode adresseNode,
                                    GeometryFactory gf) {
         int nbProprietes = 0;
         
         // Extraire les coordonnées
-        Double latitude = null;
-        Double longitude = null;
-        if (localisationNode != null && localisationNode.isArray() && localisationNode.size() >= 2) {
-            longitude = localisationNode.get(0).asDouble();
-            latitude = localisationNode.get(1).asDouble();
-        }
+        Double latitude = localisationNode.has("latitude") && !localisationNode.get("latitude").isNull() 
+            ? localisationNode.get("latitude").asDouble() : null;
+        Double longitude = localisationNode.has("longitude") && !localisationNode.get("longitude").isNull()
+            ? localisationNode.get("longitude").asDouble() : null;
         
-        // Extraire les nombres de propriétés par type
-        int viCount = biensNode.has("Nombre des Vi") ? 
-            (biensNode.get("Nombre des Vi").asText().equals("") ? 0 : Integer.parseInt(biensNode.get("Nombre des Vi").asText())) : 0;
-        
-        int apCount = biensNode.has("Nombre des AP") ? 
-            (biensNode.get("Nombre des AP").asText().equals("") ? 0 : Integer.parseInt(biensNode.get("Nombre des AP").asText())) : 0;
-        
-        int atCount = biensNode.has("Nombre des AT") ? 
-            (biensNode.get("Nombre des AT").asText().equals("") ? 0 : Integer.parseInt(biensNode.get("Nombre des AT").asText())) : 0;
-        
-        int citernesCount = biensNode.has("Nombre des citernes") ? 
-            (biensNode.get("Nombre des citernes").asText().equals("") ? 0 : Integer.parseInt(biensNode.get("Nombre des citernes").asText())) : 0;
-        
-        int antennesCount = biensNode.has("Nombre des antennes") ? 
-            (biensNode.get("Nombre des antennes").asText().equals("") ? 0 : Integer.parseInt(biensNode.get("Nombre des antennes").asText())) : 0;
-        
-        System.out.println("Biens: Vi=" + viCount + ", AP=" + apCount + ", AT=" + atCount + 
-                          ", citernes=" + citernesCount + ", antennes=" + antennesCount);
-        
-        // Créer les villas
+        // Traiter tous les types de propriétés
+        // Villas (VI)
+        int viCount = biensNode.has("Vi") ? biensNode.get("Vi").asInt() : 0;
         for (int i = 0; i < viCount; i++) {
             createProperty(contribuableId, TypePropriete.VI, i+1, latitude, longitude, adresseNode, gf);
             nbProprietes++;
         }
         
-        // Créer les appartements
+        // Appartements (AP)
+        int apCount = biensNode.has("AP") ? biensNode.get("AP").asInt() : 0;
         for (int i = 0; i < apCount; i++) {
             createProperty(contribuableId, TypePropriete.AP, i+1, latitude, longitude, adresseNode, gf);
             nbProprietes++;
         }
         
-        // Créer les terrains
+        // Terrains (AT/TE)
+        int atCount = biensNode.has("AT") ? biensNode.get("AT").asInt() : 0;
         for (int i = 0; i < atCount; i++) {
             createProperty(contribuableId, TypePropriete.TE, i+1, latitude, longitude, adresseNode, gf);
             nbProprietes++;
         }
         
-        // Créer les citernes
+        // Citernes
+        int citernesCount = biensNode.has("citernes") ? biensNode.get("citernes").asInt() : 0;
         for (int i = 0; i < citernesCount; i++) {
             createProperty(contribuableId, TypePropriete.CITERNE, i+1, latitude, longitude, adresseNode, gf);
             nbProprietes++;
         }
         
-        // Créer les antennes
+        // Bâtiments (CH)
+        int batimentsCount = biensNode.has("batiments") ? biensNode.get("batiments").asInt() : 0;
+        for (int i = 0; i < batimentsCount; i++) {
+            createProperty(contribuableId, TypePropriete.CH, i+1, latitude, longitude, adresseNode, gf);
+            nbProprietes++;
+        }
+        
+        // Entrepôts
+        int entrepotsCount = biensNode.has("entrepots") ? biensNode.get("entrepots").asInt() : 0;
+        for (int i = 0; i < entrepotsCount; i++) {
+            createProperty(contribuableId, TypePropriete.ENTREPOT, i+1, latitude, longitude, adresseNode, gf);
+            nbProprietes++;
+        }
+        
+        // Dépôts
+        int depotsCount = biensNode.has("depots") ? biensNode.get("depots").asInt() : 0;
+        for (int i = 0; i < depotsCount; i++) {
+            createProperty(contribuableId, TypePropriete.DEPOT, i+1, latitude, longitude, adresseNode, gf);
+            nbProprietes++;
+        }
+        
+        // Hangars
+        int hangarsCount = biensNode.has("angars") ? biensNode.get("angars").asInt() : 0;
+        for (int i = 0; i < hangarsCount; i++) {
+            createProperty(contribuableId, TypePropriete.HANGAR, i+1, latitude, longitude, adresseNode, gf);
+            nbProprietes++;
+        }
+        
+        // Chantiers (utiliser CH car CHANTIER n'existe pas dans l'énumération)
+        int chantiersCount = biensNode.has("chantiers") ? biensNode.get("chantiers").asInt() : 0;
+        for (int i = 0; i < chantiersCount; i++) {
+            createProperty(contribuableId, TypePropriete.CH, i+1, latitude, longitude, adresseNode, gf);
+            nbProprietes++;
+        }
+        
+        // Antennes
+        int antennesCount = biensNode.has("antennes") ? biensNode.get("antennes").asInt() : 0;
         for (int i = 0; i < antennesCount; i++) {
             createProperty(contribuableId, TypePropriete.ANTENNE, i+1, latitude, longitude, adresseNode, gf);
             nbProprietes++;
@@ -164,11 +180,14 @@ public class RealDataJsonSeeder implements CommandLineRunner {
         try {
             UUID id = UUID.randomUUID();
             
-            // Construire l'adresse complète
-            String adresse = String.format("%s, %s, Parcelle %s",
-                adresseNode.has("quartier") ? adresseNode.get("quartier").asText() : "",
-                adresseNode.has("avenue") ? adresseNode.get("avenue").asText() : "",
-                adresseNode.has("numero_parcelle") ? adresseNode.get("numero_parcelle").asText() : "");
+            // Extraire les valeurs d'adresse avec limitation de longueur
+            String quartier = adresseNode.has("quartier") ? truncateString(adresseNode.get("quartier").asText(), 50) : "";
+            String avenue = adresseNode.has("avenue") ? truncateString(adresseNode.get("avenue").asText(), 50) : "";
+            String numeroParcelle = adresseNode.has("numero_parcelle") ? truncateString(adresseNode.get("numero_parcelle").asText(), 20) : "";
+            String commune = adresseNode.has("commune") ? truncateString(adresseNode.get("commune").asText(), 50) : "Lubumbashi";
+            
+            // Construire l'adresse complète avec limitation de longueur
+            String adresse = truncateString(String.format("%s, %s, Parcelle %s", quartier, avenue, numeroParcelle), 250);
             
             // Créer la géométrie
             String wktPoint = "POINT(" + 
@@ -179,19 +198,29 @@ public class RealDataJsonSeeder implements CommandLineRunner {
             double superficie = calculateSuperficie(type, index);
             double montantImpot = calculateMontantImpot(type, superficie);
             
-            // Insertion SQL
+            // Insertion SQL avec declaration_en_ligne et declare
             String sql = "INSERT INTO propriete (id, type, localite, superficie, " +
-                         "adresse, montant_impot, location, actif, proprietaire_id) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?)";
+                         "adresse, montant_impot, location, actif, proprietaire_id, declaration_en_ligne, declare) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?)";
             
             jdbcTemplate.update(sql,
                 id, type.toString(), 
-                adresseNode.get("commune").asText(),
-                superficie, adresse, montantImpot, wktPoint, true, contribuableId);
+                commune,
+                superficie, adresse, montantImpot, wktPoint, true, contribuableId,
+                false, // Valeur par défaut pour declaration_en_ligne
+                false  // Valeur par défaut pour declare
+            );
             
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private String truncateString(String input, int maxLength) {
+        if (input == null) {
+            return "";
+        }
+        return input.length() <= maxLength ? input : input.substring(0, maxLength);
     }
     
     private Agent createAgent(String nom, Bureau bureau) {
@@ -317,3 +346,4 @@ public class RealDataJsonSeeder implements CommandLineRunner {
         return montantImpot;
     }
 }
+*/

@@ -6,15 +6,20 @@ import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
- import org.locationtech.jts.geom.Coordinate;
- import org.locationtech.jts.geom.GeometryFactory;
- import org.locationtech.jts.geom.Point;
- import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,14 +37,53 @@ public class ProprieteController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
-    public ResponseEntity<?> getAllProprietes() {
+    public ResponseEntity<?> getAllProprietes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Propriete> proprietes = proprieteRepository.findAll();
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("proprietes", proprietes)));
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Propriete> pageProprietes = proprieteRepository.findAll(pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", pageProprietes.getTotalElements());
+            data.put("totalPages", pageProprietes.getTotalPages());
+            data.put("currentPage", pageProprietes.getNumber());
+            data.put("proprietes", pageProprietes.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PROPRIETES_FETCH_ERROR", "Erreur lors de la récupération des propriétés", e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    public ResponseEntity<?> getAllProprietesPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Propriete> proprietes = proprieteRepository.findAll(pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", proprietes.getTotalElements());
+            data.put("totalPages", proprietes.getTotalPages());
+            data.put("currentPage", proprietes.getNumber());
+            data.put("proprietes", proprietes.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETES_FETCH_ERROR", "Erreur lors de la récupération des propriétés paginées", e.getMessage()));
         }
     }
 
@@ -79,6 +123,44 @@ public class ProprieteController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PROPRIETES_MINE_ERROR", "Erreur lors de la récupération des propriétés de l'utilisateur", e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/mine/paginated")
+    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    public ResponseEntity<?> getMyProprietesPaginated(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login).orElse(null);
+            if (utilisateur == null || utilisateur.getContribuable() == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les contribuables peuvent voir leurs propriétés"));
+            }
+
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(utilisateur.getContribuable().getId(), pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", proprietes.getTotalElements());
+            data.put("totalPages", proprietes.getTotalPages());
+            data.put("currentPage", proprietes.getNumber());
+            data.put("proprietes", proprietes.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETES_MINE_ERROR", "Erreur lors de la récupération des propriétés paginées de l'utilisateur", e.getMessage()));
         }
     }
 

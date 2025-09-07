@@ -13,6 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,15 @@ public class TaxationService {
     public List<Taxation> getAllTaxations() {
         return taxationRepository.findAll();
     }
+    
+    /**
+     * Récupère toutes les taxations avec pagination
+     * @param pageable Informations de pagination
+     * @return Page de taxations
+     */
+    public Page<Taxation> getAllTaxationsPaginated(Pageable pageable) {
+        return taxationRepository.findAll(pageable);
+    }
 
     /**
      * Récupère toutes les taxations actives
@@ -55,6 +67,15 @@ public class TaxationService {
      */
     public List<Taxation> getAllActiveTaxations() {
         return taxationRepository.findByActifTrue();
+    }
+    
+    /**
+     * Récupère toutes les taxations actives avec pagination
+     * @param pageable Informations de pagination
+     * @return Page de taxations actives
+     */
+    public Page<Taxation> getAllActiveTaxationsPaginated(Pageable pageable) {
+        return taxationRepository.findByActifTrue(pageable);
     }
 
     /**
@@ -83,6 +104,28 @@ public class TaxationService {
                 })
                 .orElse(Collections.emptyList());
     }
+    
+    /**
+     * Récupère toutes les taxations pour une propriété donnée avec pagination
+     * @param proprieteId L'ID de la propriété
+     * @param pageable Informations de pagination
+     * @return Page de taxations pour cette propriété
+     */
+    public Page<Taxation> getTaxationsByProprieteIdPaginated(UUID proprieteId, Pageable pageable) {
+        return proprieteRepository.findById(proprieteId)
+                .map(propriete -> {
+                    List<Declaration> declarations = propriete.getDeclarations();
+                    List<Taxation> taxations = new ArrayList<>();
+                    for (Declaration declaration : declarations) {
+                        taxations.addAll(taxationRepository.findByDeclarationAndActifTrue(declaration));
+                    }
+                    // Convertir la liste en page
+                    int start = (int) pageable.getOffset();
+                    int end = Math.min((start + pageable.getPageSize()), taxations.size());
+                    return new PageImpl<>(taxations.subList(start, end), pageable, taxations.size());
+                })
+                .orElse(new PageImpl<>(Collections.emptyList(), pageable, 0));
+    }
 
     /**
      * Récupère toutes les taxations pour une déclaration donnée
@@ -94,6 +137,18 @@ public class TaxationService {
                 .map(declaration -> taxationRepository.findByDeclarationAndActifTrue(declaration))
                 .orElse(Collections.emptyList());
     }
+    
+    /**
+     * Récupère toutes les taxations pour une déclaration donnée avec pagination
+     * @param declarationId L'ID de la déclaration
+     * @param pageable Informations de pagination
+     * @return Page de taxations pour cette déclaration
+     */
+    public Page<Taxation> getTaxationsByDeclarationIdPaginated(UUID declarationId, Pageable pageable) {
+        return declarationRepository.findById(declarationId)
+                .map(declaration -> taxationRepository.findByDeclarationAndActifTrue(declaration, pageable))
+                .orElse(new PageImpl<>(Collections.emptyList(), pageable, 0));
+    }
 
     /**
      * Récupère toutes les taxations pour un exercice donné
@@ -102,6 +157,16 @@ public class TaxationService {
      */
     public List<Taxation> getTaxationsByExercice(String exercice) {
         return taxationRepository.findByExerciceAndActifTrue(exercice);
+    }
+    
+    /**
+     * Récupère toutes les taxations pour un exercice donné avec pagination
+     * @param exercice L'exercice (année fiscale)
+     * @param pageable Informations de pagination
+     * @return Page de taxations pour cet exercice
+     */
+    public Page<Taxation> getTaxationsByExercicePaginated(String exercice, Pageable pageable) {
+        return taxationRepository.findByExerciceAndActifTrue(exercice, pageable);
     }
 
     /**
@@ -112,6 +177,16 @@ public class TaxationService {
     public List<Taxation> getTaxationsByTypeImpot(TypeImpot typeImpot) {
         return taxationRepository.findByTypeImpotAndActifTrue(typeImpot);
     }
+    
+    /**
+     * Récupère toutes les taxations pour un type d'impôt donné avec pagination
+     * @param typeImpot Le type d'impôt
+     * @param pageable Informations de pagination
+     * @return Page de taxations pour ce type d'impôt
+     */
+    public Page<Taxation> getTaxationsByTypeImpotPaginated(TypeImpot typeImpot, Pageable pageable) {
+        return taxationRepository.findByTypeImpotAndActifTrue(typeImpot, pageable);
+    }
 
     /**
      * Récupère toutes les taxations pour un statut donné
@@ -120,6 +195,16 @@ public class TaxationService {
      */
     public List<Taxation> getTaxationsByStatut(StatutTaxation statut) {
         return taxationRepository.findByStatutAndActifTrue(statut);
+    }
+    
+    /**
+     * Récupère toutes les taxations pour un statut donné avec pagination
+     * @param statut Le statut de la taxation
+     * @param pageable Informations de pagination
+     * @return Page de taxations pour ce statut
+     */
+    public Page<Taxation> getTaxationsByStatutPaginated(StatutTaxation statut, Pageable pageable) {
+        return taxationRepository.findByStatutAndActifTrue(statut, pageable);
     }
 
     /**

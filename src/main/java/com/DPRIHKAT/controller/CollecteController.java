@@ -14,11 +14,15 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -104,6 +108,28 @@ public class CollecteController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseUtil.createErrorResponse(
                     "COLLECTE_CREATE_ERROR", "Erreur lors de la création du contribuable et des biens", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/collectes")
+    @PreAuthorize("hasAnyRole('CONTROLLEUR','ADMIN','INFORMATICIEN')")
+    public ResponseEntity<?> getAllCollectes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Propriete> pageProprietes = proprieteRepository.findAll(pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", pageProprietes.getTotalElements());
+            data.put("totalPages", pageProprietes.getTotalPages());
+            data.put("currentPage", pageProprietes.getNumber());
+            data.put("proprietes", pageProprietes.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseUtil.createErrorResponse(
+                    "COLLECTE_FETCH_ERROR", "Erreur lors de la récupération des collectes", e.getMessage()));
         }
     }
 }

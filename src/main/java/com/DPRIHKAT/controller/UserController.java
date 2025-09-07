@@ -32,32 +32,22 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('INFORMATICIEN')")
     public ResponseEntity<?> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(required = false) String search) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-
-            Page<Utilisateur> utilisateurPage;
-            if (search != null && !search.isEmpty()) {
-                utilisateurPage = utilisateurRepository.findBySearchTerm(search, pageable);
-            } else {
-                utilisateurPage = utilisateurRepository.findAll(pageable);
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("users", utilisateurPage.getContent());
-            response.put("currentPage", utilisateurPage.getNumber());
-            response.put("totalItems", utilisateurPage.getTotalElements());
-            response.put("totalPages", utilisateurPage.getTotalPages());
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Utilisateur> pageUsers = utilisateurRepository.findAll(pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", pageUsers.getTotalElements());
+            data.put("totalPages", pageUsers.getTotalPages());
+            data.put("currentPage", pageUsers.getNumber());
+            data.put("utilisateurs", pageUsers.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("USER_FETCH_ERROR", "Erreur lors de la récupération des utilisateurs", e.getMessage()));
+                    .body(ResponseUtil.createErrorResponse("USERS_FETCH_ERROR", "Erreur lors de la récupération des utilisateurs", e.getMessage()));
         }
     }
 
@@ -218,22 +208,18 @@ public class UserController {
     public ResponseEntity<?> getUsersByRole(
             @PathVariable Role role,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-
-            Page<Utilisateur> utilisateurPage = utilisateurRepository.findByRole(role, pageable);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("users", utilisateurPage.getContent());
-            response.put("currentPage", utilisateurPage.getNumber());
-            response.put("totalItems", utilisateurPage.getTotalElements());
-            response.put("totalPages", utilisateurPage.getTotalPages());
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Utilisateur> pageUsers = utilisateurRepository.findByRole(role, pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", pageUsers.getTotalElements());
+            data.put("totalPages", pageUsers.getTotalPages());
+            data.put("currentPage", pageUsers.getNumber());
+            data.put("utilisateurs", pageUsers.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()

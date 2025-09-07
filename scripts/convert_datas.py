@@ -10,19 +10,20 @@ def convert_entry(old_entry):
     if geometry and 'coordinates' in geometry:
         longitude, latitude = geometry['coordinates'][:2]
     
-    # Créer la nouvelle entrée
+    # Créer la nouvelle entrée avec tous les types de biens
     new_entry = {
         "contribuable": properties.get("Saisir le nom complet du contribuable", "Inconnu"),
         "biens": {
             "Vi": int(properties.get("Nombre des Vi", 0) or 0),
             "AP": int(properties.get("Nombre des AP", 0) or 0),
             "AT": int(properties.get("Nombre des AT", 0) or 0),
-            "batiments": 0,  # À compléter selon vos besoins
-            "entrepots": 0,
-            "depots": 0,
+            "batiments": int(properties.get("Nombre des batiments", 0) or 0),
+            "entrepots": int(properties.get("Nombre des entrepots", 0) or 0),
+            "depots": int(properties.get("Nombre des depots", 0) or 0),
             "citernes": int(properties.get("Nombre des citernes", 0) or 0),
-            "angars": 0,
-            "chantiers": 0
+            "angars": int(properties.get("Nombre des angars", 0) or 0),
+            "chantiers": int(properties.get("Nombre des chantiers", 0) or 0),
+            "antennes": int(properties.get("Nombre des antennes", 0) or 0)
         },
         "localisation": {
             "latitude": latitude,

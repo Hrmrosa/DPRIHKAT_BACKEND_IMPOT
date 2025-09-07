@@ -14,12 +14,17 @@ import com.DPRIHKAT.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,52 +59,150 @@ public class TaxationController {
 
     /**
      * Récupère toutes les taxations
-     * @return Liste de toutes les taxations
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getAllTaxations() {
+    public ResponseEntity<?> getAllTaxations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            logger.info("Récupération de toutes les taxations");
-            List<Taxation> taxations = taxationService.getAllTaxations();
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> pageTaxations = taxationService.getAllTaxationsPaginated(pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", pageTaxations.getTotalElements());
+            data.put("totalPages", pageTaxations.getTotalPages());
+            data.put("currentPage", pageTaxations.getNumber());
+            data.put("taxations", pageTaxations.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
-            logger.error("Erreur lors de la récupération des taxations", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", "Erreur lors de la récupération des taxations", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère toutes les taxations avec pagination
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations
+     */
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getAllTaxationsPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations paginées (page={}, size={})", page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getAllTaxationsPaginated(pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations paginées", e);
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
-                            "Erreur lors de la récupération des taxations", 
+                            "Erreur lors de la récupération des taxations paginées", 
                             e.getMessage()));
         }
     }
 
     /**
      * Récupère toutes les taxations actives
-     * @return Liste des taxations actives
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations actives
      */
     @GetMapping("/actives")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getAllActiveTaxations() {
+    public ResponseEntity<?> getAllActiveTaxations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("Récupération des taxations actives");
-            List<Taxation> taxations = taxationService.getAllActiveTaxations();
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> pageTaxations = taxationService.getAllActiveTaxationsPaginated(pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", pageTaxations.getTotalElements());
+            data.put("totalPages", pageTaxations.getTotalPages());
+            data.put("currentPage", pageTaxations.getNumber());
+            data.put("taxations", pageTaxations.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations actives", e);
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
                             "Erreur lors de la récupération des taxations actives", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère toutes les taxations actives avec pagination
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations actives
+     */
+    @GetMapping("/actives/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getAllActiveTaxationsPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations actives paginées (page={}, size={})", page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getAllActiveTaxationsPaginated(pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations actives paginées", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations actives paginées", 
                             e.getMessage()));
         }
     }
@@ -134,20 +237,28 @@ public class TaxationController {
     /**
      * Récupère toutes les taxations pour une propriété donnée
      * @param proprieteId L'ID de la propriété
-     * @return Liste des taxations pour cette propriété
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations pour cette propriété
      */
     @GetMapping("/by-propriete/{proprieteId}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getTaxationsByProprieteId(@PathVariable UUID proprieteId) {
+    public ResponseEntity<?> getTaxationsByProprieteId(@PathVariable UUID proprieteId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("Récupération des taxations pour la propriété avec l'ID: {}", proprieteId);
-            List<Taxation> taxations = taxationService.getTaxationsByProprieteId(proprieteId);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByProprieteIdPaginated(proprieteId, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations pour la propriété avec l'ID: {}", proprieteId, e);
             return ResponseEntity
@@ -159,22 +270,74 @@ public class TaxationController {
     }
 
     /**
+     * Récupère toutes les taxations pour une propriété donnée avec pagination
+     * @param proprieteId L'ID de la propriété
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations pour cette propriété
+     */
+    @GetMapping("/by-propriete/{proprieteId}/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getTaxationsByProprieteIdPaginated(
+            @PathVariable UUID proprieteId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations pour la propriété avec l'ID: {} paginées (page={}, size={})", proprieteId, page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByProprieteIdPaginated(proprieteId, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations pour la propriété avec l'ID: {} paginées", proprieteId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations pour la propriété paginées", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Récupère toutes les taxations pour une déclaration donnée
      * @param declarationId L'ID de la déclaration
-     * @return Liste des taxations pour cette déclaration
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations pour cette déclaration
      */
     @GetMapping("/by-declaration/{declarationId}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getTaxationsByDeclarationId(@PathVariable UUID declarationId) {
+    public ResponseEntity<?> getTaxationsByDeclarationId(@PathVariable UUID declarationId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("Récupération des taxations pour la déclaration avec l'ID: {}", declarationId);
-            List<Taxation> taxations = taxationService.getTaxationsByDeclarationId(declarationId);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByDeclarationIdPaginated(declarationId, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations pour la déclaration avec l'ID: {}", declarationId, e);
             return ResponseEntity
@@ -186,22 +349,74 @@ public class TaxationController {
     }
 
     /**
+     * Récupère toutes les taxations pour une déclaration donnée avec pagination
+     * @param declarationId L'ID de la déclaration
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations pour cette déclaration
+     */
+    @GetMapping("/by-declaration/{declarationId}/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getTaxationsByDeclarationIdPaginated(
+            @PathVariable UUID declarationId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations pour la déclaration avec l'ID: {} paginées (page={}, size={})", declarationId, page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByDeclarationIdPaginated(declarationId, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations pour la déclaration avec l'ID: {} paginées", declarationId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations pour la déclaration paginées", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Récupère toutes les taxations pour un exercice donné
      * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations pour cet exercice
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations pour cet exercice
      */
     @GetMapping("/by-exercice/{exercice}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getTaxationsByExercice(@PathVariable String exercice) {
+    public ResponseEntity<?> getTaxationsByExercice(@PathVariable String exercice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("Récupération des taxations pour l'exercice: {}", exercice);
-            List<Taxation> taxations = taxationService.getTaxationsByExercice(exercice);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByExercicePaginated(exercice, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations pour l'exercice: {}", exercice, e);
             return ResponseEntity
@@ -213,22 +428,74 @@ public class TaxationController {
     }
 
     /**
+     * Récupère toutes les taxations pour un exercice donné avec pagination
+     * @param exercice L'exercice (année fiscale)
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations pour cet exercice
+     */
+    @GetMapping("/by-exercice/{exercice}/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getTaxationsByExercicePaginated(
+            @PathVariable String exercice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations pour l'exercice: {} paginées (page={}, size={})", exercice, page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByExercicePaginated(exercice, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations pour l'exercice: {} paginées", exercice, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations pour l'exercice paginées", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Récupère toutes les taxations pour un type d'impôt donné
      * @param typeImpot Le type d'impôt
-     * @return Liste des taxations pour ce type d'impôt
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations pour ce type d'impôt
      */
     @GetMapping("/by-type-impot/{typeImpot}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getTaxationsByTypeImpot(@PathVariable TypeImpot typeImpot) {
+    public ResponseEntity<?> getTaxationsByTypeImpot(@PathVariable TypeImpot typeImpot,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("Récupération des taxations pour le type d'impôt: {}", typeImpot);
-            List<Taxation> taxations = taxationService.getTaxationsByTypeImpot(typeImpot);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByTypeImpotPaginated(typeImpot, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations pour le type d'impôt: {}", typeImpot, e);
             return ResponseEntity
@@ -240,28 +507,124 @@ public class TaxationController {
     }
 
     /**
+     * Récupère toutes les taxations pour un type d'impôt donné avec pagination
+     * @param typeImpot Le type d'impôt
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations pour ce type d'impôt
+     */
+    @GetMapping("/by-type-impot/{typeImpot}/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getTaxationsByTypeImpotPaginated(
+            @PathVariable TypeImpot typeImpot,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations pour le type d'impôt: {} paginées (page={}, size={})", typeImpot, page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByTypeImpotPaginated(typeImpot, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations pour le type d'impôt: {} paginées", typeImpot, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations pour le type d'impôt paginées", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Récupère toutes les taxations pour un statut donné
      * @param statut Le statut de la taxation
-     * @return Liste des taxations pour ce statut
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @return Page de taxations pour ce statut
      */
     @GetMapping("/by-statut/{statut}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getTaxationsByStatut(@PathVariable StatutTaxation statut) {
+    public ResponseEntity<?> getTaxationsByStatut(@PathVariable StatutTaxation statut,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("Récupération des taxations pour le statut: {}", statut);
-            List<Taxation> taxations = taxationService.getTaxationsByStatut(statut);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByStatutPaginated(statut, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
                     .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations pour le statut: {}", statut, e);
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
                             "Erreur lors de la récupération des taxations pour le statut", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
+     * Récupère toutes les taxations pour un statut donné avec pagination
+     * @param statut Le statut de la taxation
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc ou desc)
+     * @return Page de taxations pour ce statut
+     */
+    @GetMapping("/by-statut/{statut}/paginated")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getTaxationsByStatutPaginated(
+            @PathVariable StatutTaxation statut,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des taxations pour le statut: {} paginées (page={}, size={})", statut, page, size);
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Taxation> taxationsPage = taxationService.getTaxationsByStatutPaginated(statut, pageable);
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", taxationsPage.getTotalElements());
+            data.put("totalPages", taxationsPage.getTotalPages());
+            data.put("currentPage", taxationsPage.getNumber());
+            data.put("taxations", taxationsPage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations pour le statut: {} paginées", statut, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations pour le statut paginées", 
                             e.getMessage()));
         }
     }
