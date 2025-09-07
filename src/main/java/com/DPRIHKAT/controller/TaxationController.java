@@ -2,18 +2,12 @@ package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.dto.TaxationDTO;
 import com.DPRIHKAT.dto.TaxationRequestDTO;
-import com.DPRIHKAT.entity.Agent;
-import com.DPRIHKAT.entity.NatureImpot;
-import com.DPRIHKAT.entity.Propriete;
-import com.DPRIHKAT.entity.ProprieteImpot;
-import com.DPRIHKAT.entity.Taxation;
-import com.DPRIHKAT.entity.Utilisateur;
+import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
 import com.DPRIHKAT.repository.AgentRepository;
+import com.DPRIHKAT.repository.DeclarationRepository;
 import com.DPRIHKAT.repository.NatureImpotRepository;
-import com.DPRIHKAT.repository.ProprieteImpotRepository;
-import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.service.TaxationService;
 import com.DPRIHKAT.util.ResponseUtil;
@@ -53,10 +47,7 @@ public class TaxationController {
     private AgentRepository agentRepository;
 
     @Autowired
-    private ProprieteRepository proprieteRepository;
-
-    @Autowired
-    private ProprieteImpotRepository proprieteImpotRepository;
+    private DeclarationRepository declarationRepository;
 
     @Autowired
     private NatureImpotRepository natureImpotRepository;
@@ -168,13 +159,40 @@ public class TaxationController {
     }
 
     /**
+     * Récupère toutes les taxations pour une déclaration donnée
+     * @param declarationId L'ID de la déclaration
+     * @return Liste des taxations pour cette déclaration
+     */
+    @GetMapping("/by-declaration/{declarationId}")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> getTaxationsByDeclarationId(@PathVariable UUID declarationId) {
+        try {
+            logger.info("Récupération des taxations pour la déclaration avec l'ID: {}", declarationId);
+            List<Taxation> taxations = taxationService.getTaxationsByDeclarationId(declarationId);
+            List<TaxationDTO> taxationsDTO = taxations.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "taxations", taxationsDTO
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des taxations pour la déclaration avec l'ID: {}", declarationId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_FETCH_ERROR", 
+                            "Erreur lors de la récupération des taxations pour la déclaration", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Récupère toutes les taxations pour un exercice donné
      * @param exercice L'exercice (année fiscale)
      * @return Liste des taxations pour cet exercice
      */
     @GetMapping("/by-exercice/{exercice}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getTaxationsByExercice(@PathVariable Integer exercice) {
+    public ResponseEntity<?> getTaxationsByExercice(@PathVariable String exercice) {
         try {
             logger.info("Récupération des taxations pour l'exercice: {}", exercice);
             List<Taxation> taxations = taxationService.getTaxationsByExercice(exercice);
@@ -249,7 +267,7 @@ public class TaxationController {
     }
 
     /**
-     * Génère une taxation pour une propriété
+     * Génère une taxation pour une déclaration
      * @param request Les informations de la taxation à générer
      * @param authentication L'authentification de l'utilisateur
      * @return La taxation générée
@@ -271,9 +289,9 @@ public class TaxationController {
             }
 
             // Générer la taxation
-            Taxation taxation = taxationService.generateTaxationForProperty(
-                    request.getProprieteId(),
-                    request.getProprieteImpotId(),
+            Taxation taxation = taxationService.generateTaxationForDeclaration(
+                    request.getDeclarationId(),
+                    request.getNatureImpotId(),
                     request.getExercice(),
                     utilisateur.getAgent().getId()
             );
@@ -293,30 +311,42 @@ public class TaxationController {
     }
 
     /**
-     * Calcule le montant de la taxation pour une propriété
-     * @param proprieteId L'ID de la propriété
-     * @return Le montant de la taxation
+     * Valide une taxation
+     * @param id L'ID de la taxation
+     * @param authentication L'authentification de l'utilisateur
+     * @return La taxation validée
      */
-    @GetMapping("/calculate/property/{proprieteId}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE', 'ADMIN')")
-    public ResponseEntity<?> calculateTaxForProperty(@PathVariable UUID proprieteId) {
+    @PutMapping("/{id}/valider")
+    @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> validerTaxation(@PathVariable UUID id, Authentication authentication) {
         try {
-            // Calculer le montant de la taxation
-            Propriete propriete = proprieteRepository.findById(proprieteId)
-                    .orElseThrow(() -> new Exception("Propriété non trouvée avec l'ID: " + proprieteId));
-            
-            double taxAmount = taxationService.calculateTaxForProperty(propriete);
+            // Récupérer l'agent authentifié
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
+                    .orElse(null);
 
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "message", "Calcul de la taxation effectué avec succès",
-                    "montant", taxAmount
-            )));
+            if (utilisateur == null || utilisateur.getAgent() == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", 
+                                "Seuls les agents peuvent valider des taxations"));
+            }
+
+            // Valider la taxation
+            return taxationService.validerTaxation(id, utilisateur.getAgent().getId())
+                    .map(taxation -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                            "message", "Taxation validée avec succès",
+                            "taxation", convertToDTO(taxation)
+                    ))))
+                    .orElse(ResponseEntity
+                            .notFound()
+                            .build());
         } catch (Exception e) {
-            logger.error("Erreur lors du calcul de la taxation pour la propriété avec l'ID: {}", proprieteId, e);
+            logger.error("Erreur lors de la validation de la taxation avec l'ID: {}", id, e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("TAXATION_CALCULATION_ERROR", 
-                            "Erreur lors du calcul de la taxation", 
+                    .body(ResponseUtil.createErrorResponse("TAXATION_VALIDATION_ERROR", 
+                            "Erreur lors de la validation de la taxation", 
                             e.getMessage()));
         }
     }
@@ -358,10 +388,10 @@ public class TaxationController {
      */
     @PutMapping("/{id}/exoneration")
     @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> grantExemption(@PathVariable UUID id, @RequestParam String motif) {
+    public ResponseEntity<?> accorderExoneration(@PathVariable UUID id, @RequestParam String motif) {
         try {
             logger.info("Accord d'une exonération pour la taxation avec l'ID: {}", id);
-            return taxationService.grantExemption(id, motif)
+            return taxationService.accorderExoneration(id, motif)
                     .map(taxation -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                             "message", "Exonération accordée avec succès",
                             "taxation", convertToDTO(taxation)
@@ -386,10 +416,10 @@ public class TaxationController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> deactivateTaxation(@PathVariable UUID id) {
+    public ResponseEntity<?> desactiverTaxation(@PathVariable UUID id) {
         try {
             logger.info("Désactivation de la taxation avec l'ID: {}", id);
-            boolean deactivated = taxationService.deactivateTaxation(id);
+            boolean deactivated = taxationService.desactiverTaxation(id);
             if (deactivated) {
                 return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                         "message", "Taxation désactivée avec succès"
@@ -410,44 +440,21 @@ public class TaxationController {
     }
 
     /**
-     * Active une taxation
-     * @param id L'ID de la taxation à activer
-     * @return Statut de l'activation
-     */
-    @PutMapping("/{id}/activate")
-    @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> activateTaxation(@PathVariable UUID id) {
-        try {
-            logger.info("Activation de la taxation avec l'ID: {}", id);
-            boolean activated = taxationService.activateTaxation(id);
-            if (activated) {
-                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                        "message", "Taxation activée avec succès"
-                )));
-            } else {
-                return ResponseEntity
-                        .notFound()
-                        .build();
-            }
-        } catch (Exception e) {
-            logger.error("Erreur lors de l'activation de la taxation avec l'ID: {}", id, e);
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("TAXATION_ACTIVATION_ERROR", 
-                            "Erreur lors de l'activation de la taxation", 
-                            e.getMessage()));
-        }
-    }
-
-    /**
      * Convertit une entité Taxation en TaxationDTO
      * @param taxation L'entité Taxation à convertir
      * @return Le DTO TaxationDTO correspondant
      */
     private TaxationDTO convertToDTO(Taxation taxation) {
-        Propriete propriete = taxation.getPropriete();
-        ProprieteImpot proprieteImpot = taxation.getProprieteImpot();
-        Agent agentTaxateur = taxation.getAgentTaxateur();
+        Declaration declaration = taxation.getDeclaration();
+        Propriete propriete = declaration != null ? declaration.getPropriete() : null;
+        Contribuable contribuable = declaration != null ? declaration.getContribuable() : null;
+        
+        // Déterminer la nature d'impôt à partir du type d'impôt
+        NatureImpot natureImpot = null;
+        if (taxation.getTypeImpot() != null) {
+            Optional<NatureImpot> natureImpotOpt = natureImpotRepository.findByCode(taxation.getTypeImpot().name());
+            natureImpot = natureImpotOpt.orElse(null);
+        }
         
         return new TaxationDTO(
                 taxation.getId(),
@@ -457,18 +464,22 @@ public class TaxationController {
                 taxation.getStatut(),
                 taxation.getTypeImpot(),
                 taxation.isExoneration(),
-                taxation.getMotifExoneration(),
-                taxation.getDateEcheance(),
                 taxation.isActif(),
+                declaration != null ? declaration.getId() : null,
+                declaration != null ? declaration.getDateDeclaration() : null,
                 propriete != null ? propriete.getId() : null,
                 propriete != null ? propriete.getAdresse() : null,
-                proprieteImpot != null ? proprieteImpot.getId() : null,
-                proprieteImpot != null && proprieteImpot.getNatureImpot() != null ? proprieteImpot.getNatureImpot().getCode() : null,
-                proprieteImpot != null && proprieteImpot.getNatureImpot() != null ? proprieteImpot.getNatureImpot().getNom() : null,
-                agentTaxateur != null ? agentTaxateur.getId() : null,
-                agentTaxateur != null ? agentTaxateur.getNom() : null,
+                contribuable != null ? contribuable.getId() : null,
+                contribuable != null ? contribuable.getNom() : null,
+                natureImpot != null ? natureImpot.getId() : null,
+                natureImpot != null ? natureImpot.getCode() : null,
+                natureImpot != null ? natureImpot.getNom() : null,
+                taxation.getAgentTaxateur() != null ? taxation.getAgentTaxateur().getId() : null,
+                taxation.getAgentTaxateur() != null ? taxation.getAgentTaxateur().getNom() : null,
+                taxation.getAgentValidateur() != null ? taxation.getAgentValidateur().getId() : null,
+                taxation.getAgentValidateur() != null ? taxation.getAgentValidateur().getNom() : null,
                 taxation.getPaiement() != null ? taxation.getPaiement().getId() : null,
-                taxation.getApurement() != null ? taxation.getApurement().getId() : null
+                null // Apurement ID (à implémenter si nécessaire)
         );
     }
 }

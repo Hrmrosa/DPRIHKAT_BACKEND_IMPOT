@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.DPRIHKAT.entity;
 
-/**
- *
- * @author amateur
- */
 import com.DPRIHKAT.entity.enums.Role;
 import com.DPRIHKAT.entity.enums.StatutApurement;
 import com.DPRIHKAT.entity.enums.TypeApurement;
@@ -19,6 +11,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entité représentant un apurement
+ * Un apurement est associé à une taxation
+ * 
+ * @author amateur
+ */
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Apurement {
@@ -48,6 +46,8 @@ public class Apurement {
     private boolean provisoire; // Provisoire ou définitif
     
     private boolean actif = true; // Champ pour la suppression logique
+    
+    private boolean declarationPayee = false; // Indique si la déclaration a été payée
 
     // Agent qui a initié la demande d'apurement
     @ManyToOne
@@ -60,11 +60,17 @@ public class Apurement {
     @JsonIdentityReference(alwaysAsId = true)
     private Agent agentValidateur;
 
-    // Déclaration concernée par l'apurement
+    // Taxation concernée par l'apurement
     @ManyToOne
-    @JoinColumn(name = "declaration_id")
+    @JoinColumn(name = "taxation_id")
     @JsonIdentityReference(alwaysAsId = true)
-    private Declaration declaration;
+    private Taxation taxation;
+    
+    // Paiement associé à l'apurement
+    @ManyToOne
+    @JoinColumn(name = "paiement_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Paiement paiement;
 
     @OneToOne
     @JoinColumn(name = "dossier_recouvrement_id")
@@ -81,6 +87,8 @@ public class Apurement {
         this.motif = motif;
         this.statut = statut;
         this.provisoire = provisoire;
+        this.actif = true;
+        this.declarationPayee = false;
     }
 
     // Méthodes
@@ -94,6 +102,19 @@ public class Apurement {
         this.statut = StatutApurement.ACCEPTEE;
         // Persister (à implémenter avec EntityManager)
     }
+    
+    /**
+     * Marque la taxation comme payée et associe un paiement à l'apurement
+     * @param paiement le paiement associé à l'apurement
+     */
+    public void marquerTaxationPayee(Paiement paiement) {
+        if (taxation == null) {
+            throw new IllegalStateException("L'apurement doit être associé à une taxation.");
+        }
+        this.declarationPayee = true;
+        this.paiement = paiement;
+    }
+    
     // Getters et Setters
     public UUID getId() {
         return id;
@@ -166,6 +187,22 @@ public class Apurement {
     public void setProvisoire(boolean provisoire) {
         this.provisoire = provisoire;
     }
+    
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
+    }
+    
+    public boolean isDeclarationPayee() {
+        return declarationPayee;
+    }
+
+    public void setDeclarationPayee(boolean declarationPayee) {
+        this.declarationPayee = declarationPayee;
+    }
 
     public Agent getAgent() {
         return agent;
@@ -183,12 +220,20 @@ public class Apurement {
         this.agentValidateur = agentValidateur;
     }
 
-    public Declaration getDeclaration() {
-        return declaration;
+    public Taxation getTaxation() {
+        return taxation;
     }
 
-    public void setDeclaration(Declaration declaration) {
-        this.declaration = declaration;
+    public void setTaxation(Taxation taxation) {
+        this.taxation = taxation;
+    }
+    
+    public Paiement getPaiement() {
+        return paiement;
+    }
+
+    public void setPaiement(Paiement paiement) {
+        this.paiement = paiement;
     }
 
     public DossierRecouvrement getDossierRecouvrement() {
@@ -197,13 +242,5 @@ public class Apurement {
 
     public void setDossierRecouvrement(DossierRecouvrement dossierRecouvrement) {
         this.dossierRecouvrement = dossierRecouvrement;
-    }
-    
-    public boolean isActif() {
-        return actif;
-    }
-
-    public void setActif(boolean actif) {
-        this.actif = actif;
     }
 }

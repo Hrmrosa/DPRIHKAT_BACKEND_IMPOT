@@ -13,13 +13,14 @@ import java.util.UUID;
 
 @Repository
 public interface PaiementRepository extends JpaRepository<Paiement, UUID> {
-    Paiement findByDeclarationId(UUID declarationId);
+    @Query("SELECT p FROM Paiement p WHERE p.taxation.declaration.id = :declarationId")
+    Paiement findByDeclarationId(@Param("declarationId") UUID declarationId);
     List<Paiement> findByStatut(StatutPaiement statut);
     List<Paiement> findByDateBetween(Date startDate, Date endDate);
     
-    @Query("SELECT p.declaration.propriete.proprietaire.id, p.declaration.propriete.proprietaire.nom, SUM(p.montant) " +
+    @Query("SELECT p.taxation.declaration.propriete.proprietaire.id, p.taxation.declaration.propriete.proprietaire.nom, SUM(p.montant) " +
           "FROM Paiement p " +
-          "GROUP BY p.declaration.propriete.proprietaire.id, p.declaration.propriete.proprietaire.nom " +
+          "GROUP BY p.taxation.declaration.propriete.proprietaire.id, p.taxation.declaration.propriete.proprietaire.nom " +
           "ORDER BY SUM(p.montant) DESC")
     List<Object[]> findTopContributors(int limit);
 }

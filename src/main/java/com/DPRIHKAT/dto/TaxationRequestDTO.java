@@ -1,125 +1,53 @@
 package com.DPRIHKAT.dto;
 
-import com.DPRIHKAT.entity.enums.TypeImpot;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.Date;
 import java.util.UUID;
 
 /**
- * DTO pour les requêtes de création ou de mise à jour de taxations
- * @author amateur
+ * DTO pour les requêtes de création de taxation
+ * Version adaptée à la nouvelle architecture où la taxation est liée à une déclaration
  */
 public class TaxationRequestDTO {
-    
-    @NotNull(message = "L'ID de la propriété est obligatoire")
-    private UUID proprieteId;
-    
+
+    @NotNull(message = "L'ID de la déclaration est obligatoire")
+    private UUID declarationId;
+
     @NotNull(message = "L'ID de la nature d'impôt est obligatoire")
-    private UUID proprieteImpotId;
-    
-    @NotNull(message = "L'exercice est obligatoire")
-    private Integer exercice;
-    
-    @NotNull(message = "L'ID de l'agent taxateur est obligatoire")
-    private UUID agentTaxateurId;
-    
-    private Double montant;
-    
-    private TypeImpot typeImpot;
-    
-    private boolean exoneration;
-    
-    private String motifExoneration;
-    
-    private Date dateEcheance;
-    
+    private UUID natureImpotId;
+
+    @NotNull(message = "L'exercice fiscal est obligatoire")
+    private String exercice;
+
     public TaxationRequestDTO() {
     }
-    
-    public TaxationRequestDTO(UUID proprieteId, UUID proprieteImpotId, Integer exercice, UUID agentTaxateurId, 
-                             Double montant, TypeImpot typeImpot, boolean exoneration, String motifExoneration, 
-                             Date dateEcheance) {
-        this.proprieteId = proprieteId;
-        this.proprieteImpotId = proprieteImpotId;
+
+    public TaxationRequestDTO(UUID declarationId, UUID natureImpotId, String exercice) {
+        this.declarationId = declarationId;
+        this.natureImpotId = natureImpotId;
         this.exercice = exercice;
-        this.agentTaxateurId = agentTaxateurId;
-        this.montant = montant;
-        this.typeImpot = typeImpot;
-        this.exoneration = exoneration;
-        this.motifExoneration = motifExoneration;
-        this.dateEcheance = dateEcheance;
     }
 
-    public UUID getProprieteId() {
-        return proprieteId;
+    public UUID getDeclarationId() {
+        return declarationId;
     }
 
-    public void setProprieteId(UUID proprieteId) {
-        this.proprieteId = proprieteId;
+    public void setDeclarationId(UUID declarationId) {
+        this.declarationId = declarationId;
     }
 
-    public UUID getProprieteImpotId() {
-        return proprieteImpotId;
+    public UUID getNatureImpotId() {
+        return natureImpotId;
     }
 
-    public void setProprieteImpotId(UUID proprieteImpotId) {
-        this.proprieteImpotId = proprieteImpotId;
+    public void setNatureImpotId(UUID natureImpotId) {
+        this.natureImpotId = natureImpotId;
     }
 
-    public Integer getExercice() {
+    public String getExercice() {
         return exercice;
     }
 
-    public void setExercice(Integer exercice) {
+    public void setExercice(String exercice) {
         this.exercice = exercice;
-    }
-
-    public UUID getAgentTaxateurId() {
-        return agentTaxateurId;
-    }
-
-    public void setAgentTaxateurId(UUID agentTaxateurId) {
-        this.agentTaxateurId = agentTaxateurId;
-    }
-
-    public Double getMontant() {
-        return montant;
-    }
-
-    public void setMontant(Double montant) {
-        this.montant = montant;
-    }
-
-    public TypeImpot getTypeImpot() {
-        return typeImpot;
-    }
-
-    public void setTypeImpot(TypeImpot typeImpot) {
-        this.typeImpot = typeImpot;
-    }
-
-    public boolean isExoneration() {
-        return exoneration;
-    }
-
-    public void setExoneration(boolean exoneration) {
-        this.exoneration = exoneration;
-    }
-
-    public String getMotifExoneration() {
-        return motifExoneration;
-    }
-
-    public void setMotifExoneration(String motifExoneration) {
-        this.motifExoneration = motifExoneration;
-    }
-
-    public Date getDateEcheance() {
-        return dateEcheance;
-    }
-
-    public void setDateEcheance(Date dateEcheance) {
-        this.dateEcheance = dateEcheance;
     }
 }

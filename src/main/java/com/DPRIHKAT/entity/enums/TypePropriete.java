@@ -9,5 +9,5 @@ package com.DPRIHKAT.entity.enums;
  * @author amateur
  */
 public enum TypePropriete {
-    AP, VI, AT, CITERNE, DEPOT, CH, TE
+    AP, VI, AT, CITERNE, DEPOT, CH, TE, ENTREPOT, HANGAR, ANTENNE
 }

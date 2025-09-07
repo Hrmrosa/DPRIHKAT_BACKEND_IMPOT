@@ -1,6 +1,5 @@
 package com.DPRIHKAT.controller;
 
-import com.DPRIHKAT.dto.NatureImpotDTO;
 import com.DPRIHKAT.entity.NatureImpot;
 import com.DPRIHKAT.service.NatureImpotService;
 import com.DPRIHKAT.util.ResponseUtil;
@@ -11,19 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * Contrôleur pour gérer les natures d'impôt
- * @author amateur
  */
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/natures-impot")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class NatureImpotController {
 
     private static final Logger logger = LoggerFactory.getLogger(NatureImpotController.class);
@@ -32,71 +28,48 @@ public class NatureImpotController {
     private NatureImpotService natureImpotService;
 
     /**
-     * Récupère toutes les natures d'impôt
-     * @return Liste de toutes les natures d'impôt
+     * Récupère toutes les natures d'impôt actives
+     * @return la liste des natures d'impôt actives
      */
     @GetMapping
     public ResponseEntity<?> getAllNaturesImpot() {
         try {
-            logger.info("Récupération de toutes les natures d'impôt");
+            logger.info("Récupération de toutes les natures d'impôt actives");
             List<NatureImpot> naturesImpot = natureImpotService.getAllNaturesImpot();
-            List<NatureImpotDTO> naturesImpotDTO = naturesImpot.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "naturesImpot", naturesImpotDTO
+                    "naturesImpot", naturesImpot
             )));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des natures d'impôt", e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_FETCH_ERROR", 
+                    .body(ResponseUtil.createErrorResponse("NATURES_IMPOT_FETCH_ERROR", 
                             "Erreur lors de la récupération des natures d'impôt", 
                             e.getMessage()));
         }
     }
 
     /**
-     * Récupère toutes les natures d'impôt actives
-     * @return Liste des natures d'impôt actives
-     */
-    @GetMapping("/actives")
-    public ResponseEntity<?> getAllActiveNaturesImpot() {
-        try {
-            logger.info("Récupération des natures d'impôt actives");
-            List<NatureImpot> naturesImpot = natureImpotService.getAllActiveNaturesImpot();
-            List<NatureImpotDTO> naturesImpotDTO = naturesImpot.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "naturesImpot", naturesImpotDTO
-            )));
-        } catch (Exception e) {
-            logger.error("Erreur lors de la récupération des natures d'impôt actives", e);
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_FETCH_ERROR", 
-                            "Erreur lors de la récupération des natures d'impôt actives", 
-                            e.getMessage()));
-        }
-    }
-
-    /**
      * Récupère une nature d'impôt par son ID
-     * @param id L'ID de la nature d'impôt
-     * @return La nature d'impôt correspondante
+     * @param id l'ID de la nature d'impôt
+     * @return la nature d'impôt correspondante, si elle existe
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getNatureImpotById(@PathVariable UUID id) {
+    public ResponseEntity<?> getNatureImpotById(@PathVariable String id) {
         try {
             logger.info("Récupération de la nature d'impôt avec l'ID: {}", id);
-            return natureImpotService.getNatureImpotById(id)
-                    .map(natureImpot -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                            "natureImpot", convertToDTO(natureImpot)
-                    ))))
-                    .orElse(ResponseEntity
-                            .notFound()
-                            .build());
+            Optional<NatureImpot> natureImpotOpt = natureImpotService.getNatureImpotById(id);
+            if (natureImpotOpt.isPresent()) {
+                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                        "natureImpot", natureImpotOpt.get()
+                )));
+            } else {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_NOT_FOUND", 
+                                "Nature d'impôt non trouvée", 
+                                "Aucune nature d'impôt avec l'ID: " + id));
+            }
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération de la nature d'impôt avec l'ID: {}", id, e);
             return ResponseEntity
@@ -108,24 +81,57 @@ public class NatureImpotController {
     }
 
     /**
+     * Récupère une nature d'impôt par son code
+     * @param code le code de la nature d'impôt
+     * @return la nature d'impôt correspondante, si elle existe
+     */
+    @GetMapping("/code/{code}")
+    public ResponseEntity<?> getNatureImpotByCode(@PathVariable String code) {
+        try {
+            logger.info("Récupération de la nature d'impôt avec le code: {}", code);
+            Optional<NatureImpot> natureImpotOpt = natureImpotService.getNatureImpotByCode(code);
+            if (natureImpotOpt.isPresent()) {
+                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                        "natureImpot", natureImpotOpt.get()
+                )));
+            } else {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_NOT_FOUND", 
+                                "Nature d'impôt non trouvée", 
+                                "Aucune nature d'impôt avec le code: " + code));
+            }
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération de la nature d'impôt avec le code: {}", code, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_FETCH_ERROR", 
+                            "Erreur lors de la récupération de la nature d'impôt", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Crée une nouvelle nature d'impôt
-     * @param natureImpotDTO Les informations de la nature d'impôt à créer
-     * @return La nature d'impôt créée
+     * @param natureImpot la nature d'impôt à créer
+     * @return la nature d'impôt créée
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createNatureImpot(@Valid @RequestBody NatureImpotDTO natureImpotDTO) {
+    public ResponseEntity<?> createNatureImpot(@RequestBody NatureImpot natureImpot) {
         try {
-            logger.info("Création d'une nouvelle nature d'impôt: {}", natureImpotDTO.getCode());
-            NatureImpot natureImpot = new NatureImpot();
-            natureImpot.setCode(natureImpotDTO.getCode());
-            natureImpot.setNom(natureImpotDTO.getNom());
-            natureImpot.setDescription(natureImpotDTO.getDescription());
-            natureImpot.setActif(true);
-            
-            NatureImpot createdNatureImpot = natureImpotService.createNatureImpot(natureImpot);
+            logger.info("Création d'une nouvelle nature d'impôt: {}", natureImpot.getCode());
+            if (natureImpotService.getNatureImpotByCode(natureImpot.getCode()).isPresent()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_ALREADY_EXISTS", 
+                                "Nature d'impôt déjà existante", 
+                                "Une nature d'impôt avec le code " + natureImpot.getCode() + " existe déjà"));
+            }
+            NatureImpot savedNatureImpot = natureImpotService.saveNatureImpot(natureImpot);
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "natureImpot", convertToDTO(createdNatureImpot)
+                    "natureImpot", savedNatureImpot,
+                    "message", "Nature d'impôt créée avec succès"
             )));
         } catch (Exception e) {
             logger.error("Erreur lors de la création de la nature d'impôt", e);
@@ -139,26 +145,33 @@ public class NatureImpotController {
 
     /**
      * Met à jour une nature d'impôt existante
-     * @param id L'ID de la nature d'impôt à mettre à jour
-     * @param natureImpotDTO Les nouvelles informations de la nature d'impôt
-     * @return La nature d'impôt mise à jour
+     * @param id l'ID de la nature d'impôt à mettre à jour
+     * @param natureImpot les nouvelles données de la nature d'impôt
+     * @return la nature d'impôt mise à jour
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateNatureImpot(@PathVariable UUID id, @Valid @RequestBody NatureImpotDTO natureImpotDTO) {
+    public ResponseEntity<?> updateNatureImpot(@PathVariable String id, @RequestBody NatureImpot natureImpot) {
         try {
             logger.info("Mise à jour de la nature d'impôt avec l'ID: {}", id);
-            NatureImpot natureImpot = new NatureImpot();
-            natureImpot.setNom(natureImpotDTO.getNom());
-            natureImpot.setDescription(natureImpotDTO.getDescription());
-            
-            return natureImpotService.updateNatureImpot(id, natureImpot)
-                    .map(updatedNatureImpot -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                            "natureImpot", convertToDTO(updatedNatureImpot)
-                    ))))
-                    .orElse(ResponseEntity
-                            .notFound()
-                            .build());
+            Optional<NatureImpot> natureImpotOpt = natureImpotService.getNatureImpotById(id);
+            if (natureImpotOpt.isPresent()) {
+                NatureImpot existingNatureImpot = natureImpotOpt.get();
+                existingNatureImpot.setNom(natureImpot.getNom());
+                existingNatureImpot.setDescription(natureImpot.getDescription());
+                existingNatureImpot.setActif(natureImpot.isActif());
+                NatureImpot updatedNatureImpot = natureImpotService.saveNatureImpot(existingNatureImpot);
+                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                        "natureImpot", updatedNatureImpot,
+                        "message", "Nature d'impôt mise à jour avec succès"
+                )));
+            } else {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_NOT_FOUND", 
+                                "Nature d'impôt non trouvée", 
+                                "Aucune nature d'impôt avec l'ID: " + id));
+            }
         } catch (Exception e) {
             logger.error("Erreur lors de la mise à jour de la nature d'impôt avec l'ID: {}", id, e);
             return ResponseEntity
@@ -171,76 +184,57 @@ public class NatureImpotController {
 
     /**
      * Désactive une nature d'impôt (suppression logique)
-     * @param id L'ID de la nature d'impôt à désactiver
-     * @return Statut de la désactivation
+     * @param id l'ID de la nature d'impôt à désactiver
+     * @return un message de confirmation
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deactivateNatureImpot(@PathVariable UUID id) {
+    public ResponseEntity<?> deleteNatureImpot(@PathVariable String id) {
         try {
             logger.info("Désactivation de la nature d'impôt avec l'ID: {}", id);
-            boolean deactivated = natureImpotService.deactivateNatureImpot(id);
-            if (deactivated) {
+            boolean success = natureImpotService.desactiverNatureImpot(id);
+            if (success) {
                 return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                         "message", "Nature d'impôt désactivée avec succès"
                 )));
             } else {
                 return ResponseEntity
-                        .notFound()
-                        .build();
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_NOT_FOUND", 
+                                "Nature d'impôt non trouvée", 
+                                "Aucune nature d'impôt avec l'ID: " + id));
             }
         } catch (Exception e) {
             logger.error("Erreur lors de la désactivation de la nature d'impôt avec l'ID: {}", id, e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_DEACTIVATE_ERROR", 
+                    .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_DELETE_ERROR", 
                             "Erreur lors de la désactivation de la nature d'impôt", 
                             e.getMessage()));
         }
     }
 
     /**
-     * Active une nature d'impôt
-     * @param id L'ID de la nature d'impôt à activer
-     * @return Statut de l'activation
+     * Recharge les natures d'impôt depuis le fichier impots.json
+     * @return la liste des natures d'impôt chargées
      */
-    @PutMapping("/{id}/activate")
+    @PostMapping("/reload")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> activateNatureImpot(@PathVariable UUID id) {
+    public ResponseEntity<?> reloadNaturesImpot() {
         try {
-            logger.info("Activation de la nature d'impôt avec l'ID: {}", id);
-            boolean activated = natureImpotService.activateNatureImpot(id);
-            if (activated) {
-                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                        "message", "Nature d'impôt activée avec succès"
-                )));
-            } else {
-                return ResponseEntity
-                        .notFound()
-                        .build();
-            }
+            logger.info("Rechargement des natures d'impôt depuis le fichier impots.json");
+            List<NatureImpot> naturesImpot = natureImpotService.chargerNaturesImpotDepuisFichier();
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "naturesImpot", naturesImpot,
+                    "message", "Natures d'impôt rechargées avec succès"
+            )));
         } catch (Exception e) {
-            logger.error("Erreur lors de l'activation de la nature d'impôt avec l'ID: {}", id, e);
+            logger.error("Erreur lors du rechargement des natures d'impôt", e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("NATURE_IMPOT_ACTIVATE_ERROR", 
-                            "Erreur lors de l'activation de la nature d'impôt", 
+                    .body(ResponseUtil.createErrorResponse("NATURES_IMPOT_RELOAD_ERROR", 
+                            "Erreur lors du rechargement des natures d'impôt", 
                             e.getMessage()));
         }
-    }
-
-    /**
-     * Convertit une entité NatureImpot en NatureImpotDTO
-     * @param natureImpot L'entité NatureImpot à convertir
-     * @return Le DTO NatureImpotDTO correspondant
-     */
-    private NatureImpotDTO convertToDTO(NatureImpot natureImpot) {
-        return new NatureImpotDTO(
-                natureImpot.getId(),
-                natureImpot.getCode(),
-                natureImpot.getNom(),
-                natureImpot.getDescription(),
-                natureImpot.isActif()
-        );
     }
 }

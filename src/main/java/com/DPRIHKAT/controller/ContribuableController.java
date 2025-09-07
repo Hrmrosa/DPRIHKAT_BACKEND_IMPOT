@@ -55,7 +55,7 @@ public class ContribuableController {
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
     public ResponseEntity<?> createContribuable(@RequestBody Contribuable contribuable) {
         try {
-            Contribuable createdContribuable = contribuableService.save(contribuable);
+                    Contribuable createdContribuable = contribuableService.createContribuable(contribuable);
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("contribuable", createdContribuable)));
         } catch (Exception e) {
             return ResponseEntity

@@ -31,8 +31,12 @@ public class PenaliteService {
                 .orElseThrow(() -> new RuntimeException("Déclaration non trouvée"));
 
         // If declaration date is null, consider as non-submission (25% penalty) and stop
-        if (declaration.getDate() == null) {
-            double penaltyAmount = declaration.getMontant() * 0.25;
+        if (declaration.getDateDeclaration() == null) {
+            // Utiliser le montant de la propriété associée à la déclaration
+            double penaltyAmount = 0.0;
+            if (declaration.getPropriete() != null) {
+                penaltyAmount = declaration.getPropriete().getMontantImpot() * 0.25;
+            }
 
             Penalite penalite = new Penalite();
             penalite.setDeclaration(declaration);
@@ -55,7 +59,10 @@ public class PenaliteService {
 
             if (monthsDelay > 0) {
                 // 2% penalty per month for late payment
-                double penaltyAmount = declaration.getMontant() * 0.02 * monthsDelay;
+                double penaltyAmount = 0.0;
+                if (declaration.getPropriete() != null) {
+                    penaltyAmount = declaration.getPropriete().getMontantImpot() * 0.02 * monthsDelay;
+                }
 
                 Penalite penalite = new Penalite();
                 penalite.setDeclaration(declaration);
@@ -74,7 +81,7 @@ public class PenaliteService {
      */
     private LocalDate getDueDate(Declaration declaration) {
         // For most declarations, due date is February 1st of the following year
-        LocalDate declarationDate = declaration.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate declarationDate = declaration.getDateDeclaration().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         return LocalDate.of(declarationDate.getYear() + 1, 2, 1);
     }
 

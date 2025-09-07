@@ -6,14 +6,15 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * Entité représentant une taxation d'un bien
- * La taxation est différente de la déclaration :
- * - La déclaration est le fait d'ajouter un bien à un contribuable
- * - La taxation est le fait de taxer un bien
+ * Entité représentant la taxation d'un bien déclaré
+ * La taxation est le fait de taxer un bien déjà déclaré et assujetti à un type d'impôt
+ * 
  * @author amateur
  */
 @Entity
@@ -28,65 +29,75 @@ public class Taxation {
 
     private Double montant;
 
-    private Integer exercice; // Année fiscale
+    private String exercice;
 
     @Enumerated(EnumType.STRING)
     private StatutTaxation statut;
 
     @Enumerated(EnumType.STRING)
-    private TypeImpot typeImpot; // IF, IRL, ICM, etc.
+    private TypeImpot typeImpot;
 
-    private boolean exoneration; // Gestion des exonérations
-
-    private String motifExoneration; // Motif de l'exonération, si applicable
-
-    private Date dateEcheance; // Date limite de paiement
-
+    private boolean exoneration;
+    
     private boolean actif = true; // Champ pour la suppression logique
 
+    // Bien déclaré concerné par la taxation
     @ManyToOne
-    @JoinColumn(name = "propriete_id")
+    @JoinColumn(name = "declaration_id")
     @JsonIdentityReference(alwaysAsId = true)
-    private Propriete propriete;
+    private Declaration declaration;
 
-    @ManyToOne
-    @JoinColumn(name = "propriete_impot_id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private ProprieteImpot proprieteImpot;
-
+    // Agent qui a effectué la taxation
     @ManyToOne
     @JoinColumn(name = "agent_taxateur_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Agent agentTaxateur;
 
-    @OneToOne
-    @JoinColumn(name = "paiement_id")
+    // Agent qui a validé la taxation
+    @ManyToOne
+    @JoinColumn(name = "agent_validateur_id")
     @JsonIdentityReference(alwaysAsId = true)
+    private Agent agentValidateur;
+
+    // Paiement associé à la taxation
+    @OneToOne(mappedBy = "taxation")
     private Paiement paiement;
 
-    @OneToOne
-    @JoinColumn(name = "apurement_id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private Apurement apurement;
+    // Apurements associés à la taxation
+    @OneToMany(mappedBy = "taxation")
+    private List<Apurement> apurements = new ArrayList<>();
 
     public Taxation() {
     }
 
-    public Taxation(Date dateTaxation, Double montant, Integer exercice, StatutTaxation statut, TypeImpot typeImpot, 
-                   boolean exoneration, String motifExoneration, Date dateEcheance, Propriete propriete, 
-                   ProprieteImpot proprieteImpot, Agent agentTaxateur) {
+    public Taxation(Date dateTaxation, Double montant, String exercice, StatutTaxation statut, 
+                   TypeImpot typeImpot, boolean exoneration, Declaration declaration, Agent agentTaxateur) {
         this.dateTaxation = dateTaxation;
         this.montant = montant;
         this.exercice = exercice;
         this.statut = statut;
         this.typeImpot = typeImpot;
         this.exoneration = exoneration;
-        this.motifExoneration = motifExoneration;
-        this.dateEcheance = dateEcheance;
-        this.propriete = propriete;
-        this.proprieteImpot = proprieteImpot;
+        this.declaration = declaration;
         this.agentTaxateur = agentTaxateur;
         this.actif = true;
+    }
+
+    // Méthodes
+    public void validerTaxation(Agent agentValidateur) {
+        if (this.statut != StatutTaxation.SOUMISE) {
+            throw new IllegalStateException("Seule une taxation soumise peut être validée.");
+        }
+        this.agentValidateur = agentValidateur;
+        this.statut = StatutTaxation.VALIDEE;
+    }
+
+    public void associerPaiement(Paiement paiement) {
+        if (this.statut != StatutTaxation.VALIDEE) {
+            throw new IllegalStateException("Seule une taxation validée peut être associée à un paiement.");
+        }
+        this.paiement = paiement;
+        this.statut = StatutTaxation.PAYEE;
     }
 
     // Getters et Setters
@@ -114,11 +125,11 @@ public class Taxation {
         this.montant = montant;
     }
 
-    public Integer getExercice() {
+    public String getExercice() {
         return exercice;
     }
 
-    public void setExercice(Integer exercice) {
+    public void setExercice(String exercice) {
         this.exercice = exercice;
     }
 
@@ -146,22 +157,6 @@ public class Taxation {
         this.exoneration = exoneration;
     }
 
-    public String getMotifExoneration() {
-        return motifExoneration;
-    }
-
-    public void setMotifExoneration(String motifExoneration) {
-        this.motifExoneration = motifExoneration;
-    }
-
-    public Date getDateEcheance() {
-        return dateEcheance;
-    }
-
-    public void setDateEcheance(Date dateEcheance) {
-        this.dateEcheance = dateEcheance;
-    }
-
     public boolean isActif() {
         return actif;
     }
@@ -170,20 +165,12 @@ public class Taxation {
         this.actif = actif;
     }
 
-    public Propriete getPropriete() {
-        return propriete;
+    public Declaration getDeclaration() {
+        return declaration;
     }
 
-    public void setPropriete(Propriete propriete) {
-        this.propriete = propriete;
-    }
-
-    public ProprieteImpot getProprieteImpot() {
-        return proprieteImpot;
-    }
-
-    public void setProprieteImpot(ProprieteImpot proprieteImpot) {
-        this.proprieteImpot = proprieteImpot;
+    public void setDeclaration(Declaration declaration) {
+        this.declaration = declaration;
     }
 
     public Agent getAgentTaxateur() {
@@ -194,6 +181,14 @@ public class Taxation {
         this.agentTaxateur = agentTaxateur;
     }
 
+    public Agent getAgentValidateur() {
+        return agentValidateur;
+    }
+
+    public void setAgentValidateur(Agent agentValidateur) {
+        this.agentValidateur = agentValidateur;
+    }
+
     public Paiement getPaiement() {
         return paiement;
     }
@@ -202,11 +197,11 @@ public class Taxation {
         this.paiement = paiement;
     }
 
-    public Apurement getApurement() {
-        return apurement;
+    public List<Apurement> getApurements() {
+        return apurements;
     }
 
-    public void setApurement(Apurement apurement) {
-        this.apurement = apurement;
+    public void setApurements(List<Apurement> apurements) {
+        this.apurements = apurements;
     }
 }

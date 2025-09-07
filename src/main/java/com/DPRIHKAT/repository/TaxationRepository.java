@@ -1,12 +1,12 @@
 package com.DPRIHKAT.repository;
 
-import com.DPRIHKAT.entity.Agent;
-import com.DPRIHKAT.entity.Propriete;
-import com.DPRIHKAT.entity.ProprieteImpot;
+import com.DPRIHKAT.entity.Declaration;
 import com.DPRIHKAT.entity.Taxation;
 import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -15,158 +15,93 @@ import java.util.UUID;
 
 /**
  * Repository pour l'entité Taxation
- * @author amateur
  */
 @Repository
 public interface TaxationRepository extends JpaRepository<Taxation, UUID> {
     
     /**
      * Trouve toutes les taxations actives
-     * @return Liste des taxations actives
+     * @return la liste des taxations actives
      */
     List<Taxation> findByActifTrue();
     
     /**
-     * Trouve toutes les taxations pour une propriété donnée
-     * @param propriete La propriété
-     * @return Liste des taxations pour cette propriété
+     * Trouve toutes les taxations associées à une déclaration
+     * @param declaration la déclaration
+     * @return la liste des taxations associées à la déclaration
      */
-    List<Taxation> findByPropriete(Propriete propriete);
+    List<Taxation> findByDeclarationAndActifTrue(Declaration declaration);
     
     /**
-     * Trouve toutes les taxations actives pour une propriété donnée
-     * @param propriete La propriété
-     * @return Liste des taxations actives pour cette propriété
-     */
-    List<Taxation> findByProprieteAndActifTrue(Propriete propriete);
-    
-    /**
-     * Trouve toutes les taxations pour un lien propriété-impôt donné
-     * @param proprieteImpot Le lien propriété-impôt
-     * @return Liste des taxations pour ce lien
-     */
-    List<Taxation> findByProprieteImpot(ProprieteImpot proprieteImpot);
-    
-    /**
-     * Trouve toutes les taxations actives pour un lien propriété-impôt donné
-     * @param proprieteImpot Le lien propriété-impôt
-     * @return Liste des taxations actives pour ce lien
-     */
-    List<Taxation> findByProprieteImpotAndActifTrue(ProprieteImpot proprieteImpot);
-    
-    /**
-     * Trouve toutes les taxations pour un agent taxateur donné
-     * @param agentTaxateur L'agent taxateur
-     * @return Liste des taxations créées par cet agent
-     */
-    List<Taxation> findByAgentTaxateur(Agent agentTaxateur);
-    
-    /**
-     * Trouve toutes les taxations actives pour un agent taxateur donné
-     * @param agentTaxateur L'agent taxateur
-     * @return Liste des taxations actives créées par cet agent
-     */
-    List<Taxation> findByAgentTaxateurAndActifTrue(Agent agentTaxateur);
-    
-    /**
-     * Trouve toutes les taxations pour un type d'impôt donné
-     * @param typeImpot Le type d'impôt
-     * @return Liste des taxations pour ce type d'impôt
-     */
-    List<Taxation> findByTypeImpot(TypeImpot typeImpot);
-    
-    /**
-     * Trouve toutes les taxations actives pour un type d'impôt donné
-     * @param typeImpot Le type d'impôt
-     * @return Liste des taxations actives pour ce type d'impôt
-     */
-    List<Taxation> findByTypeImpotAndActifTrue(TypeImpot typeImpot);
-    
-    /**
-     * Trouve toutes les taxations pour un exercice donné
-     * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations pour cet exercice
-     */
-    List<Taxation> findByExercice(Integer exercice);
-    
-    /**
-     * Trouve toutes les taxations actives pour un exercice donné
-     * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations actives pour cet exercice
-     */
-    List<Taxation> findByExerciceAndActifTrue(Integer exercice);
-    
-    /**
-     * Trouve toutes les taxations pour un statut donné
-     * @param statut Le statut de la taxation
-     * @return Liste des taxations avec ce statut
-     */
-    List<Taxation> findByStatut(StatutTaxation statut);
-    
-    /**
-     * Trouve toutes les taxations actives pour un statut donné
-     * @param statut Le statut de la taxation
-     * @return Liste des taxations actives avec ce statut
+     * Trouve toutes les taxations par statut
+     * @param statut le statut des taxations
+     * @return la liste des taxations avec le statut spécifié
      */
     List<Taxation> findByStatutAndActifTrue(StatutTaxation statut);
     
     /**
-     * Trouve toutes les taxations avec exonération
-     * @return Liste des taxations avec exonération
+     * Trouve toutes les taxations par type d'impôt
+     * @param typeImpot le type d'impôt
+     * @return la liste des taxations avec le type d'impôt spécifié
      */
-    List<Taxation> findByExonerationTrue();
+    List<Taxation> findByTypeImpotAndActifTrue(TypeImpot typeImpot);
     
     /**
-     * Trouve toutes les taxations actives avec exonération
-     * @return Liste des taxations actives avec exonération
+     * Trouve toutes les taxations par agent taxateur
+     * @param agentTaxateurId l'ID de l'agent taxateur
+     * @return la liste des taxations effectuées par l'agent taxateur
      */
-    List<Taxation> findByExonerationTrueAndActifTrue();
+    @Query("SELECT t FROM Taxation t WHERE t.agentTaxateur.id = :agentId AND t.actif = true")
+    List<Taxation> findByAgentTaxateurIdAndActifTrue(@Param("agentId") UUID agentTaxateurId);
     
     /**
-     * Trouve toutes les taxations dont la date d'échéance est avant une date donnée
-     * @param date La date limite
-     * @return Liste des taxations dont la date d'échéance est avant la date donnée
+     * Trouve toutes les taxations par agent validateur
+     * @param agentValidateurId l'ID de l'agent validateur
+     * @return la liste des taxations validées par l'agent validateur
      */
-    List<Taxation> findByDateEcheanceBefore(Date date);
+    @Query("SELECT t FROM Taxation t WHERE t.agentValidateur.id = :agentId AND t.actif = true")
+    List<Taxation> findByAgentValidateurIdAndActifTrue(@Param("agentId") UUID agentValidateurId);
     
     /**
-     * Trouve toutes les taxations actives dont la date d'échéance est avant une date donnée
-     * @param date La date limite
-     * @return Liste des taxations actives dont la date d'échéance est avant la date donnée
+     * Trouve toutes les taxations par exercice
+     * @param exercice l'exercice fiscal
+     * @return la liste des taxations pour l'exercice spécifié
      */
-    List<Taxation> findByDateEcheanceBeforeAndActifTrue(Date date);
+    List<Taxation> findByExerciceAndActifTrue(String exercice);
     
     /**
-     * Trouve toutes les taxations pour une propriété et un exercice donnés
-     * @param propriete La propriété
-     * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations pour cette propriété et cet exercice
+     * Trouve toutes les taxations entre deux dates
+     * @param dateDebut la date de début
+     * @param dateFin la date de fin
+     * @return la liste des taxations entre les deux dates
      */
-    List<Taxation> findByProprieteAndExercice(Propriete propriete, Integer exercice);
+    @Query("SELECT t FROM Taxation t WHERE t.dateTaxation BETWEEN :dateDebut AND :dateFin AND t.actif = true")
+    List<Taxation> findByDateTaxationBetweenAndActifTrue(@Param("dateDebut") Date dateDebut, @Param("dateFin") Date dateFin);
     
     /**
-     * Trouve toutes les taxations actives pour une propriété et un exercice donnés
-     * @param propriete La propriété
-     * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations actives pour cette propriété et cet exercice
+     * Trouve toutes les taxations non payées
+     * @return la liste des taxations non payées
      */
-    List<Taxation> findByProprieteAndExerciceAndActifTrue(Propriete propriete, Integer exercice);
+    @Query("SELECT t FROM Taxation t WHERE t.statut != 'PAYEE' AND t.actif = true")
+    List<Taxation> findNonPayeesAndActifTrue();
     
     /**
-     * Trouve toutes les taxations pour une propriété, un type d'impôt et un exercice donnés
-     * @param propriete La propriété
-     * @param typeImpot Le type d'impôt
-     * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations pour cette propriété, ce type d'impôt et cet exercice
+     * Trouve toutes les taxations payées mais non apurées
+     * @return la liste des taxations payées mais non apurées
      */
-    List<Taxation> findByProprieteAndTypeImpotAndExercice(Propriete propriete, TypeImpot typeImpot, Integer exercice);
+    @Query("SELECT t FROM Taxation t WHERE t.statut = 'PAYEE' AND t.statut != 'APUREE' AND t.actif = true")
+    List<Taxation> findPayeesNonApureesAndActifTrue();
     
     /**
-     * Trouve toutes les taxations actives pour une propriété, un type d'impôt et un exercice donnés
-     * @param propriete La propriété
-     * @param typeImpot Le type d'impôt
-     * @param exercice L'exercice (année fiscale)
-     * @return Liste des taxations actives pour cette propriété, ce type d'impôt et cet exercice
+     * Trouve toutes les taxations par déclaration, type d'impôt et exercice
+     * @param declaration la déclaration
+     * @param typeImpot le type d'impôt
+     * @param exercice l'exercice fiscal
+     * @return la liste des taxations correspondantes
      */
-    List<Taxation> findByProprieteAndTypeImpotAndExerciceAndActifTrue(Propriete propriete, TypeImpot typeImpot, Integer exercice);
+    @Query("SELECT t FROM Taxation t WHERE t.declaration = :declaration AND t.typeImpot = :typeImpot AND t.exercice = :exercice AND t.actif = true")
+    List<Taxation> findByDeclarationAndTypeImpotAndExerciceAndActifTrue(
+            @Param("declaration") Declaration declaration, 
+            @Param("typeImpot") TypeImpot typeImpot, 
+            @Param("exercice") String exercice);
 }

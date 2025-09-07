@@ -94,19 +94,13 @@ public class ContribuableService {
      * @return L'agent créé
      */
     private Agent createAgentForContribuable(Contribuable contribuable) {
-        // Récupérer un bureau par défaut pour les contribuables
-        Bureau bureau = bureauRepository.findByNom("Bureau des Contribuables")
-                .orElseGet(() -> {
-                    Bureau newBureau = new Bureau();
-                    newBureau.setNom("Bureau des Contribuables");
-                    newBureau.setCode("BUREAU_CONT");
-                    return bureauRepository.save(newBureau);
-                });
+        // Pour l'instant, on utilise un bureau par défaut
+        Bureau bureau = new Bureau();
+        bureau.setNom("Bureau des Contribuables");
         
         // Créer un agent pour le contribuable
         Agent agent = new Agent();
         agent.setNom(contribuable.getNom());
-        agent.setSexe(Sexe.M); // Par défaut, à modifier si nécessaire
         agent.setMatricule("CONT-" + contribuable.getNumeroIdentificationContribuable());
         agent.setBureau(bureau);
         
@@ -131,17 +125,18 @@ public class ContribuableService {
         utilisateur.setRole(Role.CONTRIBUABLE);
         utilisateur.setPremierConnexion(true);
         utilisateur.setBloque(false);
-        utilisateur.setContribuable(contribuable);
-        utilisateur.setAgent(agent);
+        // Dans la nouvelle architecture, les contribuables sont des agents
+        // utilisateur.setContribuable(contribuable);
+        utilisateur.setAgent(contribuable); // Le contribuable est un agent
         
         // Sauvegarder l'utilisateur
         Utilisateur savedUtilisateur = utilisateurRepository.save(utilisateur);
         
         // Mettre à jour les relations
-        contribuable.setUtilisateur(savedUtilisateur);
+        // contribuable.setUtilisateur(savedUtilisateur);
         agent.setUtilisateur(savedUtilisateur);
         
-        contribuableRepository.save(contribuable);
+        // contribuableRepository.save(contribuable);
         agentRepository.save(agent);
         
         return savedUtilisateur;
@@ -209,15 +204,6 @@ public class ContribuableService {
         } catch (Exception e) {
             logger.error("Erreur lors de l'envoi des identifiants par email", e);
         }
-    }
-
-    /**
-     * Sauvegarde un contribuable
-     * @param contribuable Le contribuable à sauvegarder
-     * @return Le contribuable sauvegardé
-     */
-    public Contribuable save(Contribuable contribuable) {
-        return contribuableRepository.save(contribuable);
     }
 
     /**

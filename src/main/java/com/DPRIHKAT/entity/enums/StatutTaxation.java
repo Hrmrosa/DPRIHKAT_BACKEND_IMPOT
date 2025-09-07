@@ -2,14 +2,13 @@ package com.DPRIHKAT.entity.enums;
 
 /**
  * Énumération des statuts possibles pour une taxation
+ * 
  * @author amateur
  */
 public enum StatutTaxation {
-    EN_ATTENTE,      // Taxation créée mais pas encore validée
-    VALIDEE,         // Taxation validée par un agent
-    PAYEE,           // Taxation payée par le contribuable
-    PAYEE_PARTIELLEMENT, // Taxation partiellement payée
-    ANNULEE,         // Taxation annulée
-    EXONEREE,        // Taxation avec exonération accordée
-    APUREE           // Taxation apurée (régularisée)
+    SOUMISE,    // La taxation a été soumise mais pas encore validée
+    VALIDEE,    // La taxation a été validée par un agent habilité
+    PAYEE,      // La taxation a été payée
+    APUREE,     // La taxation a été apurée
+    ANNULEE     // La taxation a été annulée
 }

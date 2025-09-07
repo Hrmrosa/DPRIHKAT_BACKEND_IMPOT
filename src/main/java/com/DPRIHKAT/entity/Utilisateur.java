@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.DPRIHKAT.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -15,11 +11,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import java.util.Random;
 import java.util.UUID;
 import com.DPRIHKAT.entity.enums.Role;
 
 /**
- *
+ * Entité représentant un utilisateur du système
+ * Un utilisateur peut être associé à un agent
+ * 
  * @author amateur
  */
 @Entity
@@ -41,10 +40,8 @@ public class Utilisateur {
     private boolean premierConnexion;
 
     private boolean bloque;
-
-    @OneToOne
-    @JoinColumn(name = "contribuable_id", nullable = true)
-    private Contribuable contribuable;
+    
+    private boolean actif = true; // Champ pour la suppression logique
 
     @OneToOne
     @JoinColumn(name = "agent_id", nullable = true)
@@ -59,6 +56,7 @@ public class Utilisateur {
         this.role = role;
         this.premierConnexion = true;
         this.bloque = false;
+        this.actif = true;
     }
 
     // Méthodes
@@ -69,6 +67,43 @@ public class Utilisateur {
 
     public void bloquerCompte() {
         this.bloque = true;
+    }
+    
+    /**
+     * Génère un login pour un contribuable (dpri_c + 4 caractères aléatoires)
+     * @return le login généré
+     */
+    public static String genererLoginContribuable() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder("dpri_c");
+        Random random = new Random();
+        for (int i = 0; i < 4; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Génère un mot de passe par défaut pour un contribuable (Tabc@123)
+     * @return le mot de passe par défaut
+     */
+    public static String genererMotDePasseContribuable() {
+        return "Tabc@123";
+    }
+    
+    /**
+     * Crée un utilisateur pour un contribuable avec un login et mot de passe générés automatiquement
+     * @param contribuable le contribuable pour lequel créer un utilisateur
+     * @return l'utilisateur créé
+     */
+    public static Utilisateur creerUtilisateurContribuable(Contribuable contribuable) {
+        String login = genererLoginContribuable();
+        String motDePasse = genererMotDePasseContribuable();
+        
+        Utilisateur utilisateur = new Utilisateur(login, motDePasse, Role.CONTRIBUABLE);
+        utilisateur.setAgent(contribuable); // Le contribuable est un agent
+        
+        return utilisateur;
     }
 
     // Getters et Setters
@@ -119,13 +154,13 @@ public class Utilisateur {
     public void setBloque(boolean bloque) {
         this.bloque = bloque;
     }
-
-    public Contribuable getContribuable() {
-        return contribuable;
+    
+    public boolean isActif() {
+        return actif;
     }
 
-    public void setContribuable(Contribuable contribuable) {
-        this.contribuable = contribuable;
+    public void setActif(boolean actif) {
+        this.actif = actif;
     }
 
     public Agent getAgent() {
@@ -134,5 +169,24 @@ public class Utilisateur {
 
     public void setAgent(Agent agent) {
         this.agent = agent;
+    }
+    
+    /**
+     * Vérifie si l'utilisateur est un contribuable
+     * @return true si l'utilisateur est un contribuable, false sinon
+     */
+    public boolean isContribuable() {
+        return this.role == Role.CONTRIBUABLE && this.agent instanceof Contribuable;
+    }
+    
+    /**
+     * Récupère le contribuable associé à cet utilisateur, s'il existe
+     * @return le contribuable associé, ou null si l'utilisateur n'est pas un contribuable
+     */
+    public Contribuable getContribuable() {
+        if (isContribuable()) {
+            return (Contribuable) this.agent;
+        }
+        return null;
     }
 }

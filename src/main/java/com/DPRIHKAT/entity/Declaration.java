@@ -1,20 +1,22 @@
 package com.DPRIHKAT.entity;
 
-/**
- *
- * @author amateur
- */
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.DPRIHKAT.entity.enums.StatutDeclaration;
-import com.DPRIHKAT.entity.enums.TypeImpot;
+import com.DPRIHKAT.entity.enums.SourceDeclaration;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entité représentant la déclaration d'un bien par un contribuable
+ * La déclaration est le fait d'enregistrer un bien au nom d'un contribuable
+ * 
+ * @author amateur
+ */
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Declaration {
@@ -23,55 +25,54 @@ public class Declaration {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private Date date;
-
-    private Double montant;
+    private Date dateDeclaration;
 
     @Enumerated(EnumType.STRING)
     private StatutDeclaration statut;
-
+    
     @Enumerated(EnumType.STRING)
-    private TypeImpot typeImpot; // IF, IRL, ICM
-
-    private boolean exoneration; // Gestion des exonérations
+    private SourceDeclaration source; // EN_LIGNE ou ADMINISTRATION
     
     private boolean actif = true; // Champ pour la suppression logique
 
+    // Bien déclaré
     @ManyToOne
     @JoinColumn(name = "propriete_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Propriete propriete;
 
+    // Concession minière déclarée (si applicable)
     @ManyToOne
     @JoinColumn(name = "concession_id")
     @JsonIdentityReference(alwaysAsId = true)
     private ConcessionMinier concession;
 
+    // Agent qui a validé la déclaration (si déclaration à l'administration)
     @ManyToOne
     @JoinColumn(name = "agent_validateur_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Agent agentValidateur;
-
-    @OneToOne
-    @JoinColumn(name = "paiement_id")
+    
+    // Contribuable qui a déclaré le bien
+    @ManyToOne
+    @JoinColumn(name = "contribuable_id")
     @JsonIdentityReference(alwaysAsId = true)
-    private Paiement paiement;
-
+    private Contribuable contribuable;
+    
+    // Taxations associées à cette déclaration
     @OneToMany(mappedBy = "declaration")
-    private List<Penalite> penalites = new ArrayList<>();
+    private List<Taxation> taxations = new ArrayList<>();
 
     public Declaration() {
     }
 
-    public Declaration(Date date, Double montant, StatutDeclaration statut, TypeImpot typeImpot, boolean exoneration, Propriete propriete, ConcessionMinier concession, Agent agentValidateur) {
-        this.date = date;
-        this.montant = montant;
+    public Declaration(Date dateDeclaration, StatutDeclaration statut, SourceDeclaration source, 
+                      Propriete propriete, Contribuable contribuable) {
+        this.dateDeclaration = dateDeclaration;
         this.statut = statut;
-        this.typeImpot = typeImpot;
-        this.exoneration = exoneration;
-        setPropriete(propriete); // Utiliser la méthode set pour synchronisation
-        setConcession(concession); // Utiliser la méthode set pour synchronisation
-        this.agentValidateur = agentValidateur;
+        this.source = source;
+        this.propriete = propriete;
+        this.contribuable = contribuable;
         this.actif = true;
     }
 
@@ -96,14 +97,17 @@ public class Declaration {
             concession.getDeclarations().add(this); // Ajouter la nouvelle relation
         }
     }
-
-    // Méthodes
-    public void soumettreDeclaration() {
-        if (typeImpot == TypeImpot.IRL && !exoneration) {
-            double acompte = montant * 0.20;
-            // TODO: Générer paiement acompte
-            // Solde de 2% dû au 1er février
+    
+    /**
+     * Valide une déclaration soumise
+     * @param agent l'agent qui valide la déclaration
+     */
+    public void valider(Agent agent) {
+        if (this.statut != StatutDeclaration.SOUMISE) {
+            throw new IllegalStateException("Seule une déclaration soumise peut être validée.");
         }
+        this.agentValidateur = agent;
+        this.statut = StatutDeclaration.VALIDEE;
     }
 
     // Getters et Setters
@@ -115,20 +119,12 @@ public class Declaration {
         this.id = id;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getDateDeclaration() {
+        return dateDeclaration;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Double getMontant() {
-        return montant;
-    }
-
-    public void setMontant(Double montant) {
-        this.montant = montant;
+    public void setDateDeclaration(Date dateDeclaration) {
+        this.dateDeclaration = dateDeclaration;
     }
 
     public StatutDeclaration getStatut() {
@@ -139,22 +135,14 @@ public class Declaration {
         this.statut = statut;
     }
 
-    public TypeImpot getTypeImpot() {
-        return typeImpot;
+    public SourceDeclaration getSource() {
+        return source;
     }
 
-    public void setTypeImpot(TypeImpot typeImpot) {
-        this.typeImpot = typeImpot;
+    public void setSource(SourceDeclaration source) {
+        this.source = source;
     }
 
-    public boolean isExoneration() {
-        return exoneration;
-    }
-
-    public void setExoneration(boolean exoneration) {
-        this.exoneration = exoneration;
-    }
-    
     public boolean isActif() {
         return actif;
     }
@@ -179,19 +167,19 @@ public class Declaration {
         this.agentValidateur = agentValidateur;
     }
 
-    public Paiement getPaiement() {
-        return paiement;
+    public Contribuable getContribuable() {
+        return contribuable;
     }
 
-    public void setPaiement(Paiement paiement) {
-        this.paiement = paiement;
+    public void setContribuable(Contribuable contribuable) {
+        this.contribuable = contribuable;
     }
 
-    public List<Penalite> getPenalites() {
-        return penalites;
+    public List<Taxation> getTaxations() {
+        return taxations;
     }
 
-    public void setPenalites(List<Penalite> penalites) {
-        this.penalites = penalites;
+    public void setTaxations(List<Taxation> taxations) {
+        this.taxations = taxations;
     }
 }

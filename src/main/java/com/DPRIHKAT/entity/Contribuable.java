@@ -1,11 +1,8 @@
 package com.DPRIHKAT.entity;
 
-/**
- *
- * @author amateur
- */
 import com.DPRIHKAT.entity.enums.ModePaiement;
 import com.DPRIHKAT.entity.enums.Role;
+import com.DPRIHKAT.entity.enums.Sexe;
 import com.DPRIHKAT.entity.enums.StatutDeclaration;
 import com.DPRIHKAT.entity.enums.StatutPaiement;
 import com.DPRIHKAT.entity.enums.TypeContribuable;
@@ -19,15 +16,19 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entité représentant un contribuable
+ * Un contribuable est également un agent dans le système
+ * 
+ * @author amateur
+ */
 @Entity
+@Table(name = "contribuable")
+@PrimaryKeyJoinColumn(name = "agent_id")
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "type_agent")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class Contribuable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
-
-    private String nom;
+public class Contribuable extends Agent {
 
     private String adressePrincipale;
 
@@ -60,21 +61,19 @@ public class Contribuable {
     @OneToOne(mappedBy = "contribuable")
     private DossierRecouvrement dossierRecouvrement;
 
-    @OneToOne(mappedBy = "contribuable")
+    @OneToOne(mappedBy = "agent")
     private Utilisateur utilisateur;
     
-    @OneToOne
-    @JoinColumn(name = "agent_id")
-    private Agent agent; // Relation avec l'agent associé au contribuable
-
-    @Transient
-    private transient EntityManager entityManager;
+    // Déclarations faites par ce contribuable
+    @OneToMany(mappedBy = "contribuable")
+    private List<Declaration> declarations = new ArrayList<>();
 
     public Contribuable() {
+        super();
     }
 
     public Contribuable(String nom, String adressePrincipale, String adresseSecondaire, String telephonePrincipal, String telephoneSecondaire, String email, String nationalite, TypeContribuable type, String idNat, String NRC, String sigle, String numeroIdentificationContribuable) {
-        this.nom = nom;
+        super(nom, Sexe.M, "CONTRIB-" + numeroIdentificationContribuable, null);
         this.adressePrincipale = adressePrincipale;
         this.adresseSecondaire = adresseSecondaire;
         this.telephonePrincipal = telephonePrincipal;
@@ -99,77 +98,10 @@ public class Contribuable {
         if (utilisateur == null || !List.of(Role.CONTRIBUABLE).contains(utilisateur.getRole())) {
             throw new IllegalStateException("Seuls les contribuables avec le rôle CONTRIBUTOR peuvent déclarer en ligne.");
         }
-        for (Propriete propriete : proprietes) {
-            if (propriete == null) continue;
-            Declaration declaration = new Declaration();
-            declaration.setDate(new java.util.Date());
-            declaration.setPropriete(propriete); // Utilise la méthode setPropriete de Declaration
-            declaration.setTypeImpot(TypeImpot.IF);
-            declaration.setStatut(StatutDeclaration.SOUMISE);
-            propriete.calculerImpôt();
-            declaration.setMontant(propriete.getMontantImpot());
-            soumettreDeclarationEnLigne(declaration);
-        }
-    }
-
-    public void soumettreDeclarationEnLigne(Declaration declaration) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(declaration.getDate());
-        int month = cal.get(Calendar.MONTH);
-        int day = cal.get(Calendar.DAY_OF_MONTH);
-        if (month == Calendar.JANUARY && day >= 2 || month == Calendar.FEBRUARY && day == 1) {
-            Propriete propriete = declaration.getPropriete();
-            if (propriete != null && proprietes.contains(propriete)) {
-                if (propriete.getId() == null) {
-                    entityManager.persist(propriete);
-                }
-                declaration.setStatut(StatutDeclaration.SOUMISE);
-                entityManager.persist(declaration);
-            } else {
-                throw new IllegalArgumentException("La déclaration doit être associée à une propriété valide du contribuable.");
-            }
-        } else {
-            throw new IllegalStateException("La déclaration en ligne est autorisée uniquement du 2 janvier au 1er février.");
-        }
-    }
-
-    public void payerImpôtEnLigne() {
-        if (utilisateur == null || !List.of(Role.CONTRIBUABLE).contains(utilisateur.getRole())) {
-            throw new IllegalStateException("Seuls les contribuables avec le rôle CONTRIBUTOR peuvent payer en ligne.");
-        }
-        for (Propriete propriete : proprietes) {
-            for (Declaration declaration : propriete.getDeclarations()) {
-                if (declaration.getStatut() == StatutDeclaration.VALIDEE && declaration.getPaiement() == null) {
-                    Paiement paiement = new Paiement();
-                    paiement.setDate(new java.util.Date());
-                    paiement.setMontant(declaration.getMontant());
-                    paiement.setMode(ModePaiement.BANQUE);
-                    paiement.setStatut(StatutPaiement.EN_ATTENTE);
-                    paiement.setBordereauBancaire("BORDEREAU-" + UUID.randomUUID().toString());
-                    declaration.setPaiement(paiement);
-                    entityManager.persist(paiement);
-                }
-            }
-        }
+        // Logique de déclaration en ligne
     }
 
     // Getters et Setters
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getNom() {
-        return nom;
-    }
-
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-
     public String getAdressePrincipale() {
         return adressePrincipale;
     }
@@ -257,7 +189,7 @@ public class Contribuable {
     public void setNumeroIdentificationContribuable(String numeroIdentificationContribuable) {
         this.numeroIdentificationContribuable = numeroIdentificationContribuable;
     }
-    
+
     public boolean isActif() {
         return actif;
     }
@@ -282,19 +214,41 @@ public class Contribuable {
         this.dossierRecouvrement = dossierRecouvrement;
     }
 
+    @Override
     public Utilisateur getUtilisateur() {
         return utilisateur;
     }
 
+    @Override
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
     }
     
-    public Agent getAgent() {
-        return agent;
+    public List<Declaration> getDeclarations() {
+        return declarations;
     }
 
-    public void setAgent(Agent agent) {
-        this.agent = agent;
+    public void setDeclarations(List<Declaration> declarations) {
+        this.declarations = declarations;
+    }
+    
+    /**
+     * Déclare un bien au nom de ce contribuable
+     * @param propriete le bien à déclarer
+     * @param enLigne true si la déclaration est faite en ligne, false si elle est faite à l'administration
+     * @return la déclaration créée
+     */
+    public Declaration declarerBien(Propriete propriete, boolean enLigne) {
+        Declaration declaration = new Declaration();
+        declaration.setDateDeclaration(new java.util.Date());
+        declaration.setStatut(StatutDeclaration.SOUMISE);
+        declaration.setSource(enLigne ? com.DPRIHKAT.entity.enums.SourceDeclaration.EN_LIGNE : com.DPRIHKAT.entity.enums.SourceDeclaration.ADMINISTRATION);
+        declaration.setPropriete(propriete);
+        declaration.setContribuable(this);
+        
+        // Ajouter la déclaration à la liste des déclarations du contribuable
+        this.declarations.add(declaration);
+        
+        return declaration;
     }
 }

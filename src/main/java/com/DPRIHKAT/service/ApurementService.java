@@ -2,11 +2,13 @@ package com.DPRIHKAT.service;
 
 import com.DPRIHKAT.entity.Apurement;
 import com.DPRIHKAT.entity.Declaration;
+import com.DPRIHKAT.entity.Taxation;
 import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.enums.StatutApurement;
 import com.DPRIHKAT.entity.enums.TypeApurement;
 import com.DPRIHKAT.repository.ApurementRepository;
 import com.DPRIHKAT.repository.DeclarationRepository;
+import com.DPRIHKAT.repository.TaxationRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,9 @@ public class ApurementService {
 
     @Autowired
     private DeclarationRepository declarationRepository;
+
+    @Autowired
+    private TaxationRepository taxationRepository;
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
@@ -50,9 +55,16 @@ public class ApurementService {
         apurement.setType(type);
         apurement.setMotif(motif);
         apurement.setDateDemande(new Date());
-        apurement.setDeclaration(declaration);
+        // Dans la nouvelle architecture, les apurements sont liés aux taxations plutôt qu'aux déclarations
+        // Nous devons trouver la taxation associée à la déclaration
+        List<Taxation> taxations = taxationRepository.findByDeclarationAndActifTrue(declaration);
+        if (!taxations.isEmpty()) {
+            apurement.setTaxation(taxations.get(0)); // Utiliser la première taxation trouvée
+        }
         apurement.setAgent(utilisateur.getAgent());
         apurement.setStatut(StatutApurement.PROVISOIRE);
+        // Marquer la déclaration comme payée si elle est associée à une taxation
+        apurement.setDeclarationPayee(true);
 
         return apurementRepository.save(apurement);
     }
@@ -96,7 +108,7 @@ public class ApurementService {
      * Get apurement by declaration id (used by controller)
      */
     public Apurement getApurementByDeclarationId(UUID declarationId) {
-        return apurementRepository.findByDeclaration_Id(declarationId);
+        return apurementRepository.findByDeclarationId(declarationId);
     }
 
     /**

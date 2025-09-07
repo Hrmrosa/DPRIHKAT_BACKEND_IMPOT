@@ -125,8 +125,12 @@ public class UserController {
             utilisateur.setRole(utilisateurDetails.getRole());
             utilisateur.setPremierConnexion(utilisateurDetails.isPremierConnexion());
             utilisateur.setBloque(utilisateurDetails.isBloque());
-            utilisateur.setContribuable(utilisateurDetails.getContribuable());
-            utilisateur.setAgent(utilisateurDetails.getAgent());
+            // Dans la nouvelle architecture, les contribuables sont des agents
+            if (utilisateurDetails.getContribuable() != null) {
+                utilisateur.setAgent(utilisateurDetails.getContribuable());
+            } else {
+                utilisateur.setAgent(utilisateurDetails.getAgent());
+            }
 
             Utilisateur updatedUser = utilisateurRepository.save(utilisateur);
 

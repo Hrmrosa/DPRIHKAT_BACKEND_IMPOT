@@ -3,7 +3,8 @@ package com.DPRIHKAT.service;
 import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
-import com.DPRIHKAT.repository.ProprieteImpotRepository;
+import com.DPRIHKAT.repository.DeclarationRepository;
+import com.DPRIHKAT.repository.NatureImpotRepository;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.TaxationRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,14 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDate;
 import java.util.*;
 
 /**
- * Service pour gérer les taxations des biens et concessions
+ * Service pour gérer les taxations des biens déclarés
  * @author amateur
  */
 @Service
@@ -35,7 +36,10 @@ public class TaxationService {
     private ProprieteRepository proprieteRepository;
     
     @Autowired
-    private ProprieteImpotRepository proprieteImpotRepository;
+    private DeclarationRepository declarationRepository;
+    
+    @Autowired
+    private NatureImpotRepository natureImpotRepository;
 
     /**
      * Récupère toutes les taxations
@@ -69,7 +73,25 @@ public class TaxationService {
      */
     public List<Taxation> getTaxationsByProprieteId(UUID proprieteId) {
         return proprieteRepository.findById(proprieteId)
-                .map(propriete -> taxationRepository.findByProprieteAndActifTrue(propriete))
+                .map(propriete -> {
+                    List<Declaration> declarations = propriete.getDeclarations();
+                    List<Taxation> taxations = new ArrayList<>();
+                    for (Declaration declaration : declarations) {
+                        taxations.addAll(taxationRepository.findByDeclarationAndActifTrue(declaration));
+                    }
+                    return taxations;
+                })
+                .orElse(Collections.emptyList());
+    }
+
+    /**
+     * Récupère toutes les taxations pour une déclaration donnée
+     * @param declarationId L'ID de la déclaration
+     * @return Liste des taxations pour cette déclaration
+     */
+    public List<Taxation> getTaxationsByDeclarationId(UUID declarationId) {
+        return declarationRepository.findById(declarationId)
+                .map(declaration -> taxationRepository.findByDeclarationAndActifTrue(declaration))
                 .orElse(Collections.emptyList());
     }
 
@@ -78,7 +100,7 @@ public class TaxationService {
      * @param exercice L'exercice (année fiscale)
      * @return Liste des taxations pour cet exercice
      */
-    public List<Taxation> getTaxationsByExercice(Integer exercice) {
+    public List<Taxation> getTaxationsByExercice(String exercice) {
         return taxationRepository.findByExerciceAndActifTrue(exercice);
     }
 
@@ -101,94 +123,71 @@ public class TaxationService {
     }
 
     /**
-     * Génère une taxation pour une propriété
-     * @param proprieteId L'ID de la propriété
+     * Génère une taxation pour une déclaration et une nature d'impôt
+     * @param declarationId L'ID de la déclaration
      * @param natureImpotId L'ID de la nature d'impôt
-     * @param exercice L'exercice (année fiscale)
+     * @param exercice L'exercice fiscal
      * @param agentTaxateurId L'ID de l'agent taxateur
      * @return La taxation générée
      */
-    public Taxation generateTaxationForProperty(UUID proprieteId, UUID natureImpotId, Integer exercice, UUID agentTaxateurId) throws Exception {
-        // Vérifier si la propriété existe
-        Propriete propriete = proprieteRepository.findById(proprieteId)
-                .orElseThrow(() -> new Exception("Propriété non trouvée avec l'ID: " + proprieteId));
+    @Transactional
+    public Taxation generateTaxationForDeclaration(UUID declarationId, UUID natureImpotId, String exercice, UUID agentTaxateurId) throws Exception {
+        // Vérifier si la déclaration existe
+        Declaration declaration = declarationRepository.findById(declarationId)
+                .orElseThrow(() -> new Exception("Déclaration non trouvée avec l'ID: " + declarationId));
         
-        // Vérifier si le lien propriété-impôt existe
-        ProprieteImpot proprieteImpot = proprieteImpotRepository.findById(natureImpotId)
+        // Vérifier si la nature d'impôt existe
+        NatureImpot natureImpot = natureImpotRepository.findById(natureImpotId)
                 .orElseThrow(() -> new Exception("Nature d'impôt non trouvée avec l'ID: " + natureImpotId));
         
-        // Vérifier si une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice
-        List<Taxation> existingTaxations = taxationRepository.findByProprieteAndTypeImpotAndExerciceAndActifTrue(
-                propriete, TypeImpot.valueOf(proprieteImpot.getNatureImpot().getCode()), exercice);
+        // Vérifier si le bien déclaré est associé à cette nature d'impôt
+        Propriete propriete = declaration.getPropriete();
+        if (propriete == null) {
+            throw new Exception("La déclaration n'est pas associée à un bien");
+        }
+        
+        if (!propriete.getNaturesImpot().contains(natureImpot)) {
+            throw new Exception("Le bien déclaré n'est pas associé à cette nature d'impôt");
+        }
+        
+        // Vérifier si une taxation existe déjà pour cette déclaration, cette nature d'impôt et cet exercice
+        List<Taxation> existingTaxations = taxationRepository.findByDeclarationAndTypeImpotAndExerciceAndActifTrue(
+                declaration, TypeImpot.valueOf(natureImpot.getCode()), exercice);
         
         if (!existingTaxations.isEmpty()) {
-            throw new Exception("Une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice");
+            throw new Exception("Une taxation existe déjà pour cette déclaration, cette nature d'impôt et cet exercice");
         }
         
         // Créer la taxation
         Taxation taxation = new Taxation();
         taxation.setDateTaxation(new Date());
         taxation.setExercice(exercice);
-        taxation.setStatut(StatutTaxation.EN_ATTENTE);
-        try {
-            taxation.setTypeImpot(TypeImpot.valueOf(proprieteImpot.getNatureImpot().getCode()));
-        } catch (IllegalArgumentException e) {
-            throw new Exception("Type d'impôt non valide: " + proprieteImpot.getNatureImpot().getCode());
-        }
+        taxation.setStatut(StatutTaxation.SOUMISE);
+        taxation.setTypeImpot(TypeImpot.valueOf(natureImpot.getCode()));
         taxation.setExoneration(false);
-        taxation.setPropriete(propriete);
-        taxation.setProprieteImpot(proprieteImpot);
+        taxation.setDeclaration(declaration);
+        
+        // Définir l'agent taxateur
+        Agent agentTaxateur = new Agent();
+        agentTaxateur.setId(agentTaxateurId);
+        
+        taxation.setAgentTaxateur(agentTaxateur);
         
         // Calculer le montant de la taxation
-        double montant = calculateTaxAmount(propriete, proprieteImpot);
+        double montant = calculateTaxAmount(propriete, natureImpot);
         taxation.setMontant(montant);
-        
-        // Définir la date d'échéance (par défaut, fin de l'année fiscale)
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(exercice, Calendar.DECEMBER, 31);
-        taxation.setDateEcheance(calendar.getTime());
         
         // Sauvegarder la taxation
         return taxationRepository.save(taxation);
     }
 
     /**
-     * Calcule le montant de la taxation pour une propriété et une nature d'impôt
-     * @param propriete La propriété
-     * @param proprieteImpot Le lien propriété-impôt
+     * Calcule le montant de la taxation pour un bien et une nature d'impôt
+     * @param propriete Le bien
+     * @param natureImpot La nature d'impôt
      * @return Le montant de la taxation
      */
-    private double calculateTaxAmount(Propriete propriete, ProprieteImpot proprieteImpot) throws IOException {
-        // Si un taux d'imposition est défini dans le lien propriété-impôt, l'utiliser
-        if (proprieteImpot.getTauxImposition() != null) {
-            // Selon le type de propriété, appliquer le taux différemment
-            switch (propriete.getType()) {
-                case VI:
-                case AT:
-                    // Pour les villas et ateliers, le taux est appliqué à la superficie
-                    return proprieteImpot.getTauxImposition() * propriete.getSuperficie();
-                case AP:
-                case CITERNE:
-                case DEPOT:
-                case CH:
-                case TE:
-                    // Pour les autres types, le taux est un montant fixe
-                    return proprieteImpot.getTauxImposition();
-                default:
-                    return 0.0;
-            }
-        } else {
-            // Sinon, utiliser les taux définis dans le fichier JSON
-            return calculateTaxForProperty(propriete);
-        }
-    }
-
-    /**
-     * Calcule le montant de la taxation pour une propriété selon les taux définis dans taux_if.json
-     * @param propriete La propriété
-     * @return Le montant de la taxation
-     */
-    public double calculateTaxForProperty(Propriete propriete) throws IOException {
+    private double calculateTaxAmount(Propriete propriete, NatureImpot natureImpot) throws IOException {
         // Charger les taux depuis le fichier JSON
         ClassPathResource resource = new ClassPathResource("taux_if.json");
         InputStream inputStream = resource.getInputStream();
@@ -224,6 +223,7 @@ public class TaxationService {
      * @param statut Le nouveau statut
      * @return La taxation mise à jour, si elle existe
      */
+    @Transactional
     public Optional<Taxation> updateTaxationStatus(UUID id, StatutTaxation statut) {
         return taxationRepository.findById(id)
                 .map(taxation -> {
@@ -233,46 +233,44 @@ public class TaxationService {
     }
 
     /**
-     * Marque une taxation comme payée
+     * Valide une taxation
      * @param id L'ID de la taxation
-     * @param paiement Le paiement associé
+     * @param agentValidateurId L'ID de l'agent validateur
      * @return La taxation mise à jour, si elle existe
      */
-    public Optional<Taxation> markTaxationAsPaid(UUID id, Paiement paiement) {
+    @Transactional
+    public Optional<Taxation> validerTaxation(UUID id, UUID agentValidateurId) {
         return taxationRepository.findById(id)
                 .map(taxation -> {
+                    if (taxation.getStatut() != StatutTaxation.SOUMISE) {
+                        throw new IllegalStateException("Seule une taxation soumise peut être validée");
+                    }
+                    
+                    Agent agentValidateur = new Agent();
+                    agentValidateur.setId(agentValidateurId);
+                    
+                    taxation.setAgentValidateur(agentValidateur);
+                    taxation.setStatut(StatutTaxation.VALIDEE);
+                    return taxationRepository.save(taxation);
+                });
+    }
+
+    /**
+     * Associe un paiement à une taxation
+     * @param id L'ID de la taxation
+     * @param paiement Le paiement à associer
+     * @return La taxation mise à jour, si elle existe
+     */
+    @Transactional
+    public Optional<Taxation> associerPaiement(UUID id, Paiement paiement) {
+        return taxationRepository.findById(id)
+                .map(taxation -> {
+                    if (taxation.getStatut() != StatutTaxation.VALIDEE) {
+                        throw new IllegalStateException("Seule une taxation validée peut être associée à un paiement");
+                    }
+                    
                     taxation.setPaiement(paiement);
                     taxation.setStatut(StatutTaxation.PAYEE);
-                    return taxationRepository.save(taxation);
-                });
-    }
-
-    /**
-     * Marque une taxation comme partiellement payée
-     * @param id L'ID de la taxation
-     * @param paiement Le paiement associé
-     * @return La taxation mise à jour, si elle existe
-     */
-    public Optional<Taxation> markTaxationAsPartiallyPaid(UUID id, Paiement paiement) {
-        return taxationRepository.findById(id)
-                .map(taxation -> {
-                    taxation.setPaiement(paiement);
-                    taxation.setStatut(StatutTaxation.PAYEE_PARTIELLEMENT);
-                    return taxationRepository.save(taxation);
-                });
-    }
-
-    /**
-     * Marque une taxation comme apurée
-     * @param id L'ID de la taxation
-     * @param apurement L'apurement associé
-     * @return La taxation mise à jour, si elle existe
-     */
-    public Optional<Taxation> markTaxationAsSettled(UUID id, Apurement apurement) {
-        return taxationRepository.findById(id)
-                .map(taxation -> {
-                    taxation.setApurement(apurement);
-                    taxation.setStatut(StatutTaxation.APUREE);
                     return taxationRepository.save(taxation);
                 });
     }
@@ -283,12 +281,12 @@ public class TaxationService {
      * @param motif Le motif de l'exonération
      * @return La taxation mise à jour, si elle existe
      */
-    public Optional<Taxation> grantExemption(UUID id, String motif) {
+    @Transactional
+    public Optional<Taxation> accorderExoneration(UUID id, String motif) {
         return taxationRepository.findById(id)
                 .map(taxation -> {
                     taxation.setExoneration(true);
-                    taxation.setMotifExoneration(motif);
-                    taxation.setStatut(StatutTaxation.EXONEREE);
+                    taxation.setStatut(StatutTaxation.ANNULEE);
                     return taxationRepository.save(taxation);
                 });
     }
@@ -298,25 +296,11 @@ public class TaxationService {
      * @param id L'ID de la taxation à désactiver
      * @return true si la taxation a été désactivée, false sinon
      */
-    public boolean deactivateTaxation(UUID id) {
+    @Transactional
+    public boolean desactiverTaxation(UUID id) {
         return taxationRepository.findById(id)
                 .map(taxation -> {
                     taxation.setActif(false);
-                    taxationRepository.save(taxation);
-                    return true;
-                })
-                .orElse(false);
-    }
-
-    /**
-     * Active une taxation
-     * @param id L'ID de la taxation à activer
-     * @return true si la taxation a été activée, false sinon
-     */
-    public boolean activateTaxation(UUID id) {
-        return taxationRepository.findById(id)
-                .map(taxation -> {
-                    taxation.setActif(true);
                     taxationRepository.save(taxation);
                     return true;
                 })

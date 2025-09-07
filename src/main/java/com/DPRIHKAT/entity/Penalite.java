@@ -56,9 +56,19 @@ public class Penalite {
     public void appliquerPenalite() {
         // Automatisation: 2% par mois pour retard, 25% pour non-déclaration
         if (motif == MotifPenalite.RETARD) {
-            montant = declaration.getMontant() * 0.02; // Par mois
+            // Vérifier que la déclaration et la propriété existent
+            if (declaration != null && declaration.getPropriete() != null) {
+                montant = declaration.getPropriete().getMontantImpot() * 0.02; // Par mois
+            } else {
+                montant = 0.0; // Montant par défaut si impossible de calculer
+            }
         } else if (motif == MotifPenalite.FAUSSE_DECLARATION || motif == MotifPenalite.OUBLI) {
-            montant = declaration.getMontant() * 0.25;
+            // Vérifier que la déclaration et la propriété existent
+            if (declaration != null && declaration.getPropriete() != null) {
+                montant = declaration.getPropriete().getMontantImpot() * 0.25;
+            } else {
+                montant = 0.0; // Montant par défaut si impossible de calculer
+            }
         }
     }
 

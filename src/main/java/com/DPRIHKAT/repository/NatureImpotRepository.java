@@ -10,27 +10,26 @@ import java.util.UUID;
 
 /**
  * Repository pour l'entité NatureImpot
- * @author amateur
  */
 @Repository
 public interface NatureImpotRepository extends JpaRepository<NatureImpot, UUID> {
     
     /**
      * Trouve une nature d'impôt par son code
-     * @param code Le code de la nature d'impôt
-     * @return La nature d'impôt correspondante
+     * @param code le code de la nature d'impôt
+     * @return la nature d'impôt correspondante, si elle existe
      */
     Optional<NatureImpot> findByCode(String code);
     
     /**
      * Trouve toutes les natures d'impôt actives
-     * @return Liste des natures d'impôt actives
+     * @return la liste des natures d'impôt actives
      */
     List<NatureImpot> findByActifTrue();
     
     /**
      * Vérifie si une nature d'impôt existe avec le code donné
-     * @param code Le code à vérifier
+     * @param code le code à vérifier
      * @return true si une nature d'impôt existe avec ce code, false sinon
      */
     boolean existsByCode(String code);

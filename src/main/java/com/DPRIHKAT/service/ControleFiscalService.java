@@ -54,7 +54,12 @@ public class ControleFiscalService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
         // For admin, directeur, and informaticien, show all unpaid declarations
-        List<Declaration> unpaid = declarationRepository.findByPaiementIsNull();
+        // Since we removed the repository method, we'll implement the logic here
+        List<Declaration> allDeclarations = declarationRepository.findAll();
+        List<Declaration> unpaid = allDeclarations.stream()
+                .filter(d -> d.getTaxations().stream()
+                        .anyMatch(t -> t.getPaiement() == null))
+                .collect(Collectors.toList());
 
         if (utilisateur.getRole() == Role.ADMIN ||
             utilisateur.getRole() == Role.DIRECTEUR ||
@@ -71,7 +76,6 @@ public class ControleFiscalService {
             throw new RuntimeException("Bureau non associé à l'agent");
         }
 
-        // Filter by bureau using the declaration's agentValidateur bureau as proxy
         return unpaid.stream()
                 .filter(d -> d.getAgentValidateur() != null && d.getAgentValidateur().getBureau() != null)
                 .filter(d -> bureau.getId().equals(d.getAgentValidateur().getBureau().getId()))
@@ -108,9 +112,9 @@ public class ControleFiscalService {
                     .collect(Collectors.toList());
 
             // Filter paiements by declaration bureau using declaration link
-            final Set<UUID> declarationIdsInBureau = declarations.stream().map(Declaration::getId).collect(Collectors.toSet());
             final Set<UUID> paymentIdsInBureau = declarations.stream()
-                    .map(Declaration::getPaiement)
+                    .flatMap(d -> d.getTaxations().stream())
+                    .map(Taxation::getPaiement)
                     .filter(Objects::nonNull)
                     .map(Paiement::getId)
                     .collect(Collectors.toSet());
@@ -119,14 +123,16 @@ public class ControleFiscalService {
                     .collect(Collectors.toList());
 
             // Filter penalites by bureau using declaration link
+            final Set<UUID> declarationIdsForPenalties = declarations.stream().map(Declaration::getId).collect(Collectors.toSet());
             penalites = penalites.stream()
-                    .filter(pe -> pe.getDeclaration() != null && declarationIdsInBureau.contains(pe.getDeclaration().getId()))
+                    .filter(pe -> pe.getDeclaration() != null && declarationIdsForPenalties.contains(pe.getDeclaration().getId()))
                     .collect(Collectors.toList());
 
             // Filter apurements by date and bureau using declaration link
+            final Set<UUID> declarationIds = declarations.stream().map(Declaration::getId).collect(Collectors.toSet());
             apurements = apurements.stream()
                     .filter(a -> a.getDateDemande() != null && !a.getDateDemande().before(startDate) && !a.getDateDemande().after(endDate))
-                    .filter(a -> a.getDeclaration() != null && declarationIdsInBureau.contains(a.getDeclaration().getId()))
+                    .filter(a -> a.getTaxation() != null && a.getTaxation().getDeclaration() != null && declarationIds.contains(a.getTaxation().getDeclaration().getId()))
                     .collect(Collectors.toList());
         } else {
             // For admin-level roles, filter apurements only by date range
@@ -156,7 +162,7 @@ public class ControleFiscalService {
 
         // Build from declarations with payments
         List<Declaration> allDeclWithPayment = declarationRepository.findAll().stream()
-                .filter(d -> d.getPaiement() != null)
+                .filter(d -> d.getTaxations().stream().anyMatch(t -> t.getPaiement() != null))
                 .collect(Collectors.toList());
 
         if (utilisateur.getRole() != Role.ADMIN &&
@@ -179,7 +185,9 @@ public class ControleFiscalService {
             if (d.getPropriete() == null || d.getPropriete().getProprietaire() == null) continue;
             UUID cid = d.getPropriete().getProprietaire().getId();
             String nom = d.getPropriete().getProprietaire().getNom();
-            double montant = d.getPaiement().getMontant() != null ? d.getPaiement().getMontant() : 0.0;
+            double montant = d.getTaxations().stream()
+                    .mapToDouble(t -> t.getMontant() != null ? t.getMontant() : 0.0)
+                    .sum();
             totalsByContribuable.merge(cid, montant, Double::sum);
             namesByContribuable.putIfAbsent(cid, nom);
         }
@@ -205,34 +213,48 @@ public class ControleFiscalService {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        List<Declaration> unpaid = declarationRepository.findByPaiementIsNull();
+        // Since we removed the repository method, we'll implement the logic here
+        List<Declaration> allDeclarations = declarationRepository.findAll();
+        List<Declaration> unpaid = allDeclarations.stream()
+                .filter(d -> d.getTaxations().stream()
+                        .anyMatch(t -> t.getPaiement() == null))
+                .collect(Collectors.toList());
 
         if (utilisateur.getRole() != Role.ADMIN &&
             utilisateur.getRole() != Role.DIRECTEUR &&
             utilisateur.getRole() != Role.INFORMATICIEN) {
             Agent agent = utilisateur.getAgent();
-            if (agent == null) throw new RuntimeException("Agent non associé à l'utilisateur");
+            if (agent == null) {
+                throw new RuntimeException("Agent non associé à l'utilisateur");
+            }
             Bureau bureau = agent.getBureau();
-            if (bureau == null) throw new RuntimeException("Bureau non associé à l'agent");
+            if (bureau == null) {
+                throw new RuntimeException("Bureau non associé à l'agent");
+            }
             unpaid = unpaid.stream()
                     .filter(d -> d.getAgentValidateur() != null && d.getAgentValidateur().getBureau() != null)
                     .filter(d -> bureau.getId().equals(d.getAgentValidateur().getBureau().getId()))
                     .collect(Collectors.toList());
         }
 
-        Map<UUID, String> delinquentMap = new HashMap<>();
-        for (Declaration d : unpaid) {
-            if (d.getPropriete() == null || d.getPropriete().getProprietaire() == null) continue;
-            Contribuable c = d.getPropriete().getProprietaire();
-            delinquentMap.putIfAbsent(c.getId(), c.getNom());
+        // Group by contributor and calculate total unpaid amount
+        Map<Contribuable, Double> delinquentMap = new HashMap<>();
+        for (Declaration declaration : unpaid) {
+            Contribuable contribuable = declaration.getPropriete().getProprietaire();
+            double totalUnpaid = declaration.getTaxations().stream()
+                    .filter(t -> t.getPaiement() == null)
+                    .mapToDouble(Taxation::getMontant)
+                    .sum();
+            delinquentMap.merge(contribuable, totalUnpaid, Double::sum);
         }
 
+        // Convert to list of maps
         return delinquentMap.entrySet().stream()
-                .map(e -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("id", e.getKey());
-                    m.put("nom", e.getValue());
-                    return m;
+                .map(entry -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("contribuable", entry.getKey());
+                    map.put("totalUnpaid", entry.getValue());
+                    return map;
                 })
                 .collect(Collectors.toList());
     }
@@ -264,7 +286,8 @@ public class ControleFiscalService {
                     .collect(Collectors.toList());
 
             final Set<UUID> paymentIdsInBureau = declarations.stream()
-                    .map(Declaration::getPaiement)
+                    .flatMap(d -> d.getTaxations().stream())
+                    .map(Taxation::getPaiement)
                     .filter(Objects::nonNull)
                     .map(Paiement::getId)
                     .collect(Collectors.toSet());
@@ -317,8 +340,17 @@ public class ControleFiscalService {
         if (controle.getDeclaration() != null) {
             Map<String, Object> declarationInfo = new HashMap<>();
             declarationInfo.put("id", controle.getDeclaration().getId());
-            declarationInfo.put("type", controle.getDeclaration().getTypeImpot());
-            declarationInfo.put("montant", controle.getDeclaration().getMontant());
+            // Get typeImpot from the first taxation (if any)
+            String typeImpot = controle.getDeclaration().getTaxations().stream()
+                    .findFirst()
+                    .map(t -> t.getTypeImpot() != null ? t.getTypeImpot().name() : null)
+                    .orElse(null);
+            declarationInfo.put("type", typeImpot);
+            // Get montant from the sum of all taxations
+            double montant = controle.getDeclaration().getTaxations().stream()
+                    .mapToDouble(t -> t.getMontant() != null ? t.getMontant() : 0.0)
+                    .sum();
+            declarationInfo.put("montant", montant);
             dto.put("declaration", declarationInfo);
         }
         

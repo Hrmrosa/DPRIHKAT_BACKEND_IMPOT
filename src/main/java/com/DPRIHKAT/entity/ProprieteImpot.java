@@ -4,14 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import java.util.Date;
+
 import java.util.UUID;
 
 /**
- * Entité représentant le lien entre une propriété et un type d'impôt
+ * Entité représentant le lien entre une propriété et une nature d'impôt
+ * avec le taux d'imposition applicable
+ * 
  * @author amateur
  */
 @Entity
+@Table(name = "propriete_impot")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class ProprieteImpot {
 
@@ -29,29 +32,24 @@ public class ProprieteImpot {
     @JsonIdentityReference(alwaysAsId = true)
     private NatureImpot natureImpot;
 
-    private Date dateCreation;
+    @Column(name = "taux_imposition")
+    private Double tauxImposition;
 
-    private Date dateModification;
-
+    @Column(name = "actif")
     private boolean actif = true;
 
-    // Champs supplémentaires pour la gestion des impôts
-    private Double tauxImposition;
-    
-    private String commentaire;
-
+    // Constructeurs
     public ProprieteImpot() {
-        this.dateCreation = new Date();
-        this.dateModification = new Date();
     }
 
-    public ProprieteImpot(Propriete propriete, NatureImpot natureImpot) {
+    public ProprieteImpot(Propriete propriete, NatureImpot natureImpot, Double tauxImposition) {
         this.propriete = propriete;
         this.natureImpot = natureImpot;
-        this.dateCreation = new Date();
-        this.dateModification = new Date();
+        this.tauxImposition = tauxImposition;
+        this.actif = true;
     }
 
+    // Getters et Setters
     public UUID getId() {
         return id;
     }
@@ -76,30 +74,6 @@ public class ProprieteImpot {
         this.natureImpot = natureImpot;
     }
 
-    public Date getDateCreation() {
-        return dateCreation;
-    }
-
-    public void setDateCreation(Date dateCreation) {
-        this.dateCreation = dateCreation;
-    }
-
-    public Date getDateModification() {
-        return dateModification;
-    }
-
-    public void setDateModification(Date dateModification) {
-        this.dateModification = dateModification;
-    }
-
-    public boolean isActif() {
-        return actif;
-    }
-
-    public void setActif(boolean actif) {
-        this.actif = actif;
-    }
-
     public Double getTauxImposition() {
         return tauxImposition;
     }
@@ -108,11 +82,11 @@ public class ProprieteImpot {
         this.tauxImposition = tauxImposition;
     }
 
-    public String getCommentaire() {
-        return commentaire;
+    public boolean isActif() {
+        return actif;
     }
 
-    public void setCommentaire(String commentaire) {
-        this.commentaire = commentaire;
+    public void setActif(boolean actif) {
+        this.actif = actif;
     }
 }

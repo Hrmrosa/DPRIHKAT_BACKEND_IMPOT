@@ -9,6 +9,8 @@ import java.util.UUID;
 
 /**
  * Entité représentant la nature d'un impôt
+ * Stocke les informations du fichier impots.json
+ * 
  * @author amateur
  */
 @Entity
@@ -25,11 +27,11 @@ public class NatureImpot {
     private String nom;
 
     private String description;
+    
+    private boolean actif = true; // Champ pour la suppression logique
 
-    @OneToMany(mappedBy = "natureImpot")
-    private List<ProprieteImpot> proprieteImpots = new ArrayList<>();
-
-    private boolean actif = true;
+    @ManyToMany(mappedBy = "naturesImpot")
+    private List<Propriete> proprietes = new ArrayList<>();
 
     public NatureImpot() {
     }
@@ -38,8 +40,10 @@ public class NatureImpot {
         this.code = code;
         this.nom = nom;
         this.description = description;
+        this.actif = true;
     }
 
+    // Getters et Setters
     public UUID getId() {
         return id;
     }
@@ -72,19 +76,30 @@ public class NatureImpot {
         this.description = description;
     }
 
-    public List<ProprieteImpot> getProprieteImpots() {
-        return proprieteImpots;
-    }
-
-    public void setProprieteImpots(List<ProprieteImpot> proprieteImpots) {
-        this.proprieteImpots = proprieteImpots;
-    }
-
     public boolean isActif() {
         return actif;
     }
 
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+
+    public List<Propriete> getProprietes() {
+        return proprietes;
+    }
+
+    public void setProprietes(List<Propriete> proprietes) {
+        this.proprietes = proprietes;
+    }
+
+    @Override
+    public String toString() {
+        return "NatureImpot{" +
+                "id=" + id +
+                ", code='" + code + '\'' +
+                ", nom='" + nom + '\'' +
+                ", description='" + description + '\'' +
+                ", actif=" + actif +
+                '}';
     }
 }

@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "agent_type")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Agent {
 
@@ -74,14 +76,76 @@ public class Agent {
         this.bureau = bureau;
     }
 
+    /**
+     * Détermine le type d'impôt d'une déclaration
+     * @param declaration la déclaration
+     * @return le type d'impôt, ou null si non déterminé
+     */
+    private TypeImpot determinerTypeImpot(Declaration declaration) {
+        // Si la déclaration concerne une propriété
+        if (declaration.getPropriete() != null) {
+            Propriete propriete = declaration.getPropriete();
+            // Vérifier les natures d'impôt associées à la propriété
+            for (NatureImpot natureImpot : propriete.getNaturesImpot()) {
+                // Retourner le premier type d'impôt trouvé (IF, IRL, etc.)
+                if (natureImpot.getCode() != null) {
+                    try {
+                        return TypeImpot.valueOf(natureImpot.getCode());
+                    } catch (IllegalArgumentException e) {
+                        // Ignorer les codes non reconnus
+                    }
+                }
+            }
+        }
+        
+        // Si la déclaration concerne une concession minière
+        if (declaration.getConcession() != null) {
+            return TypeImpot.ICM; // Les concessions minières sont toujours soumises à l'ICM
+        }
+        
+        return null; // Type d'impôt non déterminé
+    }
+    
+    /**
+     * Valide toutes les déclarations soumises par un agent
+     * @param entityManager l'entity manager pour les opérations de persistance
+     */
+    public void validerDeclarationsSoumises(EntityManager entityManager) {
+        List<Declaration> declarations = entityManager.createQuery(
+                "SELECT d FROM Declaration d WHERE d.agentValidateur.id = :agentId", Declaration.class)
+                .setParameter("agentId", this.id)
+                .getResultList();
+        
+        for (Declaration declaration : declarations) {
+            if (declaration.getStatut() == StatutDeclaration.SOUMISE) {
+                // Déterminer le type d'impôt de la déclaration
+                TypeImpot typeImpot = determinerTypeImpot(declaration);
+                
+                // Vérifier si la géolocalisation est obligatoire
+                if (typeImpot != null && List.of(TypeImpot.IF, TypeImpot.IRL, TypeImpot.ICM).contains(typeImpot) 
+                        && declaration.getPropriete() != null && declaration.getPropriete().getLocation() == null) {
+                    throw new IllegalStateException("La géolocalisation est obligatoire pour " + typeImpot);
+                }
+                
+                declaration.setStatut(StatutDeclaration.VALIDEE);
+                entityManager.merge(declaration);
+            }
+        }
+    }
+
     public void validerDeclaration() {
         if (utilisateur == null || !List.of(Role.TAXATEUR, Role.VERIFICATEUR, Role.CHEF_DE_BUREAU).contains(utilisateur.getRole())) {
             throw new IllegalStateException("Seuls les rôles TAXATEUR, VERIFICATEUR ou CHEF_DE_BUREAU peuvent valider des déclarations.");
         }
         for (Declaration declaration : declarations) {
             if (declaration.getStatut() == StatutDeclaration.SOUMISE) {
-                if (List.of(TypeImpot.IF, TypeImpot.IRL, TypeImpot.ICM).contains(declaration.getTypeImpot()) && declaration.getPropriete().getLocation() == null) {
-                    throw new IllegalStateException("La géolocalisation est obligatoire pour " + declaration.getTypeImpot());
+                // Déterminer le type d'impôt de la déclaration
+                TypeImpot typeImpot = determinerTypeImpot(declaration);
+                
+                // Vérifier si la géolocalisation est obligatoire
+                if (typeImpot != null && List.of(TypeImpot.IF, TypeImpot.IRL, TypeImpot.ICM).contains(typeImpot) 
+                        && declaration.getPropriete() != null && declaration.getPropriete().getLocation() == null) {
+                    throw new IllegalStateException("La géolocalisation est obligatoire pour " + typeImpot);
                 }
                 declaration.setStatut(StatutDeclaration.VALIDEE);
                 entityManager.merge(declaration);
@@ -94,7 +158,7 @@ public class Agent {
             throw new IllegalStateException("Seuls les rôles TAXATEUR ou RECEVEUR_DES_IMPOTS peuvent enregistrer des déclarations manuelles.");
         }
         Declaration declaration = new Declaration();
-        declaration.setDate(new java.util.Date());
+        declaration.setDateDeclaration(new java.util.Date());
         declaration.setStatut(StatutDeclaration.SOUMISE);
         declaration.setAgentValidateur(this);
         Propriete propriete = new Propriete(); // À remplacer par une propriété réelle
@@ -119,7 +183,7 @@ public class Agent {
             throw new IllegalStateException("Seuls les rôles TAXATEUR ou CHEF_DE_BUREAU peuvent générer des notes de taxation.");
         }
         boolean taxationExistante = propriete.getDeclarations().stream()
-                .anyMatch(d -> d.getDate().toString().contains(anneeFiscale) && d.getTypeImpot() == TypeImpot.IF);
+                .anyMatch(d -> d.getDateDeclaration().toString().contains(anneeFiscale) && determinerTypeImpot(d) == TypeImpot.IF);
         if (taxationExistante) {
             throw new IllegalStateException("Une taxation existe déjà pour ce bien et cette année fiscale.");
         }
@@ -128,9 +192,9 @@ public class Agent {
         }
         propriete.calculerImpôt();
         Declaration declaration = new Declaration();
-        declaration.setDate(new java.util.Date());
-        declaration.setMontant(propriete.getMontantImpot());
-        declaration.setTypeImpot(TypeImpot.IF);
+        declaration.setDateDeclaration(new java.util.Date());
+        // Le montant est maintenant géré par la propriété
+        // Le type d'impôt est déterminé par les natures d'impôt de la propriété
         declaration.setPropriete(propriete); // Utilise la méthode setPropriete de Declaration
         declaration.setAgentValidateur(this);
         declaration.setStatut(StatutDeclaration.SOUMISE);
@@ -192,13 +256,21 @@ public class Agent {
         Calendar cal = Calendar.getInstance();
         int year = cal.get(Calendar.YEAR);
         for (Declaration declaration : declarations) {
-            if (declaration.getStatut() == StatutDeclaration.SOUMISE && cal.getTime().after(new java.util.Date(year - 1900, Calendar.FEBRUARY, 1))) {
-                Penalite penalite = new Penalite();
-                penalite.setMotif(MotifPenalite.RETARD);
-                penalite.setDateApplication(new java.util.Date());
-                penalite.appliquerPenalite();
-                declaration.getPenalites().add(penalite);
-                entityManager.persist(penalite);
+            if (declaration.getStatut() == StatutDeclaration.SOUMISE) {
+                // Créer une date pour le 1er février de l'année en cours
+                Calendar febCal = Calendar.getInstance();
+                febCal.set(Calendar.YEAR, year);
+                febCal.set(Calendar.MONTH, Calendar.FEBRUARY);
+                febCal.set(Calendar.DAY_OF_MONTH, 1);
+                
+                if (cal.getTime().after(febCal.getTime())) {
+                    Penalite penalite = new Penalite();
+                    penalite.setMotif(MotifPenalite.RETARD);
+                    penalite.setDateApplication(new java.util.Date());
+                    penalite.setDeclaration(declaration); // Lier la pénalité à la déclaration
+                    penalite.appliquerPenalite();
+                    entityManager.persist(penalite);
+                }
             }
         }
     }

@@ -44,6 +44,20 @@ public class Propriete {
     @Column(columnDefinition = "geometry")
     @JsonIgnore
     private Geometry location;
+    
+    private boolean actif = true; // Champ pour la suppression logique
+    
+    private boolean declare = false; // Indique si le bien a été déclaré
+    
+    private boolean declarationEnLigne = false; // Indique si la déclaration a été faite en ligne
+    
+    @ManyToMany
+    @JoinTable(
+        name = "propriete_nature_impot",
+        joinColumns = @JoinColumn(name = "propriete_id"),
+        inverseJoinColumns = @JoinColumn(name = "nature_impot_id")
+    )
+    private List<NatureImpot> naturesImpot = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "proprietaire_id")
@@ -55,8 +69,6 @@ public class Propriete {
     private List<Declaration> declarations = new ArrayList<>();
 
     private Double montantImpot;
-    
-    private boolean actif = true;
 
     public Propriete() {
     }
@@ -69,6 +81,9 @@ public class Propriete {
         this.adresse = adresse;
         this.location = location;
         this.proprietaire = proprietaire;
+        this.actif = true;
+        this.declare = false;
+        this.declarationEnLigne = false;
     }
 
     // Méthodes
@@ -103,6 +118,41 @@ public class Propriete {
             }
         } catch (IOException e) {
             throw new RuntimeException("Erreur lors de la lecture du fichier JSON des taux IF", e);
+        }
+    }
+    
+    /**
+     * Déclare le bien
+     * @param enLigne true si la déclaration est faite en ligne, false si elle est faite à l'administration
+     */
+    public void declarer(boolean enLigne) {
+        this.declare = true;
+        this.declarationEnLigne = enLigne;
+    }
+    
+    /**
+     * Ajoute une nature d'impôt au bien
+     * @param natureImpot la nature d'impôt à ajouter
+     */
+    public void ajouterNatureImpot(NatureImpot natureImpot) {
+        if (!this.naturesImpot.contains(natureImpot)) {
+            this.naturesImpot.add(natureImpot);
+            if (!natureImpot.getProprietes().contains(this)) {
+                natureImpot.getProprietes().add(this);
+            }
+        }
+    }
+    
+    /**
+     * Retire une nature d'impôt du bien
+     * @param natureImpot la nature d'impôt à retirer
+     */
+    public void retirerNatureImpot(NatureImpot natureImpot) {
+        if (this.naturesImpot.contains(natureImpot)) {
+            this.naturesImpot.remove(natureImpot);
+            if (natureImpot.getProprietes().contains(this)) {
+                natureImpot.getProprietes().remove(this);
+            }
         }
     }
 
@@ -204,12 +254,36 @@ public class Propriete {
     public void setMontantImpot(Double montantImpot) {
         this.montantImpot = montantImpot;
     }
-
+    
     public boolean isActif() {
         return actif;
     }
 
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+    
+    public boolean isDeclare() {
+        return declare;
+    }
+
+    public void setDeclare(boolean declare) {
+        this.declare = declare;
+    }
+
+    public boolean isDeclarationEnLigne() {
+        return declarationEnLigne;
+    }
+
+    public void setDeclarationEnLigne(boolean declarationEnLigne) {
+        this.declarationEnLigne = declarationEnLigne;
+    }
+    
+    public List<NatureImpot> getNaturesImpot() {
+        return naturesImpot;
+    }
+
+    public void setNaturesImpot(List<NatureImpot> naturesImpot) {
+        this.naturesImpot = naturesImpot;
     }
 }

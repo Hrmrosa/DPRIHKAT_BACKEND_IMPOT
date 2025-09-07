@@ -188,34 +188,6 @@ public class DeclarationController {
         }
     }
 
-    @GetMapping("/type/{type}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
-    public ResponseEntity<?> getDeclarationsByType(
-            @PathVariable TypeImpot type,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "date") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
-        try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-
-            Page<Declaration> declarationPage = declarationRepository.findByTypeImpot(type, pageable);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("declarations", declarationPage.getContent());
-            response.put("currentPage", declarationPage.getNumber());
-            response.put("totalItems", declarationPage.getTotalElements());
-            response.put("totalPages", declarationPage.getTotalPages());
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("DECLARATION_FETCH_ERROR", "Erreur lors de la récupération des déclarations par type", e.getMessage()));
-        }
-    }
-
     @GetMapping("/statut/{statut}")
     @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getDeclarationsByStatut(

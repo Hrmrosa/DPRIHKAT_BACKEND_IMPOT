@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.DPRIHKAT.entity;
-
-/**
- *
- * @author amateur
- */
 
 import com.DPRIHKAT.entity.enums.ModePaiement;
 import com.DPRIHKAT.entity.enums.StatutPaiement;
@@ -20,6 +11,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entité représentant un paiement
+ * Un paiement est associé à une taxation
+ * 
+ * @author amateur
+ */
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Paiement {
@@ -39,13 +36,17 @@ public class Paiement {
     private StatutPaiement statut;
 
     private String bordereauBancaire; // Informations de paiement bancaire
+    
+    private boolean actif = true; // Champ pour la suppression logique
 
     @OneToMany(mappedBy = "paiement")
     private List<Penalite> penalites = new ArrayList<>();
 
-    @OneToOne(mappedBy = "paiement")
+    // Taxation associée au paiement
+    @OneToOne
+    @JoinColumn(name = "taxation_id")
     @JsonIdentityReference(alwaysAsId = true)
-    private Declaration declaration;
+    private Taxation taxation;
 
     public Paiement() {
     }
@@ -56,16 +57,26 @@ public class Paiement {
         this.mode = mode;
         this.statut = statut;
         this.bordereauBancaire = bordereauBancaire;
+        this.actif = true;
     }
 
     // Méthodes
-        public void genererQuittance() {
+    public void genererQuittance() {
         if (statut != StatutPaiement.VALIDE) {
             throw new IllegalStateException("Le paiement doit être validé pour générer une quittance.");
         }
         String quittanceId = "QUITTANCE-" + UUID.randomUUID().toString();
         // TODO: Générer document PDF ou autre format pour la quittance
         System.out.println("Quittance générée avec ID : " + quittanceId);
+    }
+    
+    /**
+     * Associe ce paiement à une taxation
+     * @param taxation la taxation à associer
+     */
+    public void associerTaxation(Taxation taxation) {
+        this.taxation = taxation;
+        taxation.setPaiement(this);
     }
 
     // Getters et Setters
@@ -116,6 +127,14 @@ public class Paiement {
     public void setBordereauBancaire(String bordereauBancaire) {
         this.bordereauBancaire = bordereauBancaire;
     }
+    
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
+    }
 
     public List<Penalite> getPenalites() {
         return penalites;
@@ -125,11 +144,11 @@ public class Paiement {
         this.penalites = penalites;
     }
 
-    public Declaration getDeclaration() {
-        return declaration;
+    public Taxation getTaxation() {
+        return taxation;
     }
 
-    public void setDeclaration(Declaration declaration) {
-        this.declaration = declaration;
+    public void setTaxation(Taxation taxation) {
+        this.taxation = taxation;
     }
 }

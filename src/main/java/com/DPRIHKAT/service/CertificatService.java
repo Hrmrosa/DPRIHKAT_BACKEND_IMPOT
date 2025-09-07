@@ -40,11 +40,15 @@ public class CertificatService {
 
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-
         Certificat certificat = new Certificat();
         certificat.setNumero(generateCertificateNumber());
         certificat.setDateEmission(new Date());
-        certificat.setMontant(declaration.getMontant());
+        // Utiliser le montant de la propriété associée à la déclaration
+        if (declaration.getPropriete() != null) {
+            certificat.setMontant(declaration.getPropriete().getMontantImpot());
+        } else {
+            certificat.setMontant(0.0); // Montant par défaut si impossible de déterminer
+        }
         certificat.setStatut(StatutCertificat.ACTIF);
         certificat.setActif(true);
         certificat.setDeclaration(declaration);
