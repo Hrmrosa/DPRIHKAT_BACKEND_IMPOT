@@ -13,8 +13,6 @@ import com.DPRIHKAT.repository.UtilisateurRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,34 +58,6 @@ public class ContribuableService {
     }
 
     /**
-     * Récupère tous les contribuables avec pagination
-     * @param pageable informations de pagination
-     * @return page de contribuables
-     */
-    public Page<Contribuable> findAllPaginated(Pageable pageable) {
-        return contribuableRepository.findAll(pageable);
-    }
-
-    /**
-     * Récupère tous les contribuables actifs avec pagination
-     * @param pageable informations de pagination
-     * @return page de contribuables actifs
-     */
-    public Page<Contribuable> findAllActivePaginated(Pageable pageable) {
-        return contribuableRepository.findByActifTrue(pageable);
-    }
-
-    /**
-     * Recherche de contribuables par nom avec pagination
-     * @param nom nom ou partie du nom à rechercher
-     * @param pageable informations de pagination
-     * @return page de contribuables correspondant à la recherche
-     */
-    public Page<Contribuable> searchByNamePaginated(String nom, Pageable pageable) {
-        return contribuableRepository.findByNomContainingIgnoreCase(nom, pageable);
-    }
-
-    /**
      * Récupère un contribuable par son ID
      * @param id L'ID du contribuable
      * @return Le contribuable correspondant, s'il existe
@@ -105,16 +75,16 @@ public class ContribuableService {
     public Contribuable createContribuable(Contribuable contribuable) {
         // Sauvegarder le contribuable
         Contribuable savedContribuable = contribuableRepository.save(contribuable);
-
+        
         // Créer un agent pour le contribuable
         Agent agent = createAgentForContribuable(savedContribuable);
-
+        
         // Créer un utilisateur pour le contribuable
         Utilisateur utilisateur = createUtilisateurForContribuable(savedContribuable, agent);
-
+        
         // Envoyer les identifiants par email
         sendCredentialsByEmail(utilisateur, savedContribuable.getEmail());
-
+        
         return savedContribuable;
     }
 
@@ -124,16 +94,22 @@ public class ContribuableService {
      * @return L'agent créé
      */
     private Agent createAgentForContribuable(Contribuable contribuable) {
-        // Pour l'instant, on utilise un bureau par défaut
-        Bureau bureau = new Bureau();
-        bureau.setNom("Bureau des Contribuables");
-
+        // Récupérer un bureau par défaut pour les contribuables
+        Bureau bureau = bureauRepository.findByNom("Bureau des Contribuables");
+        
+        if (bureau == null) {
+            bureau = new Bureau();
+            bureau.setNom("Bureau des Contribuables");
+            bureau = bureauRepository.save(bureau);
+        }
+        
         // Créer un agent pour le contribuable
         Agent agent = new Agent();
         agent.setNom(contribuable.getNom());
+        agent.setSexe(Sexe.M); // Par défaut, à modifier si nécessaire
         agent.setMatricule("CONT-" + contribuable.getNumeroIdentificationContribuable());
         agent.setBureau(bureau);
-
+        
         return agentRepository.save(agent);
     }
 
@@ -147,7 +123,7 @@ public class ContribuableService {
         // Générer un nom d'utilisateur et un mot de passe
         String username = generateUsername();
         String password = "Tabc@123"; // Mot de passe par défaut
-
+        
         // Créer l'utilisateur
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setLogin(username);
@@ -155,20 +131,19 @@ public class ContribuableService {
         utilisateur.setRole(Role.CONTRIBUABLE);
         utilisateur.setPremierConnexion(true);
         utilisateur.setBloque(false);
-        // Dans la nouvelle architecture, les contribuables sont des agents
-        // utilisateur.setContribuable(contribuable);
-        utilisateur.setAgent(contribuable); // Le contribuable est un agent
-
+        utilisateur.setContribuable(contribuable);
+        utilisateur.setAgent(agent);
+        
         // Sauvegarder l'utilisateur
         Utilisateur savedUtilisateur = utilisateurRepository.save(utilisateur);
-
+        
         // Mettre à jour les relations
-        // contribuable.setUtilisateur(savedUtilisateur);
+        contribuable.setUtilisateur(savedUtilisateur);
         agent.setUtilisateur(savedUtilisateur);
-
-        // contribuableRepository.save(contribuable);
+        
+        contribuableRepository.save(contribuable);
         agentRepository.save(agent);
-
+        
         return savedUtilisateur;
     }
 
@@ -180,13 +155,13 @@ public class ContribuableService {
         String prefix = "dpri_c";
         String randomChars = generateRandomChars(4);
         String username = prefix + randomChars;
-
+        
         // Vérifier si le nom d'utilisateur existe déjà
         while (utilisateurRepository.findByLogin(username).isPresent()) {
             randomChars = generateRandomChars(4);
             username = prefix + randomChars;
         }
-
+        
         return username;
     }
 
@@ -199,12 +174,12 @@ public class ContribuableService {
         String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
-
+        
         for (int i = 0; i < length; i++) {
             int index = random.nextInt(chars.length());
             sb.append(chars.charAt(index));
         }
-
+        
         return sb.toString();
     }
 
@@ -218,7 +193,7 @@ public class ContribuableService {
             logger.warn("Impossible d'envoyer les identifiants par email : adresse email non spécifiée");
             return;
         }
-
+        
         String subject = "Vos identifiants de connexion DPRIHKAT";
         String message = "Bonjour,\n\n"
                 + "Voici vos identifiants de connexion au système DPRIHKAT :\n"
@@ -227,7 +202,7 @@ public class ContribuableService {
                 + "Veuillez changer votre mot de passe lors de votre première connexion.\n\n"
                 + "Cordialement,\n"
                 + "L'équipe DPRIHKAT";
-
+        
         try {
             emailService.sendEmail(email, subject, message);
             logger.info("Identifiants envoyés par email à : {}", email);
@@ -256,5 +231,14 @@ public class ContribuableService {
      */
     public void deleteById(UUID id) {
         contribuableRepository.deleteById(id);
+    }
+
+    /**
+     * Sauvegarde un contribuable
+     * @param contribuable Le contribuable à sauvegarder
+     * @return Le contribuable sauvegardé
+     */
+    public Contribuable save(Contribuable contribuable) {
+        return contribuableRepository.save(contribuable);
     }
 }

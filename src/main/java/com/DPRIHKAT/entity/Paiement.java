@@ -48,6 +48,11 @@ public class Paiement {
     @JsonIdentityReference(alwaysAsId = true)
     private Taxation taxation;
 
+    @ManyToOne
+    @JoinColumn(name = "declaration_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Declaration declaration;
+
     public Paiement() {
     }
 
@@ -150,5 +155,21 @@ public class Paiement {
 
     public void setTaxation(Taxation taxation) {
         this.taxation = taxation;
+    }
+
+    /**
+     * Définit la déclaration associée à ce paiement
+     * @param declaration La déclaration à associer
+     */
+    public void setDeclaration(Declaration declaration) {
+        this.declaration = declaration;
+    }
+
+    /**
+     * Récupère la déclaration associée à ce paiement
+     * @return La déclaration associée
+     */
+    public Declaration getDeclaration() {
+        return declaration;
     }
 }

@@ -17,7 +17,7 @@ import com.DPRIHKAT.entity.enums.Role;
 
 /**
  * Entité représentant un utilisateur du système
- * Un utilisateur peut être associé à un agent
+ * Un utilisateur peut être associé à un agent ou un contribuable
  * 
  * @author amateur
  */
@@ -46,6 +46,10 @@ public class Utilisateur {
     @OneToOne
     @JoinColumn(name = "agent_id", nullable = true)
     private Agent agent;
+
+    @OneToOne
+    @JoinColumn(name = "contribuable_id", nullable = true)
+    private Contribuable contribuable;
 
     public Utilisateur() {
     }
@@ -101,7 +105,7 @@ public class Utilisateur {
         String motDePasse = genererMotDePasseContribuable();
         
         Utilisateur utilisateur = new Utilisateur(login, motDePasse, Role.CONTRIBUABLE);
-        utilisateur.setAgent(contribuable); // Le contribuable est un agent
+        utilisateur.setContribuable(contribuable); // Le contribuable est un agent
         
         return utilisateur;
     }
@@ -170,23 +174,20 @@ public class Utilisateur {
     public void setAgent(Agent agent) {
         this.agent = agent;
     }
+
+    public Contribuable getContribuable() {
+        return contribuable;
+    }
+
+    public void setContribuable(Contribuable contribuable) {
+        this.contribuable = contribuable;
+    }
     
     /**
      * Vérifie si l'utilisateur est un contribuable
      * @return true si l'utilisateur est un contribuable, false sinon
      */
     public boolean isContribuable() {
-        return this.role == Role.CONTRIBUABLE && this.agent instanceof Contribuable;
-    }
-    
-    /**
-     * Récupère le contribuable associé à cet utilisateur, s'il existe
-     * @return le contribuable associé, ou null si l'utilisateur n'est pas un contribuable
-     */
-    public Contribuable getContribuable() {
-        if (isContribuable()) {
-            return (Contribuable) this.agent;
-        }
-        return null;
+        return this.role == Role.CONTRIBUABLE && this.contribuable != null;
     }
 }

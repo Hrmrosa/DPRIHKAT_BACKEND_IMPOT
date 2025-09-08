@@ -1,0 +1,78 @@
+    /**
+     * Crée des taxations pour les déclarations validées
+     * La taxation est le fait de taxer un bien déjà déclaré
+     */
+    private List<Taxation> createTaxations(List<Declaration> declarations, Agent agentTaxateur, List<NatureImpot> naturesImpot) {
+        List<Taxation> taxations = new ArrayList<>();
+        Random random = new Random(42);
+        Calendar cal = Calendar.getInstance();
+        int currentYear = cal.get(Calendar.YEAR);
+        
+        // Pour chaque déclaration validée, créer une taxation
+        for (Declaration declaration : declarations) {
+            if (declaration.getStatut() == StatutDeclaration.VALIDEE) {
+                // Date de taxation (après la date de déclaration)
+                cal.setTime(declaration.getDateDeclaration());
+                cal.add(Calendar.DAY_OF_MONTH, 1 + random.nextInt(30)); // Entre 1 et 30 jours après la déclaration
+                Date dateTaxation = cal.getTime();
+                
+                // Déterminer le type d'impôt en fonction du bien
+                TypeImpot typeImpot;
+                NatureImpot natureImpot = null;
+                
+                if (declaration.getPropriete() != null) {
+                    // Pour les propriétés, utiliser l'impôt foncier (IF)
+                    typeImpot = TypeImpot.IF;
+                    natureImpot = naturesImpot.stream()
+                            .filter(ni -> "IF".equals(ni.getCode()))
+                            .findFirst()
+                            .orElse(null);
+                } else if (declaration.getConcession() != null) {
+                    // Pour les concessions, utiliser l'impôt sur concessions minières (ICM)
+                    typeImpot = TypeImpot.ICM;
+                    natureImpot = naturesImpot.stream()
+                            .filter(ni -> "ICM".equals(ni.getCode()))
+                            .findFirst()
+                            .orElse(null);
+                } else {
+                    // Cas par défaut
+                    typeImpot = TypeImpot.IF;
+                }
+                
+                // Calculer le montant de la taxation
+                double montant = 0.0;
+                if (declaration.getPropriete() != null) {
+                    // Pour les propriétés, calculer en fonction de la superficie
+                    montant = declaration.getPropriete().getSuperficie() * (0.5 + random.nextDouble());
+                } else if (declaration.getConcession() != null) {
+                    // Pour les concessions, calculer en fonction du nombre de carrés miniers
+                    montant = declaration.getConcession().getNombreCarresMinier() * 85.0;
+                } else {
+                    // Valeur par défaut
+                    montant = 1000.0 + random.nextDouble() * 9000.0;
+                }
+                
+                // Créer la taxation
+                Taxation taxation = new Taxation();
+                taxation.setDateTaxation(dateTaxation);
+                taxation.setMontant(montant);
+                taxation.setExercice(String.valueOf(currentYear));
+                taxation.setStatut(StatutTaxation.VALIDEE);
+                taxation.setTypeImpot(typeImpot);
+                taxation.setExoneration(false);
+                taxation.setDeclaration(declaration);
+                taxation.setAgent(agentTaxateur);
+                
+                // Associer la nature d'impôt si disponible
+                if (natureImpot != null) {
+                    taxation.setNatureImpot(natureImpot);
+                }
+                
+                taxation.setActif(true);
+                taxations.add(taxation);
+            }
+        }
+        
+        logger.info("Création de {} taxations", taxations.size());
+        return taxations;
+    }

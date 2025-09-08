@@ -41,25 +41,38 @@ public class DeclarationService {
      */
     public Declaration createDeclaration(DeclarationRequest declarationRequest, Contribuable contribuable) {
         Declaration declaration = new Declaration();
-        declaration.setDateDeclaration(new Date());
+        declaration.setDate(new Date());
         declaration.setStatut(StatutDeclaration.EN_ATTENTE);
-        // Dans la nouvelle architecture, le type d'impôt est déterminé par les natures d'impôt de la propriété
-        // declaration.setTypeImpot(declarationRequest.getTypeImpot()); // Ligne à supprimer
+        declaration.setTypeImpot(declarationRequest.getTypeImpot());
 
         // Set property or concession based on tax type
         if (declarationRequest.getTypeImpot() == TypeImpot.IF || 
             declarationRequest.getTypeImpot() == TypeImpot.IRL || 
-            declarationRequest.getTypeImpot() == TypeImpot.IRV) {
+            declarationRequest.getTypeImpot() == TypeImpot.RL) {
+            
             Propriete propriete = proprieteRepository.findById(declarationRequest.getProprieteId())
                     .orElseThrow(() -> new RuntimeException("Propriété non trouvée"));
             declaration.setPropriete(propriete);
-            // Le contribuable est déjà associé à la propriété
-            declaration.setContribuable(propriete.getProprietaire());
+            
+            // Calculate tax amount for property
+            try {
+                double montant = calculateTaxForProperty(propriete, declarationRequest.getTypeImpot());
+                declaration.setMontant(montant);
+            } catch (IOException e) {
+                throw new RuntimeException("Erreur lors du calcul de l'impôt: " + e.getMessage());
+            }
         } else if (declarationRequest.getTypeImpot() == TypeImpot.ICM) {
             ConcessionMinier concession = concessionMinierRepository.findById(declarationRequest.getConcessionId())
-                    .orElseThrow(() -> new RuntimeException("Concession minière non trouvée"));
+                    .orElseThrow(() -> new RuntimeException("Concession non trouvée"));
             declaration.setConcession(concession);
-            declaration.setContribuable(concession.getTitulaire());
+            
+            // Calculate tax amount for concession
+            try {
+                double montant = calculateTaxForConcession(concession);
+                declaration.setMontant(montant);
+            } catch (IOException e) {
+                throw new RuntimeException("Erreur lors du calcul de l'impôt: " + e.getMessage());
+            }
         }
 
         return declarationRepository.save(declaration);
@@ -70,28 +83,30 @@ public class DeclarationService {
      */
     public Declaration createManualDeclaration(DeclarationRequest declarationRequest, Agent agent) {
         Declaration declaration = new Declaration();
-        declaration.setDateDeclaration(new Date());
+        declaration.setDate(new Date());
         declaration.setStatut(StatutDeclaration.VALIDEE);
-        // Dans la nouvelle architecture, le type d'impôt est déterminé par les natures d'impôt de la propriété
-        // declaration.setTypeImpot(declarationRequest.getTypeImpot());
+        declaration.setTypeImpot(declarationRequest.getTypeImpot());
         declaration.setAgentValidateur(agent);
 
         // Set property or concession based on tax type
-        // if (declarationRequest.getTypeImpot() == TypeImpot.IF || 
-        //     declarationRequest.getTypeImpot() == TypeImpot.IRL || 
-        //     declarationRequest.getTypeImpot() == TypeImpot.RL) {
-        //     
-        //     Propriete propriete = proprieteRepository.findById(declarationRequest.getProprieteId())
-        //             .orElseThrow(() -> new RuntimeException("Propriété non trouvée"));
-        //     declaration.setPropriete(propriete);
-        //     
-        //     // Set tax amount
-        //     declaration.setMontant(declarationRequest.getMontant());
-        // } else if (declarationRequest.getTypeImpot() == TypeImpot.ICM) {
-        //     ConcessionMinier concession = concessionMinierRepository.findById(declarationRequest.getConcessionId())
-        //             .orElseThrow(() -> new RuntimeException("Concession minière non trouvée"));
-        //     declaration.setConcession(concession);
-        // }
+        if (declarationRequest.getTypeImpot() == TypeImpot.IF || 
+            declarationRequest.getTypeImpot() == TypeImpot.IRL || 
+            declarationRequest.getTypeImpot() == TypeImpot.RL) {
+            
+            Propriete propriete = proprieteRepository.findById(declarationRequest.getProprieteId())
+                    .orElseThrow(() -> new RuntimeException("Propriété non trouvée"));
+            declaration.setPropriete(propriete);
+            
+            // Set tax amount
+            declaration.setMontant(declarationRequest.getMontant());
+        } else if (declarationRequest.getTypeImpot() == TypeImpot.ICM) {
+            ConcessionMinier concession = concessionMinierRepository.findById(declarationRequest.getConcessionId())
+                    .orElseThrow(() -> new RuntimeException("Concession non trouvée"));
+            declaration.setConcession(concession);
+            
+            // Set tax amount
+            declaration.setMontant(declarationRequest.getMontant());
+        }
 
         return declarationRepository.save(declaration);
     }
@@ -99,8 +114,8 @@ public class DeclarationService {
     private double calculateTaxForProperty(Propriete propriete, TypeImpot typeImpot) throws IOException {
         if (typeImpot == TypeImpot.IF) {
             return calculateIFTax(propriete);
-        } else if (typeImpot == TypeImpot.IRL || typeImpot == TypeImpot.IRV) {
-            // 22% rate for IRL/IRV
+        } else if (typeImpot == TypeImpot.IRL || typeImpot == TypeImpot.RL) {
+            // 22% rate for IRL/RL
             return propriete.getMontantImpot() * 0.22;
         }
         return 0.0;

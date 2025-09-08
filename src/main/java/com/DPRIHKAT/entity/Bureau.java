@@ -32,9 +32,10 @@ public class Bureau {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String nom;
 
+    @Column(nullable = true, unique = true)
     private String code;
 
     @ManyToOne

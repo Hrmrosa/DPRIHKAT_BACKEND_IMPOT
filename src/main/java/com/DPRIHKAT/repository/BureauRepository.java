@@ -10,4 +10,11 @@ import java.util.UUID;
 public interface BureauRepository extends JpaRepository<Bureau, UUID> {
     boolean existsByNom(String nom);
     boolean existsByNomAndIdNot(String nom, UUID id);
+    
+    /**
+     * Trouve un bureau par son nom
+     * @param nom Le nom du bureau
+     * @return Le bureau correspondant
+     */
+    Bureau findByNom(String nom);
 }

@@ -1,0 +1,85 @@
+    /**
+     * Crée des propriétés pour les contribuables avec coordonnées géographiques de Lubumbashi
+     * Chaque contribuable aura au moins 2 propriétés
+     */
+    private List<Propriete> createProprietes(List<Contribuable> contribuables) {
+        List<Propriete> proprietes = new ArrayList<>();
+        Random random = new Random(42);
+        GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+        
+        // Types de propriétés disponibles
+        TypePropriete[] types = {TypePropriete.VI, TypePropriete.AP, TypePropriete.TE, TypePropriete.DEPOT, TypePropriete.CH, TypePropriete.CITERNE};
+        
+        // Pour chaque contribuable, créer au moins 2 propriétés
+        for (int i = 0; i < contribuables.size(); i++) {
+            Contribuable contribuable = contribuables.get(i);
+            int nbProprietes = 2 + random.nextInt(3); // Entre 2 et 4 propriétés par contribuable
+            
+            for (int j = 0; j < nbProprietes; j++) {
+                // Sélectionner un quartier aléatoire de Lubumbashi
+                int quartierIndex = random.nextInt(QUARTIERS.length);
+                String quartier = QUARTIERS[quartierIndex];
+                
+                // Coordonnées de base du quartier
+                double baseLatitude = LUBUMBASHI_COORDS[quartierIndex][0];
+                double baseLongitude = LUBUMBASHI_COORDS[quartierIndex][1];
+                
+                // Ajouter une petite variation aléatoire (±0.005 degrés, environ 500m)
+                double latitude = baseLatitude + (random.nextDouble() - 0.5) * 0.01;
+                double longitude = baseLongitude + (random.nextDouble() - 0.5) * 0.01;
+                
+                // Créer un point géographique
+                Point point = gf.createPoint(new Coordinate(longitude, latitude));
+                
+                // Sélectionner un type de propriété aléatoire
+                TypePropriete type = types[random.nextInt(types.length)];
+                
+                // Calculer une superficie en fonction du type
+                double superficie = 0.0;
+                switch (type) {
+                    case VI:
+                        superficie = 200 + random.nextDouble() * 800; // Entre 200 et 1000 m²
+                        break;
+                    case AP:
+                        superficie = 50 + random.nextDouble() * 150; // Entre 50 et 200 m²
+                        break;
+                    case TE:
+                        superficie = 1000 + random.nextDouble() * 9000; // Entre 1000 et 10000 m²
+                        break;
+                    case DEPOT:
+                        superficie = 500 + random.nextDouble() * 1500; // Entre 500 et 2000 m²
+                        break;
+                    case CH:
+                        superficie = 100 + random.nextDouble() * 400; // Entre 100 et 500 m²
+                        break;
+                    case CITERNE:
+                        superficie = 50 + random.nextDouble() * 150; // Entre 50 et 200 m²
+                        break;
+                    default:
+                        superficie = 100 + random.nextDouble() * 900; // Entre 100 et 1000 m²
+                }
+                
+                // Créer la propriété
+                Propriete propriete = new Propriete();
+                propriete.setType(type);
+                propriete.setLocalite(quartier);
+                propriete.setRangLocalite(1 + random.nextInt(3)); // Rang entre 1 et 3
+                propriete.setSuperficie(superficie);
+                propriete.setAdresse(AVENUES[random.nextInt(AVENUES.length)] + " " + (random.nextInt(100) + 1) + ", " + quartier);
+                propriete.setProprietaire(contribuable);
+                propriete.setLocation(point);
+                propriete.setActif(true);
+                propriete.setDeclare(true);
+                propriete.setDeclarationEnLigne(random.nextBoolean());
+                
+                // Calculer un montant d'impôt approximatif basé sur la superficie
+                double montantImpot = superficie * (0.5 + random.nextDouble() * 1.5);
+                propriete.setMontantImpot(montantImpot);
+                
+                proprietes.add(propriete);
+            }
+        }
+        
+        logger.info("Création de {} propriétés avec coordonnées géographiques à Lubumbashi", proprietes.size());
+        return proprietes;
+    }

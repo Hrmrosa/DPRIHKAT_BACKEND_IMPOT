@@ -1,0 +1,86 @@
+    /**
+     * Crée des utilisateurs pour les agents et les contribuables
+     */
+    private List<Utilisateur> createUtilisateurs(List<Agent> agents, List<Contribuable> contribuables) {
+        List<Utilisateur> utilisateurs = new ArrayList<>();
+        Random random = new Random(42);
+        
+        // Créer des utilisateurs pour les agents
+        Role[] roles = {Role.ADMIN, Role.DIRECTEUR, Role.TAXATEUR, Role.APUREUR, Role.CHEF_DE_BUREAU};
+        for (int i = 0; i < agents.size(); i++) {
+            Agent agent = agents.get(i);
+            
+            Utilisateur utilisateur = new Utilisateur();
+            utilisateur.setLogin("agent" + (i + 1));
+            utilisateur.setMotDePasse(passwordEncoder.encode("Tabc@123"));
+            utilisateur.setRole(roles[i % roles.length]);
+            utilisateur.setPremierConnexion(false);
+            utilisateur.setBloque(false);
+            utilisateur.setActif(true);
+            utilisateur.setAgent(agent);
+            
+            utilisateurs.add(utilisateur);
+            agent.setUtilisateur(utilisateur);
+        }
+        
+        // Créer des utilisateurs pour les contribuables avec le format dpri_c + 4 caractères aléatoires
+        for (Contribuable contribuable : contribuables) {
+            String username = generateUsername();
+            String password = "Tabc@123"; // Mot de passe par défaut
+            
+            Utilisateur utilisateur = new Utilisateur();
+            utilisateur.setLogin(username);
+            utilisateur.setMotDePasse(passwordEncoder.encode(password));
+            utilisateur.setRole(Role.CONTRIBUABLE);
+            utilisateur.setPremierConnexion(true);
+            utilisateur.setBloque(false);
+            utilisateur.setActif(true);
+            utilisateur.setAgent(contribuable);
+            
+            utilisateurs.add(utilisateur);
+            contribuable.setUtilisateur(utilisateur);
+            
+            // Envoyer les identifiants par email (simulation)
+            logger.info("Envoi des identifiants à {} : username={}, password={}", 
+                    contribuable.getEmail(), username, password);
+        }
+        
+        logger.info("Création de {} utilisateurs", utilisateurs.size());
+        return utilisateurs;
+    }
+    
+    /**
+     * Génère un nom d'utilisateur unique pour un contribuable
+     * @return Le nom d'utilisateur généré
+     */
+    private String generateUsername() {
+        String prefix = "dpri_c";
+        String randomChars = generateRandomChars(4);
+        String username = prefix + randomChars;
+        
+        // Vérifier si le nom d'utilisateur existe déjà
+        while (utilisateurRepository.findByLogin(username).isPresent()) {
+            randomChars = generateRandomChars(4);
+            username = prefix + randomChars;
+        }
+        
+        return username;
+    }
+
+    /**
+     * Génère une chaîne aléatoire de caractères
+     * @param length La longueur de la chaîne
+     * @return La chaîne générée
+     */
+    private String generateRandomChars(int length) {
+        String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(chars.length());
+            sb.append(chars.charAt(index));
+        }
+        
+        return sb.toString();
+    }

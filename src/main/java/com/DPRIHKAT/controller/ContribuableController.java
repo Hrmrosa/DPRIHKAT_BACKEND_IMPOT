@@ -4,15 +4,10 @@ import com.DPRIHKAT.entity.Contribuable;
 import com.DPRIHKAT.service.ContribuableService;
 import com.DPRIHKAT.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,49 +22,14 @@ public class ContribuableController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'CHEF_DE_BUREAU')")
-    public ResponseEntity<?> getAllContribuables(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> getAllContribuables() {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Contribuable> pageContribuables = contribuableService.findAllPaginated(pageable);
-            
-            Map<String, Object> data = new HashMap<>();
-            data.put("totalItems", pageContribuables.getTotalElements());
-            data.put("totalPages", pageContribuables.getTotalPages());
-            data.put("currentPage", pageContribuables.getNumber());
-            data.put("contribuables", pageContribuables.getContent());
-            
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+            List<Contribuable> contribuables = contribuableService.findAll();
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("contribuables", contribuables)));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("CONTRIBUABLES_FETCH_ERROR", "Erreur lors de la récupération des contribuables", e.getMessage()));
-        }
-    }
-
-    
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'CHEF_DE_BUREAU')")
-    public ResponseEntity<?> searchContribuables(
-            @RequestParam String nom,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
-        try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : 
-                Sort.by(sortBy).ascending();
-            
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Contribuable> contribuables = contribuableService.searchByNamePaginated(nom, pageable);
-            
-            return ResponseEntity.ok(ResponseUtil.createPaginatedResponse(contribuables, "contribuables"));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLES_SEARCH_ERROR", "Erreur lors de la recherche des contribuables", e.getMessage()));
         }
     }
 
@@ -95,7 +55,7 @@ public class ContribuableController {
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
     public ResponseEntity<?> createContribuable(@RequestBody Contribuable contribuable) {
         try {
-            Contribuable createdContribuable = contribuableService.createContribuable(contribuable);
+            Contribuable createdContribuable = contribuableService.save(contribuable);
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("contribuable", createdContribuable)));
         } catch (Exception e) {
             return ResponseEntity

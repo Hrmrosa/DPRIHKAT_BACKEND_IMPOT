@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.DPRIHKAT.entity.enums.StatutDeclaration;
 import com.DPRIHKAT.entity.enums.SourceDeclaration;
+import com.DPRIHKAT.entity.enums.TypeImpot;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,6 +63,17 @@ public class Declaration {
     // Taxations associées à cette déclaration
     @OneToMany(mappedBy = "declaration")
     private List<Taxation> taxations = new ArrayList<>();
+
+    // Paiement associé à cette déclaration
+    @ManyToOne
+    @JoinColumn(name = "paiement_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Paiement paiement;
+
+    private Double montant;
+
+    @Enumerated(EnumType.STRING)
+    private TypeImpot typeImpot;
 
     public Declaration() {
     }
@@ -181,5 +193,105 @@ public class Declaration {
 
     public void setTaxations(List<Taxation> taxations) {
         this.taxations = taxations;
+    }
+
+    /**
+     * Détermine le type d'impôt associé à cette déclaration
+     * en fonction du bien déclaré (propriété ou concession)
+     * @return Le type d'impôt applicable
+     */
+    public TypeImpot getTypeImpot() {
+        if (concession != null) {
+            // Si c'est une concession minière, le type d'impôt est ICM
+            return TypeImpot.ICM;
+        } else if (propriete != null) {
+            // Pour les propriétés, le type d'impôt dépend des natures d'impôt associées
+            // Par défaut, on considère que c'est un impôt foncier
+            return TypeImpot.IF;
+        }
+        // Type par défaut si aucun bien n'est associé
+        return TypeImpot.IF;
+    }
+
+    /**
+     * Définit le type d'impôt de la déclaration
+     * @param typeImpot Le type d'impôt à définir
+     */
+    public void setTypeImpot(TypeImpot typeImpot) {
+        this.typeImpot = typeImpot;
+    }
+
+    /**
+     * Récupère le type d'impôt de la déclaration
+     * @return Le type d'impôt de la déclaration
+     */
+    public TypeImpot getTypeImpotDeclaration() {
+        return typeImpot;
+    }
+
+    /**
+     * Récupère la date de la déclaration
+     * @return La date de déclaration
+     */
+    public Date getDate() {
+        return dateDeclaration;
+    }
+
+    /**
+     * Définit la date de la déclaration
+     * @param date La date à définir
+     */
+    public void setDate(Date date) {
+        this.dateDeclaration = date;
+    }
+
+    /**
+     * Calcule le montant associé à cette déclaration
+     * @return Le montant de la déclaration
+     */
+    public Double getMontant() {
+        if (propriete != null) {
+            // Pour les propriétés, on pourrait calculer un montant basé sur la superficie
+            // Par exemple : 100 FC par m² (valeur arbitraire pour l'exemple)
+            return propriete.getSuperficie() * 100.0;
+        } else if (concession != null) {
+            // Pour les concessions, on pourrait calculer un montant basé sur le nombre de carrés miniers
+            // Par exemple : 1000 FC par carré minier (valeur arbitraire pour l'exemple)
+            return (double) (concession.getNombreCarresMinier() * 1000);
+        }
+        // Montant par défaut si aucun bien n'est associé
+        return 0.0;
+    }
+
+    /**
+     * Définit le paiement associé à cette déclaration
+     * @param paiement Le paiement à associer
+     */
+    public void setPaiement(Paiement paiement) {
+        this.paiement = paiement;
+    }
+
+    /**
+     * Récupère le paiement associé à cette déclaration
+     * @return Le paiement associé
+     */
+    public Paiement getPaiement() {
+        return paiement;
+    }
+
+    /**
+     * Définit le montant de la déclaration
+     * @param montant Le montant à définir
+     */
+    public void setMontant(Double montant) {
+        this.montant = montant;
+    }
+
+    /**
+     * Récupère le montant de la déclaration
+     * @return Le montant de la déclaration
+     */
+    public Double getMontantDeclaration() {
+        return montant;
     }
 }

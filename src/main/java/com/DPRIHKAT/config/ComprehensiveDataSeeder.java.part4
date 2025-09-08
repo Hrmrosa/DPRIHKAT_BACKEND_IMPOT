@@ -1,0 +1,51 @@
+    /**
+     * Crée des concessions minières pour les contribuables personnes morales
+     */
+    private List<ConcessionMinier> createConcessions(List<Contribuable> contribuables) {
+        List<ConcessionMinier> concessions = new ArrayList<>();
+        Random random = new Random(42);
+        
+        // Filtrer les contribuables personnes morales
+        List<Contribuable> entreprises = contribuables.stream()
+                .filter(c -> c.getType() == TypeContribuable.PERSONNE_MORALE)
+                .collect(Collectors.toList());
+        
+        // Pour chaque entreprise, créer 1 ou 2 concessions minières
+        for (Contribuable entreprise : entreprises) {
+            int nbConcessions = 1 + random.nextInt(2); // 1 ou 2 concessions par entreprise
+            
+            for (int i = 0; i < nbConcessions; i++) {
+                ConcessionMinier concession = new ConcessionMinier();
+                
+                // Type de concession aléatoire
+                TypeConcession[] types = TypeConcession.values();
+                TypeConcession type = types[random.nextInt(types.length)];
+                concession.setType(type);
+                
+                // Nombre de carrés miniers (entre 5 et 20)
+                double nombreCarres = 5 + random.nextDouble() * 15;
+                concession.setNombreCarresMinier(nombreCarres);
+                
+                // Date d'acquisition (entre 1 et 5 ans dans le passé)
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.YEAR, -1 * (1 + random.nextInt(5)));
+                concession.setDateAcquisition(cal.getTime());
+                
+                // Annexe
+                concession.setAnnexe("Annexe-" + entreprise.getSigle() + "-" + (i + 1));
+                
+                // Titulaire
+                concession.setTitulaire(entreprise);
+                
+                // Montant de l'impôt (basé sur le nombre de carrés miniers)
+                double tauxBase = type == TypeConcession.EXPLOITATION ? 85.0 : 42.5;
+                double montantImpot = nombreCarres * tauxBase;
+                concession.setMontantImpot(montantImpot);
+                
+                concessions.add(concession);
+            }
+        }
+        
+        logger.info("Création de {} concessions minières", concessions.size());
+        return concessions;
+    }

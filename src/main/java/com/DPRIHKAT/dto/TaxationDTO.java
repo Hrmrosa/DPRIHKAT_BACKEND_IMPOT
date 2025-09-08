@@ -7,11 +7,12 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * DTO pour l'entité Taxation
- * Version adaptée à la nouvelle architecture où la taxation est liée à une déclaration
+ * DTO pour représenter une taxation
+ * 
+ * @author amateur
  */
 public class TaxationDTO {
-
+    
     private UUID id;
     private Date dateTaxation;
     private Double montant;
@@ -19,40 +20,37 @@ public class TaxationDTO {
     private StatutTaxation statut;
     private TypeImpot typeImpot;
     private boolean exoneration;
+    private String motifExoneration;
+    private Date dateEcheance;
     private boolean actif;
     
-    // Informations sur la déclaration
-    private UUID declarationId;
-    private Date dateDeclaration;
+    // Informations sur la propriété
     private UUID proprieteId;
-    private String adressePropriete;
-    private UUID contribuableId;
-    private String nomContribuable;
+    private String proprieteAdresse;
     
     // Informations sur la nature d'impôt
-    private UUID natureImpotId;
-    private String codeNatureImpot;
-    private String nomNatureImpot;
+    private UUID proprieteImpotId;
+    private String natureImpotCode;
+    private String natureImpotNom;
     
-    // Informations sur les agents
-    private UUID agentTaxateurId;
-    private String nomAgentTaxateur;
-    private UUID agentValidateurId;
-    private String nomAgentValidateur;
+    // Informations sur l'agent taxateur
+    private UUID agentId;
+    private String agentNom;
     
     // Informations sur le paiement et l'apurement
     private UUID paiementId;
     private UUID apurementId;
-
+    
     public TaxationDTO() {
     }
-
-    public TaxationDTO(UUID id, Date dateTaxation, Double montant, String exercice, StatutTaxation statut,
-                       TypeImpot typeImpot, boolean exoneration, boolean actif, UUID declarationId,
-                       Date dateDeclaration, UUID proprieteId, String adressePropriete, UUID contribuableId,
-                       String nomContribuable, UUID natureImpotId, String codeNatureImpot, String nomNatureImpot,
-                       UUID agentTaxateurId, String nomAgentTaxateur, UUID agentValidateurId,
-                       String nomAgentValidateur, UUID paiementId, UUID apurementId) {
+    
+    public TaxationDTO(UUID id, Date dateTaxation, Double montant, String exercice, 
+                      StatutTaxation statut, TypeImpot typeImpot, boolean exoneration, 
+                      String motifExoneration, Date dateEcheance, boolean actif, 
+                      UUID proprieteId, String proprieteAdresse, 
+                      UUID proprieteImpotId, String natureImpotCode, String natureImpotNom, 
+                      UUID agentId, String agentNom, 
+                      UUID paiementId, UUID apurementId) {
         this.id = id;
         this.dateTaxation = dateTaxation;
         this.montant = montant;
@@ -60,205 +58,169 @@ public class TaxationDTO {
         this.statut = statut;
         this.typeImpot = typeImpot;
         this.exoneration = exoneration;
+        this.motifExoneration = motifExoneration;
+        this.dateEcheance = dateEcheance;
         this.actif = actif;
-        this.declarationId = declarationId;
-        this.dateDeclaration = dateDeclaration;
         this.proprieteId = proprieteId;
-        this.adressePropriete = adressePropriete;
-        this.contribuableId = contribuableId;
-        this.nomContribuable = nomContribuable;
-        this.natureImpotId = natureImpotId;
-        this.codeNatureImpot = codeNatureImpot;
-        this.nomNatureImpot = nomNatureImpot;
-        this.agentTaxateurId = agentTaxateurId;
-        this.nomAgentTaxateur = nomAgentTaxateur;
-        this.agentValidateurId = agentValidateurId;
-        this.nomAgentValidateur = nomAgentValidateur;
+        this.proprieteAdresse = proprieteAdresse;
+        this.proprieteImpotId = proprieteImpotId;
+        this.natureImpotCode = natureImpotCode;
+        this.natureImpotNom = natureImpotNom;
+        this.agentId = agentId;
+        this.agentNom = agentNom;
         this.paiementId = paiementId;
         this.apurementId = apurementId;
     }
-
+    
     // Getters et Setters
     public UUID getId() {
         return id;
     }
-
+    
     public void setId(UUID id) {
         this.id = id;
     }
-
+    
     public Date getDateTaxation() {
         return dateTaxation;
     }
-
+    
     public void setDateTaxation(Date dateTaxation) {
         this.dateTaxation = dateTaxation;
     }
-
+    
     public Double getMontant() {
         return montant;
     }
-
+    
     public void setMontant(Double montant) {
         this.montant = montant;
     }
-
+    
     public String getExercice() {
         return exercice;
     }
-
+    
     public void setExercice(String exercice) {
         this.exercice = exercice;
     }
-
+    
     public StatutTaxation getStatut() {
         return statut;
     }
-
+    
     public void setStatut(StatutTaxation statut) {
         this.statut = statut;
     }
-
+    
     public TypeImpot getTypeImpot() {
         return typeImpot;
     }
-
+    
     public void setTypeImpot(TypeImpot typeImpot) {
         this.typeImpot = typeImpot;
     }
-
+    
     public boolean isExoneration() {
         return exoneration;
     }
-
+    
     public void setExoneration(boolean exoneration) {
         this.exoneration = exoneration;
     }
-
+    
+    public String getMotifExoneration() {
+        return motifExoneration;
+    }
+    
+    public void setMotifExoneration(String motifExoneration) {
+        this.motifExoneration = motifExoneration;
+    }
+    
+    public Date getDateEcheance() {
+        return dateEcheance;
+    }
+    
+    public void setDateEcheance(Date dateEcheance) {
+        this.dateEcheance = dateEcheance;
+    }
+    
     public boolean isActif() {
         return actif;
     }
-
+    
     public void setActif(boolean actif) {
         this.actif = actif;
     }
-
-    public UUID getDeclarationId() {
-        return declarationId;
-    }
-
-    public void setDeclarationId(UUID declarationId) {
-        this.declarationId = declarationId;
-    }
-
-    public Date getDateDeclaration() {
-        return dateDeclaration;
-    }
-
-    public void setDateDeclaration(Date dateDeclaration) {
-        this.dateDeclaration = dateDeclaration;
-    }
-
+    
     public UUID getProprieteId() {
         return proprieteId;
     }
-
+    
     public void setProprieteId(UUID proprieteId) {
         this.proprieteId = proprieteId;
     }
-
-    public String getAdressePropriete() {
-        return adressePropriete;
+    
+    public String getProprieteAdresse() {
+        return proprieteAdresse;
     }
-
-    public void setAdressePropriete(String adressePropriete) {
-        this.adressePropriete = adressePropriete;
+    
+    public void setProprieteAdresse(String proprieteAdresse) {
+        this.proprieteAdresse = proprieteAdresse;
     }
-
-    public UUID getContribuableId() {
-        return contribuableId;
+    
+    public UUID getProprieteImpotId() {
+        return proprieteImpotId;
     }
-
-    public void setContribuableId(UUID contribuableId) {
-        this.contribuableId = contribuableId;
+    
+    public void setProprieteImpotId(UUID proprieteImpotId) {
+        this.proprieteImpotId = proprieteImpotId;
     }
-
-    public String getNomContribuable() {
-        return nomContribuable;
+    
+    public String getNatureImpotCode() {
+        return natureImpotCode;
     }
-
-    public void setNomContribuable(String nomContribuable) {
-        this.nomContribuable = nomContribuable;
+    
+    public void setNatureImpotCode(String natureImpotCode) {
+        this.natureImpotCode = natureImpotCode;
     }
-
-    public UUID getNatureImpotId() {
-        return natureImpotId;
+    
+    public String getNatureImpotNom() {
+        return natureImpotNom;
     }
-
-    public void setNatureImpotId(UUID natureImpotId) {
-        this.natureImpotId = natureImpotId;
+    
+    public void setNatureImpotNom(String natureImpotNom) {
+        this.natureImpotNom = natureImpotNom;
     }
-
-    public String getCodeNatureImpot() {
-        return codeNatureImpot;
+    
+    public UUID getAgentId() {
+        return agentId;
     }
-
-    public void setCodeNatureImpot(String codeNatureImpot) {
-        this.codeNatureImpot = codeNatureImpot;
+    
+    public void setAgentId(UUID agentId) {
+        this.agentId = agentId;
     }
-
-    public String getNomNatureImpot() {
-        return nomNatureImpot;
+    
+    public String getAgentNom() {
+        return agentNom;
     }
-
-    public void setNomNatureImpot(String nomNatureImpot) {
-        this.nomNatureImpot = nomNatureImpot;
+    
+    public void setAgentNom(String agentNom) {
+        this.agentNom = agentNom;
     }
-
-    public UUID getAgentTaxateurId() {
-        return agentTaxateurId;
-    }
-
-    public void setAgentTaxateurId(UUID agentTaxateurId) {
-        this.agentTaxateurId = agentTaxateurId;
-    }
-
-    public String getNomAgentTaxateur() {
-        return nomAgentTaxateur;
-    }
-
-    public void setNomAgentTaxateur(String nomAgentTaxateur) {
-        this.nomAgentTaxateur = nomAgentTaxateur;
-    }
-
-    public UUID getAgentValidateurId() {
-        return agentValidateurId;
-    }
-
-    public void setAgentValidateurId(UUID agentValidateurId) {
-        this.agentValidateurId = agentValidateurId;
-    }
-
-    public String getNomAgentValidateur() {
-        return nomAgentValidateur;
-    }
-
-    public void setNomAgentValidateur(String nomAgentValidateur) {
-        this.nomAgentValidateur = nomAgentValidateur;
-    }
-
+    
     public UUID getPaiementId() {
         return paiementId;
     }
-
+    
     public void setPaiementId(UUID paiementId) {
         this.paiementId = paiementId;
     }
-
+    
     public UUID getApurementId() {
         return apurementId;
     }
-
+    
     public void setApurementId(UUID apurementId) {
         this.apurementId = apurementId;
     }

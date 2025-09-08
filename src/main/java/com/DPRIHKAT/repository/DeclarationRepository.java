@@ -22,4 +22,10 @@ public interface DeclarationRepository extends JpaRepository<Declaration, UUID> 
     
     @Query("SELECT d FROM Declaration d WHERE d.dateDeclaration BETWEEN :startDate AND :endDate")
     List<Declaration> findByDateBetween(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    
+    /**
+     * Trouve toutes les déclarations sans paiement associé
+     * @return Liste des déclarations sans paiement
+     */
+    List<Declaration> findByPaiementIsNull();
 }

@@ -2,6 +2,8 @@ package com.DPRIHKAT.entity;
 
 import com.DPRIHKAT.entity.enums.StatutControle;
 import com.DPRIHKAT.entity.enums.TypeControle;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -9,6 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "controles_fiscaux")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class ControleFiscal {
     
     @Id

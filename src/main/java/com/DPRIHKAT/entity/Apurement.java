@@ -49,6 +49,12 @@ public class Apurement {
     
     private boolean declarationPayee = false; // Indique si la déclaration a été payée
 
+    // Déclaration concernée par l'apurement
+    @ManyToOne
+    @JoinColumn(name = "declaration_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Declaration declaration;
+
     // Agent qui a initié la demande d'apurement
     @ManyToOne
     @JoinColumn(name = "agent_id")
@@ -115,6 +121,11 @@ public class Apurement {
         this.paiement = paiement;
     }
     
+    /**
+     * Récupère la déclaration associée à cet apurement
+     * @return La déclaration associée
+     */
+
     // Getters et Setters
     public UUID getId() {
         return id;
@@ -202,6 +213,14 @@ public class Apurement {
 
     public void setDeclarationPayee(boolean declarationPayee) {
         this.declarationPayee = declarationPayee;
+    }
+
+    public Declaration getDeclaration() {
+        return declaration;
+    }
+
+    public void setDeclaration(Declaration declaration) {
+        this.declaration = declaration;
     }
 
     public Agent getAgent() {

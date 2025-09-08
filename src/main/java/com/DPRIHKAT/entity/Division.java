@@ -30,16 +30,24 @@ public class Division {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String nom;
 
+    @Column(unique = true, nullable = true)
     private String code;
 
     @OneToMany(mappedBy = "division")
     @JsonIdentityReference(alwaysAsId = true)
     private List<Bureau> bureaux = new ArrayList<>();
 
+    @OneToMany(mappedBy = "division")
+    private List<Agent> agents = new ArrayList<>();
+
     public Division() {
+    }
+
+    public Division(String nom) {
+        this.nom = nom;
     }
 
     public Division(String nom, String code) {
@@ -78,6 +86,14 @@ public class Division {
 
     public void setBureaux(List<Bureau> bureaux) {
         this.bureaux = bureaux;
+    }
+
+    public List<Agent> getAgents() {
+        return agents;
+    }
+
+    public void setAgents(List<Agent> agents) {
+        this.agents = agents;
     }
     
 }

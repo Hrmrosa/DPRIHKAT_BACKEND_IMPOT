@@ -25,8 +25,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "contribuable")
 @PrimaryKeyJoinColumn(name = "agent_id")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "type_agent")
+@DiscriminatorValue("CONTRIBUABLE")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Contribuable extends Agent {
 
@@ -55,6 +54,8 @@ public class Contribuable extends Agent {
     
     private boolean actif = true; // Champ pour la suppression logique
 
+    // Désactivé temporairement pour résoudre l'erreur ArrayIndexOutOfBoundsException
+    /*
     @OneToMany(mappedBy = "proprietaire")
     private List<Propriete> proprietes = new ArrayList<>();
 
@@ -67,6 +68,7 @@ public class Contribuable extends Agent {
     // Déclarations faites par ce contribuable
     @OneToMany(mappedBy = "contribuable")
     private List<Declaration> declarations = new ArrayList<>();
+    */
 
     public Contribuable() {
         super();
@@ -198,22 +200,6 @@ public class Contribuable extends Agent {
         this.actif = actif;
     }
 
-    public List<Propriete> getProprietes() {
-        return proprietes;
-    }
-
-    public void setProprietes(List<Propriete> proprietes) {
-        this.proprietes = proprietes;
-    }
-
-    public DossierRecouvrement getDossierRecouvrement() {
-        return dossierRecouvrement;
-    }
-
-    public void setDossierRecouvrement(DossierRecouvrement dossierRecouvrement) {
-        this.dossierRecouvrement = dossierRecouvrement;
-    }
-
     @Override
     public Utilisateur getUtilisateur() {
         return utilisateur;
@@ -222,33 +208,5 @@ public class Contribuable extends Agent {
     @Override
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
-    }
-    
-    public List<Declaration> getDeclarations() {
-        return declarations;
-    }
-
-    public void setDeclarations(List<Declaration> declarations) {
-        this.declarations = declarations;
-    }
-    
-    /**
-     * Déclare un bien au nom de ce contribuable
-     * @param propriete le bien à déclarer
-     * @param enLigne true si la déclaration est faite en ligne, false si elle est faite à l'administration
-     * @return la déclaration créée
-     */
-    public Declaration declarerBien(Propriete propriete, boolean enLigne) {
-        Declaration declaration = new Declaration();
-        declaration.setDateDeclaration(new java.util.Date());
-        declaration.setStatut(StatutDeclaration.SOUMISE);
-        declaration.setSource(enLigne ? com.DPRIHKAT.entity.enums.SourceDeclaration.EN_LIGNE : com.DPRIHKAT.entity.enums.SourceDeclaration.ADMINISTRATION);
-        declaration.setPropriete(propriete);
-        declaration.setContribuable(this);
-        
-        // Ajouter la déclaration à la liste des déclarations du contribuable
-        this.declarations.add(declaration);
-        
-        return declaration;
     }
 }

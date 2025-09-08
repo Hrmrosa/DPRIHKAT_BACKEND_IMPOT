@@ -1,0 +1,167 @@
+    /**
+     * Crée des paiements pour les taxations validées
+     */
+    private List<Paiement> createPaiements(List<Taxation> taxations) {
+        List<Paiement> paiements = new ArrayList<>();
+        Random random = new Random(42);
+        
+        // Pour chaque taxation validée, créer un paiement
+        for (Taxation taxation : taxations) {
+            if (taxation.getStatut() == StatutTaxation.VALIDEE) {
+                // 80% des taxations sont payées
+                if (random.nextDouble() < 0.8) {
+                    // Date de paiement (entre 1 et 30 jours après la taxation)
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(taxation.getDateTaxation());
+                    cal.add(Calendar.DAY_OF_MONTH, 1 + random.nextInt(30));
+                    Date datePaiement = cal.getTime();
+                    
+                    // Mode de paiement aléatoire
+                    ModePaiement[] modes = ModePaiement.values();
+                    ModePaiement mode = modes[random.nextInt(modes.length)];
+                    
+                    // Créer le paiement
+                    Paiement paiement = new Paiement();
+                    paiement.setDate(datePaiement);
+                    paiement.setMontant(taxation.getMontant());
+                    paiement.setMode(mode);
+                    paiement.setStatut(StatutPaiement.VALIDE);
+                    paiement.setBordereauBancaire("BORD-" + String.format("%06d", random.nextInt(1000000)));
+                    paiement.setTaxation(taxation);
+                    paiement.setActif(true);
+                    
+                    paiements.add(paiement);
+                    
+                    // Mettre à jour le statut de la taxation
+                    taxation.setStatut(StatutTaxation.PAYEE);
+                    taxation.setPaiement(paiement);
+                }
+            }
+        }
+        
+        logger.info("Création de {} paiements", paiements.size());
+        return paiements;
+    }
+    
+    /**
+     * Crée des dossiers de recouvrement pour les contribuables
+     */
+    private List<DossierRecouvrement> createDossiersRecouvrement(List<Contribuable> contribuables) {
+        List<DossierRecouvrement> dossiers = new ArrayList<>();
+        Random random = new Random(42);
+        
+        // Pour 20% des contribuables, créer un dossier de recouvrement
+        for (Contribuable contribuable : contribuables) {
+            if (random.nextDouble() < 0.2) {
+                // Montant total dû (entre 10000 et 100000)
+                double totalDu = 10000 + random.nextDouble() * 90000;
+                
+                // Montant recouvré (entre 0 et 50% du montant dû)
+                double totalRecouvre = totalDu * random.nextDouble() * 0.5;
+                
+                // Date d'ouverture (entre 1 et 6 mois dans le passé)
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.MONTH, -1 * (1 + random.nextInt(6)));
+                Date dateOuverture = cal.getTime();
+                
+                // Créer le dossier de recouvrement
+                DossierRecouvrement dossier = new DossierRecouvrement();
+                dossier.setTotalDu(totalDu);
+                dossier.setTotalRecouvre(totalRecouvre);
+                dossier.setDateOuverture(dateOuverture);
+                dossier.setContribuable(contribuable);
+                
+                dossiers.add(dossier);
+            }
+        }
+        
+        logger.info("Création de {} dossiers de recouvrement", dossiers.size());
+        return dossiers;
+    }
+    
+    /**
+     * Crée des relances pour les dossiers de recouvrement
+     */
+    private List<Relance> createRelances(List<DossierRecouvrement> dossiers) {
+        List<Relance> relances = new ArrayList<>();
+        Random random = new Random(42);
+        
+        // Pour chaque dossier, créer entre 1 et 3 relances
+        for (DossierRecouvrement dossier : dossiers) {
+            int nbRelances = 1 + random.nextInt(3);
+            
+            for (int i = 0; i < nbRelances; i++) {
+                // Date d'envoi (entre 1 et 30 jours après l'ouverture du dossier)
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(dossier.getDateOuverture());
+                cal.add(Calendar.DAY_OF_MONTH, (i + 1) * (1 + random.nextInt(30)));
+                Date dateEnvoi = cal.getTime();
+                
+                // Type de relance aléatoire
+                TypeRelance[] types = TypeRelance.values();
+                TypeRelance type = types[random.nextInt(types.length)];
+                
+                // Statut de la relance
+                StatutRelance statut = random.nextDouble() < 0.8 ? 
+                        StatutRelance.ENVOYEE : StatutRelance.EN_ATTENTE;
+                
+                // Créer la relance
+                Relance relance = new Relance();
+                relance.setDateEnvoi(dateEnvoi);
+                relance.setType(type);
+                relance.setStatut(statut);
+                relance.setContenu("Veuillez régulariser votre situation fiscale dans les plus brefs délais.");
+                relance.setDossierRecouvrement(dossier);
+                
+                relances.add(relance);
+            }
+        }
+        
+        logger.info("Création de {} relances", relances.size());
+        return relances;
+    }
+    
+    /**
+     * Crée des poursuites pour les dossiers de recouvrement
+     */
+    private List<Poursuite> createPoursuites(List<DossierRecouvrement> dossiers, Agent agent) {
+        List<Poursuite> poursuites = new ArrayList<>();
+        Random random = new Random(42);
+        
+        // Pour 50% des dossiers, créer une poursuite
+        for (DossierRecouvrement dossier : dossiers) {
+            if (random.nextDouble() < 0.5) {
+                // Date de lancement (entre 1 et 30 jours après l'ouverture du dossier)
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(dossier.getDateOuverture());
+                cal.add(Calendar.DAY_OF_MONTH, 1 + random.nextInt(30));
+                Date dateLancement = cal.getTime();
+                
+                // Type de poursuite aléatoire
+                TypePoursuite[] types = TypePoursuite.values();
+                TypePoursuite type = types[random.nextInt(types.length)];
+                
+                // Statut de la poursuite
+                StatutPoursuite statut = random.nextDouble() < 0.7 ? 
+                        StatutPoursuite.EN_COURS : StatutPoursuite.TERMINEE;
+                
+                // Montant recouvré (entre 0 et 50% du montant dû)
+                double montantRecouvre = statut == StatutPoursuite.TERMINEE ? 
+                        dossier.getTotalDu() * (0.5 + random.nextDouble() * 0.5) : 0.0;
+                
+                // Créer la poursuite
+                Poursuite poursuite = new Poursuite();
+                poursuite.setType(type);
+                poursuite.setDateLancement(dateLancement);
+                poursuite.setStatut(statut);
+                poursuite.setMontantRecouvre(montantRecouvre);
+                poursuite.setAgentInitiateur(agent);
+                poursuite.setDossierRecouvrement(dossier);
+                
+                poursuites.add(poursuite);
+            }
+        }
+        
+        logger.info("Création de {} poursuites", poursuites.size());
+        return poursuites;
+    }

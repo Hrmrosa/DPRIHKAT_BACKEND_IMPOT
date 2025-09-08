@@ -45,6 +45,8 @@ public class ConcessionMinier {
 
     private Double nombreCarresMinier;
 
+    private Double superficie;
+
     private Date dateAcquisition;
 
     @Enumerated(EnumType.STRING)
@@ -69,8 +71,9 @@ public class ConcessionMinier {
     public ConcessionMinier() {
     }
 
-    public ConcessionMinier(Double nombreCarresMinier, Date dateAcquisition, TypeConcession type, String annexe, Geometry location, Contribuable titulaire) {
+    public ConcessionMinier(Double nombreCarresMinier, Double superficie, Date dateAcquisition, TypeConcession type, String annexe, Geometry location, Contribuable titulaire) {
         this.nombreCarresMinier = nombreCarresMinier;
+        this.superficie = superficie;
         this.dateAcquisition = dateAcquisition;
         this.type = type;
         this.annexe = annexe;
@@ -113,6 +116,14 @@ public class ConcessionMinier {
 
     public void setNombreCarresMinier(Double nombreCarresMinier) {
         this.nombreCarresMinier = nombreCarresMinier;
+    }
+
+    public Double getSuperficie() {
+        return superficie;
+    }
+
+    public void setSuperficie(Double superficie) {
+        this.superficie = superficie;
     }
 
     public Date getDateAcquisition() {
