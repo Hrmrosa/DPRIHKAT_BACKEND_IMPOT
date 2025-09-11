@@ -36,6 +36,8 @@ public class Relance {
 
     private String contenu;
 
+    private String codeQR;
+
     @ManyToOne
     @JoinColumn(name = "dossier_recouvrement_id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -95,6 +97,14 @@ public class Relance {
 
     public void setContenu(String contenu) {
         this.contenu = contenu;
+    }
+
+    public String getCodeQR() {
+        return codeQR;
+    }
+
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
     }
 
     public DossierRecouvrement getDossierRecouvrement() {

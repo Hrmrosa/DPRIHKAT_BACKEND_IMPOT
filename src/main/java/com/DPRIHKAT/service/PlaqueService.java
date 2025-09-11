@@ -89,4 +89,11 @@ public class PlaqueService {
     public List<Plaque> getPlaquesByVehicle(UUID vehiculeId) {
         return plaqueRepository.findByVehiculeId(vehiculeId);
     }
+    
+    /**
+     * Save plaque
+     */
+    public Plaque save(Plaque plaque) {
+        return plaqueRepository.save(plaque);
+    }
 }

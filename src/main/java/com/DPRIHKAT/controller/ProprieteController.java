@@ -2,6 +2,7 @@ package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.entity.Propriete;
 import com.DPRIHKAT.entity.Utilisateur;
+import com.DPRIHKAT.entity.enums.TypeImpot;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.util.ResponseUtil;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -111,7 +113,7 @@ public class ProprieteController {
         try {
             String login = authentication.getName();
             Utilisateur utilisateur = utilisateurRepository.findByLogin(login).orElse(null);
-            if (utilisateur == null || utilisateur.getContribuable() == null) {
+            if (utilisateur == null || !utilisateur.isContribuable()) {
                 return ResponseEntity
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les contribuables peuvent voir leurs propriétés"));
@@ -137,7 +139,7 @@ public class ProprieteController {
         try {
             String login = authentication.getName();
             Utilisateur utilisateur = utilisateurRepository.findByLogin(login).orElse(null);
-            if (utilisateur == null || utilisateur.getContribuable() == null) {
+            if (utilisateur == null || utilisateur.getContribuable() == null || !utilisateur.isContribuable()) {
                 return ResponseEntity
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les contribuables peuvent voir leurs propriétés"));
@@ -215,6 +217,50 @@ public class ProprieteController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PROPRIETES_BY_CONTRIBUABLE_ERROR", "Erreur lors de la récupération des propriétés du contribuable", e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/mine/with-tax-types")
+    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    public ResponseEntity<?> getMyProprietesWithTaxTypes(Authentication authentication) {
+        try {
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login).orElse(null);
+            if (utilisateur == null || !utilisateur.isContribuable()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les contribuables peuvent voir leurs propriétés"));
+            }
+
+            List<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(utilisateur.getContribuable().getId());
+            
+            // Ajout des types d'impôts applicables pour chaque propriété
+            List<Map<String, Object>> proprietesAvecImpots = proprietes.stream().map(propriete -> {
+                Map<String, Object> proprieteMap = new HashMap<>();
+                proprieteMap.put("propriete", propriete);
+                
+                // Déterminer les types d'impôts applicables
+                // Pour les propriétés, l'impôt foncier (IF) est toujours applicable
+                // On peut également avoir IRL (Impôt sur les Revenus Locatifs) ou RL (Redevance Locative)
+                // en fonction du type de propriété et d'autres facteurs
+                
+                // Par défaut, l'impôt foncier est applicable
+                proprieteMap.put("impotsApplicables", List.of(
+                    Map.of(
+                        "code", "IF",
+                        "libelle", "Impôt Foncier",
+                        "description", "Impôt sur les propriétés immobilières"
+                    )
+                ));
+                
+                return proprieteMap;
+            }).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("proprietes", proprietesAvecImpots)));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETES_MINE_ERROR", "Erreur lors de la récupération des propriétés de l'utilisateur", e.getMessage()));
         }
     }
 }

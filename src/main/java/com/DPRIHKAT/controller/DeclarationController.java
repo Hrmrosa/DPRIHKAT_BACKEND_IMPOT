@@ -8,6 +8,7 @@ import com.DPRIHKAT.entity.enums.TypeImpot;
 import com.DPRIHKAT.repository.DeclarationRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.service.DeclarationService;
+import com.DPRIHKAT.service.EmailService;
 import com.DPRIHKAT.util.ResponseUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,6 +42,9 @@ public class DeclarationController {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping("/soumettre")
     @PreAuthorize("hasRole('CONTRIBUABLE','ADMIN')")
@@ -213,6 +218,101 @@ public class DeclarationController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("DECLARATION_FETCH_ERROR", "Erreur lors de la récupération des déclarations par statut", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS','ADMIN')")
+    public ResponseEntity<?> validerDeclaration(@PathVariable UUID id, Authentication authentication) {
+        try {
+            // Get the authenticated agent
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
+                    .orElse(null);
+
+            if (utilisateur == null || utilisateur.getAgent() == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les agents peuvent valider des déclarations"));
+            }
+
+            // Get the declaration
+            Declaration declaration = declarationRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Déclaration non trouvée"));
+
+            // Validate the declaration
+            declaration.valider(utilisateur.getAgent());
+            Declaration savedDeclaration = declarationRepository.save(declaration);
+
+            // Send email notification if contribuable has an email
+            if (declaration.getContribuable().getEmail() != null && !declaration.getContribuable().getEmail().isEmpty()) {
+                try {
+                    emailService.sendDeclarationValidatedNotification(
+                        declaration.getContribuable().getEmail(),
+                        declaration.getId().toString(),
+                        declaration.getMontant()
+                    );
+                } catch (Exception e) {
+                    // Log the error but don't fail the validation
+                    // Email sending should not block the validation process
+                }
+            }
+
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                "declaration", savedDeclaration,
+                "message", "Déclaration validée avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("DECLARATION_VALIDATE_ERROR", "Erreur lors de la validation de la déclaration", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/types-impots")
+    @PreAuthorize("hasAnyRole('CONTRIBUABLE','ADMIN')")
+    public ResponseEntity<?> getAvailableTaxTypes() {
+        try {
+            // Retourne la liste des types d'impôts disponibles
+            TypeImpot[] typesImpots = TypeImpot.values();
+            
+            // Convertir en une liste de maps pour une meilleure représentation
+            java.util.List<java.util.Map<String, String>> impotsList = new java.util.ArrayList<>();
+            for (TypeImpot type : typesImpots) {
+                java.util.Map<String, String> impotMap = new java.util.HashMap<>();
+                impotMap.put("code", type.name());
+                impotMap.put("libelle", getLibelleTypeImpot(type));
+                impotMap.put("description", getDescriptionTypeImpot(type));
+                impotsList.add(impotMap);
+            }
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("typesImpots", impotsList)));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAX_TYPES_FETCH_ERROR", "Erreur lors de la récupération des types d'impôts", e.getMessage()));
+        }
+    }
+
+    private String getLibelleTypeImpot(TypeImpot type) {
+        switch (type) {
+            case IF: return "Impôt Foncier";
+            case ICM: return "Impôt sur les Concessions Minières";
+            case IRL: return "Impôt sur les Revenus Locatifs";
+            case RL: return "Rétenue Locative";
+            case IRV: return "Impôt sur le véhicule";
+            default: return type.name();
+        }
+    }
+
+    private String getDescriptionTypeImpot(TypeImpot type) {
+        switch (type) {
+            case IF: return "Impôt sur les propriétés immobilières";
+            case ICM: return "Impôt sur les concessions minières";
+            case IRL: return "Impôt sur les revenus locatifs";
+            case RL: return "Rétenue Locative";
+            case IRV: return "Impôt sur les véhicules";
+            default: return "Description non disponible";
         }
     }
 }

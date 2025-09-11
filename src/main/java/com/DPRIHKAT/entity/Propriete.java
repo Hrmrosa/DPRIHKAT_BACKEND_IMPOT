@@ -59,9 +59,9 @@ public class Propriete {
     )
     private List<NatureImpot> naturesImpot = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "proprietaire_id")
-    @JsonIdentityReference(alwaysAsId = true)
+    @JsonIdentityReference(alwaysAsId = false)
     private Contribuable proprietaire;
 
     @OneToMany(mappedBy = "propriete")

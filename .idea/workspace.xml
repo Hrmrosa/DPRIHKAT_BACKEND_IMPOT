@@ -4,102 +4,57 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 070925">
+    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 080925">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_AGENTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_APUREMENTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_AUTHENTIFICATION.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_CONTRIBUABLES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_DECLARATIONS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_PAIEMENTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_POURSUITES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_PROPRIETES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_RELANCES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_TAXATIONS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DOCS_UTILISATEURS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AUTHENTIFICATION.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/vps/README_VPS_DEPLOY.md" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/vps/README_VPS_DEPLOY.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/BasicDataSeeder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/DataSeeder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/FixedDataSeeder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/JsonDataSeeder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/RealDataJsonSeeder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/SimpleDataSeeder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ContribuableController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ContribuableController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/GeoDataController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/GeoDataController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/ComprehensiveDataSeeder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/ComprehensiveDataSeeder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/DeclarationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/DeclarationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/GeoDataController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/PlaqueController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/PlaqueController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ProprieteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ProprieteController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/TaxationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/TaxationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/ContribuableSimpleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/ContribuableSimpleDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/TaxationDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/TaxationDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/TaxationRequestDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/TaxationRequestDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Agent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Agent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Apurement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Apurement.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Bureau.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Bureau.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/ConcessionMinier.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/ConcessionMinier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/VignetteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/VignetteController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Certificat.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Certificat.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Contribuable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Contribuable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/ControleFiscal.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/ControleFiscal.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Declaration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Declaration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Division.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Division.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Paiement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Paiement.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Penalite.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Penalite.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Taxation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Taxation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Utilisateur.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Utilisateur.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/SourceDeclaration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/SourceDeclaration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/StatutTaxation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/StatutTaxation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/ApurementRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/ApurementRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/BureauRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/BureauRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DeclarationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DeclarationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/DossierRecouvrement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/DossierRecouvrement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Plaque.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Plaque.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Propriete.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Propriete.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Relance.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Relance.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Vignette.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Vignette.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/TaxationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/TaxationRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ApurementService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ApurementService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/CertificatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/CertificatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ContribuableService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ContribuableService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ControleFiscalService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ControleFiscalService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DeclarationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DeclarationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/VignetteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/VignetteRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/EmailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/PaiementService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/PaiementService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/PenaliteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/PenaliteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/PlaqueService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/PlaqueService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/TaxationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/TaxationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/datas.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/BasicDataSeeder.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/DataSeeder.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/FixedDataSeeder.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/JsonDataSeeder$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/JsonDataSeeder.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SimpleDataSeeder.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ContribuableController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ContribuableController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/GeoDataController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/GeoDataController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/VignetteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/VignetteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/ComprehensiveDataSeeder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/ComprehensiveDataSeeder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/DeclarationController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/DeclarationController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/GeoDataController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/PlaqueController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/PlaqueController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ProprieteController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ProprieteController.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/TaxationController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/TaxationController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/UserController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/UserController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/ContribuableSimpleDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/ContribuableSimpleDTO.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/TaxationDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/TaxationDTO.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/TaxationRequestDTO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/TaxationRequestDTO.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Agent.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Agent.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Apurement.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Apurement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Bureau.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Bureau.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/ConcessionMinier.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/ConcessionMinier.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/ControleFiscal.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/ControleFiscal.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Declaration.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Declaration.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Division.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Division.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Paiement.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Paiement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Penalite.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Penalite.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Utilisateur.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Utilisateur.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/SourceDeclaration.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/SourceDeclaration.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/StatutTaxation.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/StatutTaxation.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/ApurementRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/ApurementRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/BureauRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/BureauRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DeclarationRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DeclarationRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/VignetteController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/VignetteController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Certificat.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Certificat.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/DossierRecouvrement.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/DossierRecouvrement.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Plaque.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Plaque.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Propriete.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Propriete.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Relance.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Relance.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Vignette.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Vignette.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/TaxationRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/TaxationRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ApurementService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ApurementService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/CertificatService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/CertificatService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ContribuableService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ContribuableService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ControleFiscalService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ControleFiscalService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DeclarationService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DeclarationService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/VignetteRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/VignetteRepository.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/EmailService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/EmailService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/PaiementService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/PaiementService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/PenaliteService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/PenaliteService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/PlaqueService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/PlaqueService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/TaxationService$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/TaxationService$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/TaxationService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/TaxationService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/datas.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VignetteService$TariffBreakdown.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VignetteService$TariffBreakdown.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VignetteService$VehicleInfo.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VignetteService$VehicleInfo.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VignetteService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VignetteService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -211,13 +166,22 @@
       <option name="project" value="LOCAL" />
       <updated>1757283771028</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="commit 080925">
+      <option name="closed" value="true" />
+      <created>1757329964859</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1757329964860</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="commit 011925" />
     <MESSAGE value="commit 050925" />
     <MESSAGE value="commit 070925" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit 070925" />
+    <MESSAGE value="commit 080925" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit 080925" />
   </component>
 </project>

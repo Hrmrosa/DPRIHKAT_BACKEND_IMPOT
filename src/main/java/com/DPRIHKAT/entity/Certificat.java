@@ -37,6 +37,9 @@ public class Certificat {
     @Column(name = "actif")
     private boolean actif;
     
+    @Column(name = "code_qr")
+    private String codeQR;
+    
     @ManyToOne
     @JoinColumn(name = "declaration_id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -125,6 +128,14 @@ public class Certificat {
     
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+    
+    public String getCodeQR() {
+        return codeQR;
+    }
+    
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
     }
     
     public Declaration getDeclaration() {

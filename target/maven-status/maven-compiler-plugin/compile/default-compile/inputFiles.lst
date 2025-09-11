@@ -1,5 +1,6 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/DpriImpotsApplication.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/ComprehensiveDataSeeder.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/JacksonConfig.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/JpaConfig.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/config/SecurityConfig.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/AgentController.java
@@ -14,7 +15,6 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/DeclarationController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/DivisionController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/DossierRecouvrementController.java
-/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/GeoDataController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/NatureImpotController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/PaiementController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/PenaliteController.java
@@ -127,6 +127,7 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/DivisionService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/DossierRecouvrementService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/EmailService.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/FileStorageService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/NatureImpotService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/PaiementService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/PenaliteService.java

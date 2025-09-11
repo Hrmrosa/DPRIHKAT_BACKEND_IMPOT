@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,14 +18,13 @@ public class EmailService {
     
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     
-    // Commenté pour éviter les erreurs si JavaMailSender n'est pas configuré
-    // @Autowired
-    // private JavaMailSender mailSender;
+    @Autowired
+    private JavaMailSender mailSender;
     
     @Value("${spring.mail.username:noreply@dprihkat.cd}")
     private String fromEmail;
     
-    @Value("${app.email.enabled:false}")
+    @Value("${app.email.enabled:true}")
     private boolean emailEnabled;
     
     /**
@@ -41,23 +42,39 @@ public class EmailService {
         }
         
         try {
-            // Simulation d'envoi d'email (à remplacer par l'implémentation réelle)
-            logger.info("Simulation d'envoi d'email : À: {}, Sujet: {}", to, subject);
-            
-            // Code commenté pour éviter les erreurs si JavaMailSender n'est pas configuré
-            /*
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
             mailSender.send(message);
-            */
             
             logger.info("Email envoyé avec succès à {}", to);
         } catch (Exception e) {
             logger.error("Erreur lors de l'envoi de l'email à {}: {}", to, e.getMessage(), e);
             throw e;
         }
+    }
+    
+    /**
+     * Envoie une notification de déclaration validée
+     * 
+     * @param to Adresse email du destinataire
+     * @param declarationId ID de la déclaration
+     * @param montant Montant de la déclaration
+     */
+    public void sendDeclarationValidatedNotification(String to, String declarationId, Double montant) {
+        String subject = "Déclaration validée - Notification";
+        String text = String.format(
+            "Bonjour,\n\n" +
+            "Votre déclaration (ID: %s) a été validée avec succès.\n" +
+            "Montant de la déclaration: %,.2f FC\n\n" +
+            "Veuillez procéder au paiement dans les délais impartis.\n\n" +
+            "Cordialement,\n" +
+            "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
+            declarationId, montant
+        );
+        
+        sendEmail(to, subject, text);
     }
 }

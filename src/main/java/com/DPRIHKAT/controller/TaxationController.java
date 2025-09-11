@@ -20,12 +20,17 @@ import com.DPRIHKAT.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,20 +68,39 @@ public class TaxationController {
 
     /**
      * Récupère toutes les taxations
-     * @return Liste de toutes les taxations
+     * @param page Numéro de page (commence à 0)
+     * @param size Nombre d'éléments par page
+     * @param sortBy Champ de tri
+     * @param sortDir Direction du tri (asc/desc)
+     * @return Liste paginée de taxations
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN')")
-    public ResponseEntity<?> getAllTaxations() {
+    public ResponseEntity<?> getAllTaxations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "dateTaxation") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         try {
-            logger.info("Récupération de toutes les taxations");
-            List<Taxation> taxations = taxationService.getAllTaxations();
-            List<TaxationDTO> taxationsDTO = taxations.stream()
+            logger.info("Récupération des taxations paginées - page: {}, size: {}", page, size);
+            
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            
+            Page<Taxation> taxationPage = taxationService.getAllTaxationsPaginated(pageable);
+            
+            List<TaxationDTO> content = taxationPage.getContent().stream()
                     .map(this::convertToDTO)
                     .collect(Collectors.toList());
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "taxations", taxationsDTO
-            )));
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("taxations", content);
+            response.put("currentPage", taxationPage.getNumber());
+            response.put("totalItems", taxationPage.getTotalElements());
+            response.put("totalPages", taxationPage.getTotalPages());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des taxations", e);
             return ResponseEntity
@@ -468,8 +492,7 @@ public class TaxationController {
                 agentTaxateur != null ? agentTaxateur.getId() : null,
                 agentTaxateur != null ? agentTaxateur.getNom() : null,
                 taxation.getPaiement() != null ? taxation.getPaiement().getId() : null,
-                taxation.getApurements() != null && !taxation.getApurements().isEmpty() ? 
-                    taxation.getApurements().get(0).getId() : null
+                null // Ne pas charger les apurements pour éviter l'erreur PostgreSQL "target lists can have at most 1664 entries"
         );
     }
 }

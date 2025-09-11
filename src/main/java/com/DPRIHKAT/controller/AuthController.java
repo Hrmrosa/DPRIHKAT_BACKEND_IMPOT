@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -93,6 +94,48 @@ public class AuthController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("AUTH_ERROR", "Erreur d'authentification", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        try {
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", utilisateur.getId());
+            userInfo.put("login", utilisateur.getLogin());
+            userInfo.put("role", utilisateur.getRole());
+            userInfo.put("premierConnexion", utilisateur.isPremierConnexion());
+            userInfo.put("bloque", utilisateur.isBloque());
+            userInfo.put("isContribuable", utilisateur.isContribuable());
+            
+            if (utilisateur.getContribuable() != null) {
+                Map<String, Object> contribuableInfo = new HashMap<>();
+                contribuableInfo.put("id", utilisateur.getContribuable().getId());
+                contribuableInfo.put("nom", utilisateur.getContribuable().getNom());
+                contribuableInfo.put("type", utilisateur.getContribuable().getType());
+                userInfo.put("contribuable", contribuableInfo);
+            } else {
+                userInfo.put("contribuable", null);
+            }
+            
+            if (utilisateur.getAgent() != null) {
+                Map<String, Object> agentInfo = new HashMap<>();
+                agentInfo.put("id", utilisateur.getAgent().getId());
+                agentInfo.put("nom", utilisateur.getAgent().getNom());
+                userInfo.put("agent", agentInfo);
+            } else {
+                userInfo.put("agent", null);
+            }
+
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(userInfo));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("USER_INFO_ERROR", "Erreur lors de la récupération des informations de l'utilisateur", e.getMessage()));
         }
     }
 

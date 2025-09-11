@@ -57,6 +57,12 @@ public class Vignette {
     @Column(name = "actif")
     private boolean actif;
     
+    @Column(name = "code_qr")
+    private String codeQR;
+    
+    @Column(name = "document", nullable = false)
+    private String document;
+    
     @ManyToOne
     @JoinColumn(name = "vehicule_id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -184,6 +190,22 @@ public class Vignette {
     
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+    
+    public String getCodeQR() {
+        return codeQR;
+    }
+    
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
+    }
+    
+    public String getDocument() {
+        return document;
+    }
+    
+    public void setDocument(String document) {
+        this.document = document;
     }
     
     public Vehicule getVehicule() {

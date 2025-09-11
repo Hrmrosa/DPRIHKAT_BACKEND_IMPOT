@@ -35,6 +35,8 @@ public class DossierRecouvrement {
 
     private Date dateCloture;
 
+    private String codeQR;
+
     @OneToOne
     @JoinColumn(name = "contribuable_id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -98,6 +100,14 @@ public class DossierRecouvrement {
 
     public void setDateCloture(Date dateCloture) {
         this.dateCloture = dateCloture;
+    }
+
+    public String getCodeQR() {
+        return codeQR;
+    }
+
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
     }
 
     public Contribuable getContribuable() {

@@ -53,6 +53,8 @@ public class Contribuable extends Agent {
     private String numeroIdentificationContribuable;
     
     private boolean actif = true; // Champ pour la suppression logique
+    
+    private String codeQR;
 
     // Désactivé temporairement pour résoudre l'erreur ArrayIndexOutOfBoundsException
     /*
@@ -198,6 +200,14 @@ public class Contribuable extends Agent {
 
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+
+    public String getCodeQR() {
+        return codeQR;
+    }
+
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
     }
 
     @Override

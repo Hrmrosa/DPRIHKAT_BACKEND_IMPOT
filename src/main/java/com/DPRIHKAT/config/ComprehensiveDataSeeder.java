@@ -457,10 +457,10 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
             utilisateur.setPremierConnexion(true);
             utilisateur.setBloque(false);
             utilisateur.setActif(true);
-            utilisateur.setAgent(contribuable);
+            utilisateur.setContribuable(contribuable);
+            contribuable.setUtilisateur(utilisateur);
             
             utilisateurs.add(utilisateur);
-            contribuable.setUtilisateur(utilisateur);
             
             // Envoyer les identifiants par email (simulation)
             logger.info("Envoi des identifiants à {} : username={}, password={}", 
@@ -1138,6 +1138,8 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
             plaque.setDisponible(false);
             plaque.setNumplaque(vehicule.getImmatriculation());
             plaque.setVehicule(vehicule);
+            plaque.setCodeQR("QR-" + UUID.randomUUID().toString());
+            plaque.setDocument("plaque_" + vehicule.getImmatriculation() + ".pdf");
             
             plaques.add(plaque);
         }
@@ -1229,6 +1231,8 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
             vignette.setMontant(montant);
             vignette.setVehicule(vehicule);
             vignette.setAgent(agent);
+            vignette.setCodeQR("QR-" + UUID.randomUUID().toString());
+            vignette.setDocument("vignette_" + numero + ".pdf");
             
             vignettes.add(vignette);
         }

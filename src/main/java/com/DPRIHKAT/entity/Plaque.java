@@ -28,6 +28,11 @@ public class Plaque {
 
     private boolean disponible;
 
+    private String codeQR;
+    
+    @Column(name = "document", nullable = false)
+    private String document;
+
     @ManyToOne
     @JoinColumn(name = "vehicule_id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -78,6 +83,22 @@ public class Plaque {
 
     public void setDisponible(boolean disponible) {
         this.disponible = disponible;
+    }
+
+    public String getCodeQR() {
+        return codeQR;
+    }
+
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
+    }
+    
+    public String getDocument() {
+        return document;
+    }
+    
+    public void setDocument(String document) {
+        this.document = document;
     }
 
     public Vehicule getVehicule() {
