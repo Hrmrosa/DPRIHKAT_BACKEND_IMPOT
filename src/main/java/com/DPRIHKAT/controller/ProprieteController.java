@@ -19,6 +19,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/proprietes")
 public class ProprieteController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProprieteController.class);
 
     @Autowired
     private ProprieteRepository proprieteRepository;
@@ -224,15 +228,32 @@ public class ProprieteController {
     @PreAuthorize("hasRole('CONTRIBUABLE')")
     public ResponseEntity<?> getMyProprietesWithTaxTypes(Authentication authentication) {
         try {
+            logger.info("Début de la méthode getMyProprietesWithTaxTypes");
             String login = authentication.getName();
+            logger.info("Utilisateur authentifié: {}", login);
+            
             Utilisateur utilisateur = utilisateurRepository.findByLogin(login).orElse(null);
-            if (utilisateur == null || !utilisateur.isContribuable()) {
+            if (utilisateur == null) {
+                logger.error("Utilisateur non trouvé: {}", login);
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Utilisateur non trouvé"));
+            }
+            
+            logger.info("Utilisateur trouvé: {}, rôle: {}", utilisateur.getId(), utilisateur.getRole());
+            logger.info("Contribuable associé: {}", utilisateur.getContribuable() != null ? utilisateur.getContribuable().getId() : "null");
+            logger.info("Agent associé: {}", utilisateur.getAgent() != null ? utilisateur.getAgent().getId() : "null");
+            logger.info("isContribuable(): {}", utilisateur.isContribuable());
+            
+            if (!utilisateur.isContribuable()) {
+                logger.error("L'utilisateur n'est pas un contribuable valide: {}", login);
                 return ResponseEntity
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les contribuables peuvent voir leurs propriétés"));
             }
 
             List<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(utilisateur.getContribuable().getId());
+            logger.info("Nombre de propriétés trouvées: {}", proprietes.size());
             
             // Ajout des types d'impôts applicables pour chaque propriété
             List<Map<String, Object>> proprietesAvecImpots = proprietes.stream().map(propriete -> {
@@ -256,11 +277,79 @@ public class ProprieteController {
                 return proprieteMap;
             }).collect(Collectors.toList());
             
+            logger.info("Fin de la méthode getMyProprietesWithTaxTypes avec succès");
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("proprietes", proprietesAvecImpots)));
         } catch (Exception e) {
+            logger.error("Erreur dans getMyProprietesWithTaxTypes", e);
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PROPRIETES_MINE_ERROR", "Erreur lors de la récupération des propriétés de l'utilisateur", e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/debug/with-tax-types")
+    public ResponseEntity<?> getDebugProprietesWithTaxTypes(Authentication authentication) {
+        try {
+            logger.info("Début de la méthode getDebugProprietesWithTaxTypes");
+            String login = authentication.getName();
+            logger.info("Utilisateur authentifié: {}", login);
+            
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login).orElse(null);
+            if (utilisateur == null) {
+                logger.error("Utilisateur non trouvé: {}", login);
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Utilisateur non trouvé"));
+            }
+            
+            logger.info("Utilisateur trouvé: {}, rôle: {}", utilisateur.getId(), utilisateur.getRole());
+            logger.info("Contribuable associé: {}", utilisateur.getContribuable() != null ? utilisateur.getContribuable().getId() : "null");
+            logger.info("Agent associé: {}", utilisateur.getAgent() != null ? utilisateur.getAgent().getId() : "null");
+            
+            // Si l'utilisateur a un contribuable associé, utiliser ce contribuable
+            UUID contribuableId = null;
+            if (utilisateur.getContribuable() != null) {
+                contribuableId = utilisateur.getContribuable().getId();
+                logger.info("Utilisation du contribuable associé: {}", contribuableId);
+            } 
+            // Sinon, si l'utilisateur a un agent qui est en fait un contribuable, utiliser cet agent comme contribuable
+            else if (utilisateur.getAgent() != null) {
+                contribuableId = utilisateur.getAgent().getId();
+                logger.info("Utilisation de l'agent comme contribuable: {}", contribuableId);
+            } else {
+                logger.error("Aucun contribuable ou agent associé à l'utilisateur: {}", login);
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Aucun contribuable associé à cet utilisateur"));
+            }
+
+            List<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(contribuableId);
+            logger.info("Nombre de propriétés trouvées: {}", proprietes.size());
+            
+            // Ajout des types d'impôts applicables pour chaque propriété
+            List<Map<String, Object>> proprietesAvecImpots = proprietes.stream().map(propriete -> {
+                Map<String, Object> proprieteMap = new HashMap<>();
+                proprieteMap.put("propriete", propriete);
+                
+                // Par défaut, l'impôt foncier est applicable
+                proprieteMap.put("impotsApplicables", List.of(
+                    Map.of(
+                        "code", "IF",
+                        "libelle", "Impôt Foncier",
+                        "description", "Impôt sur les propriétés immobilières"
+                    )
+                ));
+                
+                return proprieteMap;
+            }).collect(Collectors.toList());
+            
+            logger.info("Fin de la méthode getDebugProprietesWithTaxTypes avec succès");
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("proprietes", proprietesAvecImpots)));
+        } catch (Exception e) {
+            logger.error("Erreur dans getDebugProprietesWithTaxTypes", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETES_DEBUG_ERROR", "Erreur lors de la récupération des propriétés de l'utilisateur", e.getMessage()));
         }
     }
 }
