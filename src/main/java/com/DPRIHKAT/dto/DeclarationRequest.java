@@ -4,6 +4,7 @@ import com.DPRIHKAT.entity.enums.TypeImpot;
 import org.locationtech.jts.geom.Geometry;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 public class DeclarationRequest {
@@ -13,7 +14,7 @@ public class DeclarationRequest {
     private boolean exoneration;
     private UUID proprieteId;
     private UUID concessionId;
-    private Geometry location; // For geolocation
+    private Map<String, Double> location; // For geolocation
 
     // Getters and setters
     public Date getDate() {
@@ -64,11 +65,11 @@ public class DeclarationRequest {
         this.concessionId = concessionId;
     }
 
-    public Geometry getLocation() {
+    public Map<String, Double> getLocation() {
         return location;
     }
 
-    public void setLocation(Geometry location) {
+    public void setLocation(Map<String, Double> location) {
         this.location = location;
     }
 }

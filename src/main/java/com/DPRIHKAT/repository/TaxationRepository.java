@@ -171,4 +171,21 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID> {
         @Param("propriete") com.DPRIHKAT.entity.Propriete propriete,
         @Param("typeImpot") com.DPRIHKAT.entity.enums.TypeImpot typeImpot, 
         @Param("exercice") String exercice, Pageable pageable);
+    
+    /**
+     * Trouve une taxation par son ID sans charger les relations profondes
+     * Cette méthode utilise une requête JPQL personnalisée pour éviter les jointures excessives
+     * @param id l'ID de la taxation
+     * @return la taxation correspondante
+     */
+    @Query("SELECT t FROM Taxation t WHERE t.id = :id")
+    Taxation findByIdWithoutJoins(@Param("id") UUID id);
+    
+    /**
+     * Compte le nombre de taxations pour un type d'impôt et un exercice donnés
+     * @param typeImpot le type d'impôt
+     * @param exercice l'exercice (année fiscale)
+     * @return le nombre de taxations
+     */
+    long countByTypeImpotAndExercice(TypeImpot typeImpot, String exercice);
 }

@@ -135,6 +135,9 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
     private VignetteRepository vignetteRepository;
 
     @Autowired
+    private TauxChangeRepository tauxChangeRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -241,6 +244,10 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
             // Créer des vignettes
             List<Vignette> vignettes = createVignettes(vehicules, agents.get(1));
             vignetteRepository.saveAll(vignettes);
+
+            // Créer des taux de change
+            List<TauxChange> tauxChanges = createTauxChanges(agents.get(0));
+            tauxChangeRepository.saveAll(tauxChanges);
 
             logger.info("ComprehensiveDataSeeder: seeding terminé avec succès.");
         } catch (Exception e) {
@@ -876,6 +883,56 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
                 taxation.setDeclaration(declaration);
                 taxation.setAgent(agentTaxateur);
                 
+                // Définir la devise (USD par défaut)
+                taxation.setDevise(Devise.USD);
+                
+                // Générer un numéro de taxation au format DPRI-0001-typeimpotcodeBureauTaxateur-annee
+                String codeBureau = agentTaxateur.getBureau() != null ? agentTaxateur.getBureau().getCode() : "DPRI";
+                String sequentialNumber = String.format("%04d", taxations.size() + 1);
+                String numeroTaxation = "DPRI-" + sequentialNumber + "-" + typeImpot + codeBureau + "-" + currentYear;
+                taxation.setNumeroTaxation(numeroTaxation);
+                
+                // Générer un code QR pointant vers l'URL d'impression
+                // Le format est http://localhost:3000/print/taxation/{id}
+                // Comme l'ID n'est pas encore généré, on utilise un UUID temporaire qui sera remplacé après la sauvegarde
+                String tempId = UUID.randomUUID().toString();
+                String codeQR = "http://localhost:3000/print/taxation/" + tempId;
+                taxation.setCodeQR(codeQR);
+                
+                // Ajouter les informations bancaires en fonction du type d'impôt
+                switch (typeImpot) {
+                    case IF:
+                        taxation.setNomBanque("Banque Centrale du Congo");
+                        taxation.setNumeroCompte("00123456789");
+                        taxation.setIntituleCompte("DPRI - Recettes Fiscales Foncières");
+                        break;
+                    case ICM:
+                        taxation.setNomBanque("Trust Merchant Bank");
+                        taxation.setNumeroCompte("00987654321");
+                        taxation.setIntituleCompte("DPRI - Recettes Minières");
+                        break;
+                    case IRL:
+                        taxation.setNomBanque("Rawbank");
+                        taxation.setNumeroCompte("00456789123");
+                        taxation.setIntituleCompte("DPRI - Redevances Locatives");
+                        break;
+                    case IRV:
+                        taxation.setNomBanque("Equity Bank");
+                        taxation.setNumeroCompte("00789123456");
+                        taxation.setIntituleCompte("DPRI - Revenus Véhicules");
+                        break;
+                    case RL:
+                        taxation.setNomBanque("Afriland First Bank");
+                        taxation.setNumeroCompte("00321654987");
+                        taxation.setIntituleCompte("DPRI - Redevances Locatives");
+                        break;
+                    default:
+                        taxation.setNomBanque("Banque Centrale du Congo");
+                        taxation.setNumeroCompte("00123456789");
+                        taxation.setIntituleCompte("DPRI - Recettes Fiscales");
+                        break;
+                }
+                
                 // Associer la nature d'impôt si disponible
                 if (natureImpot != null) {
                     taxation.setNatureImpot(natureImpot);
@@ -1239,5 +1296,44 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
         
         logger.info("Création de {} vignettes", vignettes.size());
         return vignettes;
+    }
+
+    /**
+     * Crée des taux de change entre USD et CDF
+     */
+    private List<TauxChange> createTauxChanges(Agent agent) {
+        List<TauxChange> tauxChanges = new ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        
+        // Créer un historique de taux de change sur les 6 derniers mois
+        for (int i = 6; i >= 0; i--) {
+            cal.setTime(new Date());
+            cal.add(Calendar.MONTH, -i);
+            
+            // Taux de change USD -> CDF (augmentation progressive)
+            double tauxUsdToCdf = 2300.0 + (i * 50.0); // De 2300 à 2600 CDF pour 1 USD
+            TauxChange tauxUsdCdf = new TauxChange();
+            tauxUsdCdf.setDateEffective(cal.getTime());
+            tauxUsdCdf.setTaux(tauxUsdToCdf);
+            tauxUsdCdf.setDeviseSource(Devise.USD);
+            tauxUsdCdf.setDeviseDestination(Devise.CDF);
+            tauxUsdCdf.setAgent(agent);
+            tauxUsdCdf.setActif(i == 0); // Seul le dernier taux est actif
+            tauxChanges.add(tauxUsdCdf);
+            
+            // Taux de change CDF -> USD (l'inverse du précédent)
+            double tauxCdfToUsd = 1.0 / tauxUsdToCdf;
+            TauxChange tauxCdfUsd = new TauxChange();
+            tauxCdfUsd.setDateEffective(cal.getTime());
+            tauxCdfUsd.setTaux(tauxCdfToUsd);
+            tauxCdfUsd.setDeviseSource(Devise.CDF);
+            tauxCdfUsd.setDeviseDestination(Devise.USD);
+            tauxCdfUsd.setAgent(agent);
+            tauxCdfUsd.setActif(i == 0); // Seul le dernier taux est actif
+            tauxChanges.add(tauxCdfUsd);
+        }
+        
+        logger.info("Création de {} taux de change", tauxChanges.size());
+        return tauxChanges;
     }
 }

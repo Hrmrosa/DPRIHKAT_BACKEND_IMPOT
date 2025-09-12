@@ -128,8 +128,8 @@ Soumet une nouvelle déclaration pour un bien.
   "typeImpot": "string",
   "montant": 0,
   "location": {
-    "type": "Point",
-    "coordinates": [longitude, latitude]
+    "latitude": 0.0,
+    "longitude": 0.0
   }
 }
 ```

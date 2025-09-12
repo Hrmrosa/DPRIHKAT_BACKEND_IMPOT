@@ -23,6 +23,7 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/ProprieteController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/ReferenceDataController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/RelanceController.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/TauxChangeController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/TaxationController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/UserController.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/controller/VignetteController.java
@@ -42,10 +43,12 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/JwtResponse.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/LoginRequest.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/MessageResponse.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/PaiementResponseDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/ProprieteGeoDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/RapportFiscalDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/TaxationDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/TaxationRequestDTO.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/TaxationResponseDTO.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/dto/UtilisateurDetails.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Agent.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Apurement.java
@@ -65,10 +68,12 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Propriete.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/ProprieteImpot.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Relance.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/TauxChange.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Taxation.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Utilisateur.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Vehicule.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/Vignette.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/enums/Devise.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/enums/ModePaiement.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/enums/MotifPenalite.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/entity/enums/Role.java
@@ -109,6 +114,7 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/ProprieteImpotRepository.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/ProprieteRepository.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/RelanceRepository.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/TauxChangeRepository.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/TaxationRepository.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/UtilisateurRepository.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/repository/VehiculeRepository.java
@@ -135,6 +141,7 @@
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/PoursuiteService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/ReferenceDataService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/RelanceService.java
+/home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/TauxChangeService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/TaxationService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/UserService.java
 /home/amateur/IdeaProjects/DPRIHKAT_BACKEND_IMPOT/src/main/java/com/DPRIHKAT/service/VignetteService.java

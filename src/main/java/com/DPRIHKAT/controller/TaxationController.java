@@ -2,6 +2,7 @@ package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.dto.TaxationDTO;
 import com.DPRIHKAT.dto.TaxationRequestDTO;
+import com.DPRIHKAT.dto.TaxationResponseDTO;
 import com.DPRIHKAT.entity.Agent;
 import com.DPRIHKAT.entity.NatureImpot;
 import com.DPRIHKAT.entity.Propriete;
@@ -90,8 +91,8 @@ public class TaxationController {
             
             Page<Taxation> taxationPage = taxationService.getAllTaxationsPaginated(pageable);
             
-            List<TaxationDTO> content = taxationPage.getContent().stream()
-                    .map(this::convertToDTO)
+            List<TaxationResponseDTO> content = taxationPage.getContent().stream()
+                    .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
             
             Map<String, Object> response = new HashMap<>();
@@ -121,8 +122,8 @@ public class TaxationController {
         try {
             logger.info("Récupération des taxations actives");
             List<Taxation> taxations = taxationService.getAllActiveTaxations();
-            List<TaxationDTO> taxationsDTO = taxations.stream()
-                    .map(this::convertToDTO)
+            List<TaxationResponseDTO> taxationsDTO = taxations.stream()
+                    .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "taxations", taxationsDTO
@@ -149,7 +150,7 @@ public class TaxationController {
             logger.info("Récupération de la taxation avec l'ID: {}", id);
             return taxationService.getTaxationById(id)
                     .map(taxation -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                            "taxation", convertToDTO(taxation)
+                            "taxation", convertToResponseDTO(taxation)
                     ))))
                     .orElse(ResponseEntity
                             .notFound()
@@ -175,8 +176,8 @@ public class TaxationController {
         try {
             logger.info("Récupération des taxations pour la propriété avec l'ID: {}", proprieteId);
             List<Taxation> taxations = taxationService.getTaxationsByProprieteId(proprieteId);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
-                    .map(this::convertToDTO)
+            List<TaxationResponseDTO> taxationsDTO = taxations.stream()
+                    .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "taxations", taxationsDTO
@@ -202,8 +203,8 @@ public class TaxationController {
         try {
             logger.info("Récupération des taxations pour l'exercice: {}", exercice);
             List<Taxation> taxations = taxationService.getTaxationsByExercice(exercice);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
-                    .map(this::convertToDTO)
+            List<TaxationResponseDTO> taxationsDTO = taxations.stream()
+                    .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "taxations", taxationsDTO
@@ -229,8 +230,8 @@ public class TaxationController {
         try {
             logger.info("Récupération des taxations pour le type d'impôt: {}", typeImpot);
             List<Taxation> taxations = taxationService.getTaxationsByTypeImpot(typeImpot);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
-                    .map(this::convertToDTO)
+            List<TaxationResponseDTO> taxationsDTO = taxations.stream()
+                    .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "taxations", taxationsDTO
@@ -256,8 +257,8 @@ public class TaxationController {
         try {
             logger.info("Récupération des taxations pour le statut: {}", statut);
             List<Taxation> taxations = taxationService.getTaxationsByStatut(statut);
-            List<TaxationDTO> taxationsDTO = taxations.stream()
-                    .map(this::convertToDTO)
+            List<TaxationResponseDTO> taxationsDTO = taxations.stream()
+                    .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "taxations", taxationsDTO
@@ -304,7 +305,7 @@ public class TaxationController {
 
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                     "message", "Taxation générée avec succès",
-                    "taxation", convertToDTO(taxation)
+                    "taxation", convertToResponseDTO(taxation)
             )));
         } catch (Exception e) {
             logger.error("Erreur lors de la génération de la taxation", e);
@@ -359,7 +360,7 @@ public class TaxationController {
             return taxationService.updateTaxationStatus(id, statut)
                     .map(taxation -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                             "message", "Statut de la taxation mis à jour avec succès",
-                            "taxation", convertToDTO(taxation)
+                            "taxation", convertToResponseDTO(taxation)
                     ))))
                     .orElse(ResponseEntity
                             .notFound()
@@ -388,7 +389,7 @@ public class TaxationController {
             return taxationService.grantExemption(id, motif)
                     .map(taxation -> ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                             "message", "Exonération accordée avec succès",
-                            "taxation", convertToDTO(taxation)
+                            "taxation", convertToResponseDTO(taxation)
                     ))))
                     .orElse(ResponseEntity
                             .notFound()
@@ -464,35 +465,117 @@ public class TaxationController {
     }
 
     /**
-     * Convertit une entité Taxation en TaxationDTO
-     * @param taxation L'entité Taxation à convertir
-     * @return Le DTO TaxationDTO correspondant
+     * Annule une taxation en spécifiant un motif d'annulation
+     * Cette opération ne peut être effectuée que par un chef de division ou un administrateur
+     * 
+     * @param id L'ID de la taxation à annuler
+     * @param request La requête contenant le motif d'annulation
+     * @return La taxation annulée
      */
-    private TaxationDTO convertToDTO(Taxation taxation) {
-        Propriete propriete = taxation.getDeclaration().getPropriete();
-        ProprieteImpot proprieteImpot = taxation.getProprieteImpot();
-        Agent agentTaxateur = taxation.getAgent();
+    @DeleteMapping("/{id}/annulation")
+    @PreAuthorize("hasAnyRole('CHEF_DE_DIVISION', 'ADMIN')")
+    public ResponseEntity<?> annulerTaxation(
+            @PathVariable UUID id,
+            @RequestBody AnnulationRequest request) {
+        try {
+            logger.info("Annulation de la taxation avec l'ID: {}", id);
+            
+            if (request.getMotifAnnulation() == null || request.getMotifAnnulation().trim().isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("MOTIF_ANNULATION_REQUIRED", 
+                                "Le motif d'annulation est obligatoire", 
+                                "Veuillez fournir un motif d'annulation valide"));
+            }
+            
+            Taxation taxationAnnulee = taxationService.annulerTaxation(id, request.getMotifAnnulation());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "message", "Taxation annulée avec succès",
+                    "taxation", convertToResponseDTO(taxationAnnulee)
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de l'annulation de la taxation avec l'ID: {}", id, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAXATION_ANNULATION_ERROR", 
+                            "Erreur lors de l'annulation de la taxation", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Classe interne pour la requête d'annulation
+     */
+    public static class AnnulationRequest {
+        private String motifAnnulation;
+        
+        public String getMotifAnnulation() {
+            return motifAnnulation;
+        }
+        
+        public void setMotifAnnulation(String motifAnnulation) {
+            this.motifAnnulation = motifAnnulation;
+        }
+    }
 
-        return new TaxationDTO(
-                taxation.getId(),
-                taxation.getDateTaxation(),
-                taxation.getMontant(),
-                taxation.getExercice(),
-                taxation.getStatut(),
-                taxation.getTypeImpot(),
-                taxation.isExoneration(),
-                taxation.getMotifExoneration(),
-                taxation.getDateEcheance(),
-                taxation.isActif(),
-                propriete != null ? propriete.getId() : null,
-                propriete != null ? propriete.getAdresse() : null,
-                proprieteImpot != null ? proprieteImpot.getId() : null,
-                proprieteImpot != null && proprieteImpot.getNatureImpot() != null ? proprieteImpot.getNatureImpot().getCode() : null,
-                proprieteImpot != null && proprieteImpot.getNatureImpot() != null ? proprieteImpot.getNatureImpot().getNom() : null,
-                agentTaxateur != null ? agentTaxateur.getId() : null,
-                agentTaxateur != null ? agentTaxateur.getNom() : null,
-                taxation.getPaiement() != null ? taxation.getPaiement().getId() : null,
-                null // Ne pas charger les apurements pour éviter l'erreur PostgreSQL "target lists can have at most 1664 entries"
-        );
+    /**
+     * Convertit une entité Taxation en TaxationResponseDTO
+     * @param taxation L'entité Taxation à convertir
+     * @return Le DTO de réponse
+     */
+    private TaxationResponseDTO convertToResponseDTO(Taxation taxation) {
+        TaxationResponseDTO dto = new TaxationResponseDTO();
+        dto.setId(taxation.getId());
+        dto.setDateTaxation(taxation.getDateTaxation());
+        dto.setMontant(taxation.getMontant());
+        dto.setExercice(taxation.getExercice());
+        dto.setStatut(taxation.getStatut());
+        dto.setTypeImpot(taxation.getTypeImpot());
+        dto.setExoneration(taxation.isExoneration());
+        dto.setMotifExoneration(taxation.getMotifExoneration());
+        dto.setDateEcheance(taxation.getDateEcheance());
+        dto.setActif(taxation.isActif());
+        dto.setCodeQR(taxation.getCodeQR());
+        dto.setNumeroTaxation(taxation.getNumeroTaxation());
+        dto.setDevise(taxation.getDevise());
+        dto.setNomAgent(taxation.getNomAgent());
+        dto.setNomBanque(taxation.getNomBanque());
+        dto.setNumeroCompte(taxation.getNumeroCompte());
+        dto.setIntituleCompte(taxation.getIntituleCompte());
+        dto.setMotifAnnulation(taxation.getMotifAnnulation());
+        
+        // Informations sur la déclaration
+        if (taxation.getDeclaration() != null) {
+            TaxationResponseDTO.DeclarationDTO declarationDTO = new TaxationResponseDTO.DeclarationDTO();
+            declarationDTO.setId(taxation.getDeclaration().getId());
+            declarationDTO.setDateDeclaration(taxation.getDeclaration().getDateDeclaration());
+            declarationDTO.setStatut(taxation.getDeclaration().getStatut().name());
+            dto.setDeclaration(declarationDTO);
+        }
+        
+        // Informations sur la propriété
+        if (taxation.getPropriete() != null) {
+            TaxationResponseDTO.ProprieteDTO proprieteDTO = new TaxationResponseDTO.ProprieteDTO();
+            proprieteDTO.setId(taxation.getPropriete().getId());
+            proprieteDTO.setType(taxation.getPropriete().getType().name());
+            proprieteDTO.setLocalite(taxation.getPropriete().getLocalite());
+            proprieteDTO.setSuperficie(taxation.getPropriete().getSuperficie());
+            proprieteDTO.setAdresse(taxation.getPropriete().getAdresse());
+            dto.setPropriete(proprieteDTO);
+        }
+        
+        // Informations sur le contribuable
+        if (taxation.getContribuable() != null) {
+            TaxationResponseDTO.ContribuableDTO contribuableDTO = new TaxationResponseDTO.ContribuableDTO();
+            contribuableDTO.setId(taxation.getContribuable().getId());
+            contribuableDTO.setNom(taxation.getContribuable().getNom());
+            contribuableDTO.setAdressePrincipale(taxation.getContribuable().getAdressePrincipale());
+            contribuableDTO.setTelephonePrincipal(taxation.getContribuable().getTelephonePrincipal());
+            contribuableDTO.setEmail(taxation.getContribuable().getEmail());
+            dto.setContribuable(contribuableDTO);
+        }
+        
+        return dto;
     }
 }

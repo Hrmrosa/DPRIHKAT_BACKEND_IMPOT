@@ -66,7 +66,7 @@ public class DeclarationController {
             Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
                     .orElse(null);
 
-            if (utilisateur == null || utilisateur.getContribuable() == null) {
+            if (utilisateur == null || !utilisateur.isContribuable()) {
                 return ResponseEntity
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les contribuables peuvent soumettre des déclarations"));

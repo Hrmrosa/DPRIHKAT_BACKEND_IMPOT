@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class Paiement {
+public class    Paiement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

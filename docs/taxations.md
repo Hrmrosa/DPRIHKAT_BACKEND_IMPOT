@@ -6,6 +6,13 @@ Cette documentation détaille les endpoints disponibles pour la gestion des taxa
 
 Les taxations représentent les impôts calculés et appliqués sur les propriétés déclarées par les contribuables. Elles sont générées à partir des déclarations validées et permettent de suivre le processus de recouvrement des impôts.
 
+Chaque taxation possède :
+- Un identifiant unique (UUID)
+- Un numéro de taxation au format `DPRI-0001-typeimpotcodeBureauTaxateur-annee`
+- Un code QR pointant vers l'URL d'impression de la taxation
+- Une devise (USD par défaut, avec possibilité de conversion en CDF)
+- Des informations bancaires (nom de la banque, numéro de compte, intitulé du compte)
+
 ## Base URL
 
 ```
@@ -21,7 +28,11 @@ Récupère la liste de toutes les taxations enregistrées dans le système.
 - **URL**: `/api/taxations`
 - **Méthode**: `GET`
 - **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `ADMIN`
-- **Paramètres**: Aucun
+- **Paramètres**: 
+  - `page` (optionnel): Numéro de page (commence à 0)
+  - `size` (optionnel): Nombre d'éléments par page (par défaut 10)
+  - `sortBy` (optionnel): Champ de tri (par défaut dateTaxation)
+  - `sortDir` (optionnel): Direction du tri (asc/desc, par défaut desc)
 
 #### Réponse en cas de succès
 
@@ -29,33 +40,53 @@ Récupère la liste de toutes les taxations enregistrées dans le système.
 {
   "success": true,
   "data": {
+    "totalItems": 38,
     "taxations": [
       {
-        "id": "uuid-string",
-        "dateTaxation": "2025-02-15T10:30:45.123Z",
-        "montant": 1200000.00,
+        "id": "1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "dateTaxation": "2025-09-10T05:36:47.378+00:00",
+        "montant": 6400.203021963628,
         "exercice": "2025",
-        "statut": "EN_COURS",
+        "statut": "VALIDEE",
         "typeImpot": "IF",
         "exoneration": false,
         "motifExoneration": null,
-        "dateEcheance": "2025-03-15T00:00:00.000Z",
+        "dateEcheance": null,
         "actif": true,
+        "codeQR": "http://localhost:3000/print/taxation/1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "numeroTaxation": "DPRI-0001-IFBRF-2025",
+        "devise": "USD",
+        "nomBanque": "Banque Centrale du Congo",
+        "numeroCompte": "00123456789",
+        "intituleCompte": "DGRK - Recettes Fiscales Foncières",
+        "nomAgent": "Mutombo Jean",
         "declaration": {
           "id": "uuid-string",
-          "dateDeclaration": "2025-01-15T10:30:45.123Z"
+          "dateDeclaration": "2025-01-15T10:30:45.123Z",
+          "statut": "VALIDEE"
         },
         "propriete": {
-          "id": "uuid-string",
-          "designation": "Résidence principale",
-          "adresse": "Avenue 123, Quartier Centre-ville"
+          "id": "7e9501cb-3205-4599-bbc0-f0a887aab4a1",
+          "type": "VILLA",
+          "localite": "Kenya",
+          "superficie": 500.0,
+          "adresse": "Av. Kivu 44, Kenya"
         },
         "contribuable": {
           "id": "uuid-string",
-          "nom": "Nom du contribuable"
+          "nom": "Nom du contribuable",
+          "adressePrincipale": "Adresse principale du contribuable",
+          "telephonePrincipal": "+243123456789",
+          "email": "contribuable@example.com"
         }
       }
-    ]
+    ],
+    "totalPages": 4,
+    "currentPage": 0
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
@@ -69,6 +100,10 @@ Récupère la liste de toutes les taxations enregistrées dans le système.
     "code": "TAXATION_FETCH_ERROR",
     "message": "Erreur lors de la récupération des taxations",
     "details": "Message d'erreur détaillé"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
@@ -90,31 +125,48 @@ Récupère la liste de toutes les taxations actives dans le système.
   "data": {
     "taxations": [
       {
-        "id": "uuid-string",
-        "dateTaxation": "2025-02-15T10:30:45.123Z",
-        "montant": 1200000.00,
+        "id": "1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "dateTaxation": "2025-09-10T05:36:47.378+00:00",
+        "montant": 6400.203021963628,
         "exercice": "2025",
-        "statut": "EN_COURS",
+        "statut": "VALIDEE",
         "typeImpot": "IF",
         "exoneration": false,
         "motifExoneration": null,
-        "dateEcheance": "2025-03-15T00:00:00.000Z",
+        "dateEcheance": null,
         "actif": true,
+        "codeQR": "http://localhost:3000/print/taxation/1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "numeroTaxation": "DPRI-0001-IFBRF-2025",
+        "devise": "USD",
+        "nomBanque": "Banque Centrale du Congo",
+        "numeroCompte": "00123456789",
+        "intituleCompte": "DGRK - Recettes Fiscales Foncières",
+        "nomAgent": "Mutombo Jean",
         "declaration": {
           "id": "uuid-string",
-          "dateDeclaration": "2025-01-15T10:30:45.123Z"
+          "dateDeclaration": "2025-01-15T10:30:45.123Z",
+          "statut": "VALIDEE"
         },
         "propriete": {
-          "id": "uuid-string",
-          "designation": "Résidence principale",
-          "adresse": "Avenue 123, Quartier Centre-ville"
+          "id": "7e9501cb-3205-4599-bbc0-f0a887aab4a1",
+          "type": "VILLA",
+          "localite": "Kenya",
+          "superficie": 500.0,
+          "adresse": "Av. Kivu 44, Kenya"
         },
         "contribuable": {
           "id": "uuid-string",
-          "nom": "Nom du contribuable"
+          "nom": "Nom du contribuable",
+          "adressePrincipale": "Adresse principale du contribuable",
+          "telephonePrincipal": "+243123456789",
+          "email": "contribuable@example.com"
         }
       }
     ]
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
@@ -128,19 +180,23 @@ Récupère la liste de toutes les taxations actives dans le système.
     "code": "TAXATION_FETCH_ERROR",
     "message": "Erreur lors de la récupération des taxations actives",
     "details": "Message d'erreur détaillé"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
 
-### 3. Récupérer une taxation par son ID
+### 3. Récupérer une taxation par ID
 
-Récupère les détails d'une taxation spécifique à partir de son identifiant unique.
+Récupère les détails d'une taxation spécifique par son identifiant.
 
 - **URL**: `/api/taxations/{id}`
 - **Méthode**: `GET`
 - **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `ADMIN`
-- **Paramètres**:
-  - `id` (path): UUID de la taxation à récupérer
+- **Paramètres**: 
+  - `id` (path parameter): UUID de la taxation
 
 #### Réponse en cas de succès
 
@@ -149,30 +205,47 @@ Récupère les détails d'une taxation spécifique à partir de son identifiant 
   "success": true,
   "data": {
     "taxation": {
-      "id": "uuid-string",
-      "dateTaxation": "2025-02-15T10:30:45.123Z",
-      "montant": 1200000.00,
+      "id": "1ce73eff-cac9-4ed5-9670-ee40240a0335",
+      "dateTaxation": "2025-09-10T05:36:47.378+00:00",
+      "montant": 6400.203021963628,
       "exercice": "2025",
-      "statut": "EN_COURS",
+      "statut": "VALIDEE",
       "typeImpot": "IF",
       "exoneration": false,
       "motifExoneration": null,
-      "dateEcheance": "2025-03-15T00:00:00.000Z",
+      "dateEcheance": null,
       "actif": true,
+      "codeQR": "http://localhost:3000/print/taxation/1ce73eff-cac9-4ed5-9670-ee40240a0335",
+      "numeroTaxation": "DPRI-0001-IFBRF-2025",
+      "devise": "USD",
+      "nomBanque": "Banque Centrale du Congo",
+      "numeroCompte": "00123456789",
+      "intituleCompte": "DGRK - Recettes Fiscales Foncières",
+      "nomAgent": "Mutombo Jean",
       "declaration": {
         "id": "uuid-string",
-        "dateDeclaration": "2025-01-15T10:30:45.123Z"
+        "dateDeclaration": "2025-01-15T10:30:45.123Z",
+        "statut": "VALIDEE"
       },
       "propriete": {
-        "id": "uuid-string",
-        "designation": "Résidence principale",
-        "adresse": "Avenue 123, Quartier Centre-ville"
+        "id": "7e9501cb-3205-4599-bbc0-f0a887aab4a1",
+        "type": "VILLA",
+        "localite": "Kenya",
+        "superficie": 500.0,
+        "adresse": "Av. Kivu 44, Kenya"
       },
       "contribuable": {
         "id": "uuid-string",
-        "nom": "Nom du contribuable"
+        "nom": "Nom du contribuable",
+        "adressePrincipale": "Adresse principale du contribuable",
+        "telephonePrincipal": "+243123456789",
+        "email": "contribuable@example.com"
       }
     }
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
@@ -183,22 +256,26 @@ Récupère les détails d'une taxation spécifique à partir de son identifiant 
 {
   "success": false,
   "error": {
-    "code": "TAXATION_FETCH_ERROR",
-    "message": "Erreur lors de la récupération de la taxation",
-    "details": "Message d'erreur détaillé"
+    "code": "TAXATION_NOT_FOUND",
+    "message": "Taxation non trouvée",
+    "details": "Aucune taxation avec l'ID fourni"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
 
-### 4. Récupérer les taxations par propriété
+### 4. Récupérer les taxations par contribuable
 
-Récupère la liste des taxations pour une propriété spécifique.
+Récupère la liste des taxations pour un contribuable spécifique.
 
-- **URL**: `/api/taxations/by-propriete/{proprieteId}`
+- **URL**: `/api/taxations/contribuable/{contribuableId}`
 - **Méthode**: `GET`
-- **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `ADMIN`
-- **Paramètres**:
-  - `proprieteId` (path): UUID de la propriété
+- **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `ADMIN`, `CONTRIBUABLE`
+- **Paramètres**: 
+  - `contribuableId` (path parameter): UUID du contribuable
 
 #### Réponse en cas de succès
 
@@ -208,31 +285,48 @@ Récupère la liste des taxations pour une propriété spécifique.
   "data": {
     "taxations": [
       {
-        "id": "uuid-string",
-        "dateTaxation": "2025-02-15T10:30:45.123Z",
-        "montant": 1200000.00,
+        "id": "1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "dateTaxation": "2025-09-10T05:36:47.378+00:00",
+        "montant": 6400.203021963628,
         "exercice": "2025",
-        "statut": "EN_COURS",
+        "statut": "VALIDEE",
         "typeImpot": "IF",
         "exoneration": false,
         "motifExoneration": null,
-        "dateEcheance": "2025-03-15T00:00:00.000Z",
+        "dateEcheance": null,
         "actif": true,
+        "codeQR": "http://localhost:3000/print/taxation/1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "numeroTaxation": "DPRI-0001-IFBRF-2025",
+        "devise": "USD",
+        "nomBanque": "Banque Centrale du Congo",
+        "numeroCompte": "00123456789",
+        "intituleCompte": "DGRK - Recettes Fiscales Foncières",
+        "nomAgent": "Mutombo Jean",
         "declaration": {
           "id": "uuid-string",
-          "dateDeclaration": "2025-01-15T10:30:45.123Z"
+          "dateDeclaration": "2025-01-15T10:30:45.123Z",
+          "statut": "VALIDEE"
         },
         "propriete": {
-          "id": "uuid-string",
-          "designation": "Résidence principale",
-          "adresse": "Avenue 123, Quartier Centre-ville"
+          "id": "7e9501cb-3205-4599-bbc0-f0a887aab4a1",
+          "type": "VILLA",
+          "localite": "Kenya",
+          "superficie": 500.0,
+          "adresse": "Av. Kivu 44, Kenya"
         },
         "contribuable": {
           "id": "uuid-string",
-          "nom": "Nom du contribuable"
+          "nom": "Nom du contribuable",
+          "adressePrincipale": "Adresse principale du contribuable",
+          "telephonePrincipal": "+243123456789",
+          "email": "contribuable@example.com"
         }
       }
     ]
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
@@ -244,21 +338,29 @@ Récupère la liste des taxations pour une propriété spécifique.
   "success": false,
   "error": {
     "code": "TAXATION_FETCH_ERROR",
-    "message": "Erreur lors de la récupération des taxations pour la propriété",
+    "message": "Erreur lors de la récupération des taxations du contribuable",
     "details": "Message d'erreur détaillé"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
 
-### 5. Récupérer les taxations par exercice
+### 9. Récupérer les taxations par statut
 
-Récupère la liste des taxations pour un exercice fiscal spécifique.
+Récupère la liste des taxations avec un statut spécifique.
 
-- **URL**: `/api/taxations/by-exercice/{exercice}`
+- **URL**: `/api/taxations/statut/{statut}`
 - **Méthode**: `GET`
 - **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `ADMIN`
-- **Paramètres**:
-  - `exercice` (path): Année fiscale (ex: 2025)
+- **Paramètres**: 
+  - `statut` (path parameter): Statut de la taxation (EN_COURS, PAYEE, EXONEREE, ANNULEE)
+  - `page` (optionnel): Numéro de page (commence à 0)
+  - `size` (optionnel): Nombre d'éléments par page (par défaut 10)
+  - `sortBy` (optionnel): Champ de tri (par défaut dateTaxation)
+  - `sortDir` (optionnel): Direction du tri (asc/desc, par défaut desc)
 
 #### Réponse en cas de succès
 
@@ -266,257 +368,61 @@ Récupère la liste des taxations pour un exercice fiscal spécifique.
 {
   "success": true,
   "data": {
+    "totalItems": 5,
     "taxations": [
       {
-        "id": "uuid-string",
-        "dateTaxation": "2025-02-15T10:30:45.123Z",
-        "montant": 1200000.00,
+        "id": "1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "dateTaxation": "2025-09-10T05:36:47.378+00:00",
+        "montant": 6400.203021963628,
         "exercice": "2025",
-        "statut": "EN_COURS",
+        "statut": "VALIDEE",
         "typeImpot": "IF",
         "exoneration": false,
         "motifExoneration": null,
-        "dateEcheance": "2025-03-15T00:00:00.000Z",
+        "dateEcheance": null,
         "actif": true,
+        "codeQR": "http://localhost:3000/print/taxation/1ce73eff-cac9-4ed5-9670-ee40240a0335",
+        "numeroTaxation": "DPRI-0001-IFBRF-2025",
+        "devise": "USD",
+        "nomBanque": "Banque Centrale du Congo",
+        "numeroCompte": "00123456789",
+        "intituleCompte": "DGRK - Recettes Fiscales Foncières",
+        "motifAnnulation": null,
+        "nomAgent": "Mutombo Jean",
         "declaration": {
           "id": "uuid-string",
-          "dateDeclaration": "2025-01-15T10:30:45.123Z"
-        },
-        "propriete": {
-          "id": "uuid-string",
-          "designation": "Résidence principale",
-          "adresse": "Avenue 123, Quartier Centre-ville"
-        },
-        "contribuable": {
-          "id": "uuid-string",
-          "nom": "Nom du contribuable"
+          "dateDeclaration": "2025-01-15T10:30:45.123Z",
+          "statut": "VALIDEE"
         }
       }
-    ]
+    ],
+    "totalPages": 1,
+    "currentPage": 0
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
 
-#### Réponse en cas d'erreur
+### 10. Annuler une taxation
 
-```json
-{
-  "success": false,
-  "error": {
-    "code": "TAXATION_FETCH_ERROR",
-    "message": "Erreur lors de la récupération des taxations pour l'exercice",
-    "details": "Message d'erreur détaillé"
-  }
-}
-```
-
-### 6. Récupérer les taxations par type d'impôt
-
-Récupère la liste des taxations pour un type d'impôt spécifique.
-
-- **URL**: `/api/taxations/by-type-impot/{typeImpot}`
-- **Méthode**: `GET`
-- **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `ADMIN`
-- **Paramètres**:
-  - `typeImpot` (path): Type d'impôt (ex: IF, IRL, ICM)
-
-#### Réponse en cas de succès
-
-```json
-{
-  "success": true,
-  "data": {
-    "taxations": [
-      {
-        "id": "uuid-string",
-        "dateTaxation": "2025-02-15T10:30:45.123Z",
-        "montant": 1200000.00,
-        "exercice": "2025",
-        "statut": "EN_COURS",
-        "typeImpot": "IF",
-        "exoneration": false,
-        "motifExoneration": null,
-        "dateEcheance": "2025-03-15T00:00:00.000Z",
-        "actif": true,
-        "declaration": {
-          "id": "uuid-string",
-          "dateDeclaration": "2025-01-15T10:30:45.123Z"
-        },
-        "propriete": {
-          "id": "uuid-string",
-          "designation": "Résidence principale",
-          "adresse": "Avenue 123, Quartier Centre-ville"
-        },
-        "contribuable": {
-          "id": "uuid-string",
-          "nom": "Nom du contribuable"
-        }
-      }
-    ]
-  }
-}
-```
-
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "TAXATION_FETCH_ERROR",
-    "message": "Erreur lors de la récupération des taxations pour le type d'impôt",
-    "details": "Message d'erreur détaillé"
-  }
-}
-```
-
-### 7. Créer une nouvelle taxation
-
-Crée une nouvelle taxation dans le système.
-
-- **URL**: `/api/taxations`
-- **Méthode**: `POST`
-- **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `ADMIN`
-- **Corps de la requête**:
-
-```json
-{
-  "declarationId": "uuid-string",
-  "montant": 1200000.00,
-  "exercice": "2025",
-  "typeImpot": "IF",
-  "exoneration": false,
-  "motifExoneration": null,
-  "dateEcheance": "2025-03-15T00:00:00.000Z"
-}
-```
-
-#### Réponse en cas de succès
-
-```json
-{
-  "success": true,
-  "data": {
-    "taxation": {
-      "id": "uuid-string",
-      "dateTaxation": "2025-02-15T10:30:45.123Z",
-      "montant": 1200000.00,
-      "exercice": "2025",
-      "statut": "EN_COURS",
-      "typeImpot": "IF",
-      "exoneration": false,
-      "motifExoneration": null,
-      "dateEcheance": "2025-03-15T00:00:00.000Z",
-      "actif": true,
-      "declaration": {
-        "id": "uuid-string",
-        "dateDeclaration": "2025-01-15T10:30:45.123Z"
-      },
-      "propriete": {
-        "id": "uuid-string",
-        "designation": "Résidence principale",
-        "adresse": "Avenue 123, Quartier Centre-ville"
-      },
-      "contribuable": {
-        "id": "uuid-string",
-        "nom": "Nom du contribuable"
-      }
-    }
-  }
-}
-```
-
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "TAXATION_CREATE_ERROR",
-    "message": "Erreur lors de la création de la taxation",
-    "details": "Message d'erreur détaillé"
-  }
-}
-```
-
-### 8. Mettre à jour une taxation
-
-Met à jour les informations d'une taxation existante.
-
-- **URL**: `/api/taxations/{id}`
-- **Méthode**: `PUT`
-- **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `ADMIN`
-- **Paramètres**:
-  - `id` (path): UUID de la taxation à mettre à jour
-- **Corps de la requête**:
-
-```json
-{
-  "montant": 1300000.00,
-  "exoneration": true,
-  "motifExoneration": "Exonération pour travaux de rénovation énergétique",
-  "dateEcheance": "2025-04-15T00:00:00.000Z",
-  "statut": "EXONEREE"
-}
-```
-
-#### Réponse en cas de succès
-
-```json
-{
-  "success": true,
-  "data": {
-    "taxation": {
-      "id": "uuid-string",
-      "dateTaxation": "2025-02-15T10:30:45.123Z",
-      "montant": 1300000.00,
-      "exercice": "2025",
-      "statut": "EXONEREE",
-      "typeImpot": "IF",
-      "exoneration": true,
-      "motifExoneration": "Exonération pour travaux de rénovation énergétique",
-      "dateEcheance": "2025-04-15T00:00:00.000Z",
-      "actif": true,
-      "declaration": {
-        "id": "uuid-string",
-        "dateDeclaration": "2025-01-15T10:30:45.123Z"
-      },
-      "propriete": {
-        "id": "uuid-string",
-        "designation": "Résidence principale",
-        "adresse": "Avenue 123, Quartier Centre-ville"
-      },
-      "contribuable": {
-        "id": "uuid-string",
-        "nom": "Nom du contribuable"
-      }
-    }
-  }
-}
-```
-
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "TAXATION_UPDATE_ERROR",
-    "message": "Erreur lors de la mise à jour de la taxation",
-    "details": "Message d'erreur détaillé"
-  }
-}
-```
-
-### 9. Supprimer une taxation
-
-Supprime une taxation du système (suppression logique).
+Permet à un chef de division ou à un administrateur d'annuler une taxation en spécifiant un motif d'annulation.
 
 - **URL**: `/api/taxations/{id}`
 - **Méthode**: `DELETE`
-- **Rôles autorisés**: `CHEF_DE_BUREAU`, `ADMIN`
-- **Paramètres**:
-  - `id` (path): UUID de la taxation à supprimer
+- **Rôles autorisés**: `CHEF_DE_DIVISION`, `ADMIN`
+- **Paramètres**: 
+  - `id` (path parameter): UUID de la taxation à annuler
+
+#### Corps de la requête
+
+```json
+{
+  "motifAnnulation": "Erreur de calcul du montant"
+}
+```
 
 #### Réponse en cas de succès
 
@@ -524,7 +430,31 @@ Supprime une taxation du système (suppression logique).
 {
   "success": true,
   "data": {
-    "message": "Taxation supprimée avec succès"
+    "message": "Taxation annulée avec succès",
+    "taxation": {
+      "id": "1ce73eff-cac9-4ed5-9670-ee40240a0335",
+      "dateTaxation": "2025-09-10T05:36:47.378+00:00",
+      "montant": 6400.203021963628,
+      "exercice": "2025",
+      "statut": "ANNULEE",
+      "typeImpot": "IF",
+      "exoneration": false,
+      "motifExoneration": null,
+      "dateEcheance": null,
+      "actif": false,
+      "codeQR": "http://localhost:3000/print/taxation/1ce73eff-cac9-4ed5-9670-ee40240a0335",
+      "numeroTaxation": "DPRI-0001-IFBRF-2025",
+      "devise": "USD",
+      "nomBanque": "Banque Centrale du Congo",
+      "numeroCompte": "00123456789",
+      "intituleCompte": "DGRK - Recettes Fiscales Foncières",
+      "motifAnnulation": "Erreur de calcul du montant",
+      "nomAgent": "Mutombo Jean"
+    }
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
@@ -535,46 +465,69 @@ Supprime une taxation du système (suppression logique).
 {
   "success": false,
   "error": {
-    "code": "TAXATION_DELETE_ERROR",
-    "message": "Erreur lors de la suppression de la taxation",
-    "details": "Message d'erreur détaillé"
+    "code": "TAXATION_ANNULATION_ERROR",
+    "message": "Erreur lors de l'annulation de la taxation",
+    "details": "Cette taxation est déjà annulée"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-12T07:55:47.410243835"
   }
 }
 ```
 
-## Structure de l'entité Taxation
+## Structure des données
+
+### Taxation
 
 | Champ | Type | Description |
 |-------|------|-------------|
 | id | UUID | Identifiant unique de la taxation |
-| dateTaxation | Date | Date de création de la taxation |
+| dateTaxation | Date | Date de la taxation |
 | montant | Double | Montant de la taxation |
-| exercice | String | Année fiscale concernée par la taxation |
-| statut | Enum (StatutTaxation) | Statut de la taxation (EN_COURS, PAYEE, EXONEREE, ANNULEE) |
-| typeImpot | Enum (TypeImpot) | Type d'impôt concerné (IF, IRL, ICM, etc.) |
-| exoneration | boolean | Indique si la taxation bénéficie d'une exonération |
-| motifExoneration | String | Motif de l'exonération (si applicable) |
+| exercice | String | Exercice fiscal |
+| statut | StatutTaxation | Statut de la taxation (EN_COURS, PAYEE, EXONEREE, ANNULLEE) |
+| typeImpot | TypeImpot | Type d'impôt (IF, IRL, ICM, etc.) |
+| exoneration | Boolean | Indique si la taxation est exonérée |
+| motifExoneration | String | Motif de l'exonération |
 | dateEcheance | Date | Date d'échéance de la taxation |
-| actif | boolean | Indique si la taxation est active dans le système |
-| declaration | Declaration | Déclaration associée à cette taxation |
+| actif | Boolean | Indique si la taxation est active |
+| codeQR | String | Code QR unique pour l'identification |
+| numeroTaxation | String | Numéro de taxation |
+| devise | String | Devise de la taxation (USD par défaut) |
+| nomBanque | String | Nom de la banque |
+| numeroCompte | String | Numéro de compte bancaire |
+| intituleCompte | String | Intitulé du compte bancaire |
+| nomAgent | String | Nom de l'agent qui a effectué la taxation |
+| declaration | Declaration | Déclaration associée à la taxation |
+| propriete | Propriete | Propriété associée à la taxation |
+| contribuable | Contribuable | Contribuable associé à la taxation |
+| motifAnnulation | String | Motif d'annulation de la taxation |
 
-## Structure de la requête TaxationRequestDTO
+### Declaration
 
 | Champ | Type | Description |
 |-------|------|-------------|
-| declarationId | UUID | Identifiant de la déclaration associée |
-| montant | Double | Montant de la taxation |
-| exercice | String | Année fiscale |
-| typeImpot | Enum (TypeImpot) | Type d'impôt concerné |
-| exoneration | boolean | Indique si la taxation bénéficie d'une exonération |
-| motifExoneration | String | Motif de l'exonération (si applicable) |
-| dateEcheance | Date | Date d'échéance de la taxation |
+| id | UUID | Identifiant unique de la déclaration |
+| dateDeclaration | Date | Date de la déclaration |
+| statut | String | Statut de la déclaration |
 
-## Règles métier
+### Propriete
 
-1. Une taxation est créée à partir d'une déclaration validée.
-2. Le montant de la taxation peut être différent du montant déclaré, selon les barèmes et les règles fiscales en vigueur.
-3. Une taxation peut être exonérée, avec un motif d'exonération.
-4. Une taxation a une date d'échéance, après laquelle des pénalités peuvent s'appliquer.
-5. Une taxation passe par plusieurs statuts : EN_COURS → PAYEE (ou EXONEREE, ANNULEE).
-6. Seuls les utilisateurs avec les rôles appropriés peuvent créer, modifier ou supprimer des taxations.
+| Champ | Type | Description |
+|-------|------|-------------|
+| id | UUID | Identifiant unique de la propriété |
+| type | String | Type de la propriété |
+| localite | String | Localité de la propriété |
+| superficie | Double | Superficie de la propriété |
+| adresse | String | Adresse de la propriété |
+
+### Contribuable
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| id | UUID | Identifiant unique du contribuable |
+| nom | String | Nom du contribuable |
+| adressePrincipale | String | Adresse principale du contribuable |
+| telephonePrincipal | String | Téléphone principal du contribuable |
+| email | String | Email du contribuable |

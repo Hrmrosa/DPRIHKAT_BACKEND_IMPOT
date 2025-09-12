@@ -6,9 +6,28 @@
   <component name="ChangeListManager">
     <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 080925">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ProprieteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ProprieteController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/paiements.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/paiements.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/taxations.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/taxations.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/tele_declaration.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/tele_declaration.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/ComprehensiveDataSeeder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/ComprehensiveDataSeeder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/DeclarationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/DeclarationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/PaiementController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/PaiementController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/TaxationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/TaxationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/DeclarationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/dto/DeclarationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Paiement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Paiement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Taxation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Taxation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/TaxationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/TaxationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DeclarationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DeclarationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/TaxationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/TaxationService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/ComprehensiveDataSeeder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/ComprehensiveDataSeeder.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ProprieteController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ProprieteController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/DeclarationController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/DeclarationController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/DeclarationRequest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/dto/DeclarationRequest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DeclarationService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DeclarationService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar.original" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-archiver/pom.properties" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +155,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757580406675</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="commit 080925">
+      <option name="closed" value="true" />
+      <created>1757582561162</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1757582561162</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

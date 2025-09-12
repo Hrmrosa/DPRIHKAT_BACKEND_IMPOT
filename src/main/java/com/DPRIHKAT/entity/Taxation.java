@@ -2,6 +2,7 @@ package com.DPRIHKAT.entity;
 
 import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
+import com.DPRIHKAT.entity.enums.Devise;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -31,6 +32,9 @@ public class Taxation {
     private Double montant;
 
     private String exercice;
+    
+    @Enumerated(EnumType.STRING)
+    private Devise devise = Devise.USD; // Par défaut en USD
 
     @Enumerated(EnumType.STRING)
     private StatutTaxation statut;
@@ -44,41 +48,65 @@ public class Taxation {
     
     private Date dateEcheance; // Date d'échéance de la taxation
     
-    private boolean actif = true; // Champ pour la suppression logique
-
+    private String numeroTaxation; // Numéro de taxation au format t_0001_typeimpot_codeBureauTaxateur_annee
+    
+    private String codeQR; // Code QR pour l'impression
+    
+    private String nomBanque; // Nom de la banque
+    
+    private String numeroCompte; // Numéro de compte bancaire
+    
+    private String intituleCompte; // Intitulé du compte bancaire
+    
+    private String motifAnnulation; // Motif d'annulation de la taxation
+    
+    private boolean actif = true; // Gestion de la suppression logique
+    
     // Déclaration associée à cette taxation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "declaration_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Declaration declaration;
 
     // Nature d'impôt associée à cette taxation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nature_impot_id")
     @JsonIdentityReference(alwaysAsId = true)
     private NatureImpot natureImpot;
 
     // Agent qui a effectué la taxation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agent_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Agent agent;
 
     // Paiement associé à cette taxation
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paiement_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Paiement paiement;
 
     // Apurements associés à cette taxation
-    @OneToMany(mappedBy = "taxation")
+    @OneToMany(mappedBy = "taxation", fetch = FetchType.LAZY)
     private List<Apurement> apurements = new ArrayList<>();
 
     // Relation avec ProprieteImpot
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "propriete_impot_id")
     @JsonIdentityReference(alwaysAsId = true)
     private ProprieteImpot proprieteImpot;
+
+    // Contribuable associé à cette taxation
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contribuable_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Contribuable contribuable;
+
+    // Propriete associée à cette taxation
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "propriete_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Propriete propriete;
 
     public Taxation() {
     }
@@ -195,6 +223,64 @@ public class Taxation {
         this.declaration.setPropriete(propriete);
     }
 
+    /**
+     * Récupère le Contribuable associé à cette taxation via la déclaration
+     */
+    public Contribuable getContribuable() {
+        if (declaration != null) {
+            return declaration.getContribuable();
+        }
+        return null;
+    }
+
+    /**
+     * Définit le Contribuable associé à cette taxation via la déclaration
+     */
+    public void setContribuable(Contribuable contribuable) {
+        if (this.declaration == null) {
+            this.declaration = new Declaration();
+        }
+        this.declaration.setContribuable(contribuable);
+    }
+
+    /**
+     * Récupère le nom de l'agent qui a effectué la taxation
+     */
+    public String getNomAgent() {
+        if (agent != null) {
+            return agent.getNom();
+        }
+        return null;
+    }
+
+    /**
+     * Récupère le code QR
+     */
+    public String getCodeQR() {
+        return codeQR;
+    }
+
+    /**
+     * Définit le code QR
+     */
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
+    }
+
+    /**
+     * Récupère le numéro de taxation
+     */
+    public String getNumeroTaxation() {
+        return numeroTaxation;
+    }
+
+    /**
+     * Définit le numéro de taxation
+     */
+    public void setNumeroTaxation(String numeroTaxation) {
+        this.numeroTaxation = numeroTaxation;
+    }
+
     // Getters et Setters
     public UUID getId() {
         return id;
@@ -228,6 +314,14 @@ public class Taxation {
         this.exercice = exercice;
     }
 
+    public Devise getDevise() {
+        return devise;
+    }
+
+    public void setDevise(Devise devise) {
+        this.devise = devise;
+    }
+
     public StatutTaxation getStatut() {
         return statut;
     }
@@ -250,6 +344,14 @@ public class Taxation {
 
     public void setExoneration(boolean exoneration) {
         this.exoneration = exoneration;
+    }
+
+    public Date getDateEcheance() {
+        return dateEcheance;
+    }
+
+    public void setDateEcheance(Date dateEcheance) {
+        this.dateEcheance = dateEcheance;
     }
 
     public boolean isActif() {
@@ -300,11 +402,51 @@ public class Taxation {
         this.apurements = apurements;
     }
 
-    public Date getDateEcheance() {
-        return dateEcheance;
+    public Contribuable getContribuableDirect() {
+        return contribuable;
     }
 
-    public void setDateEcheance(Date dateEcheance) {
-        this.dateEcheance = dateEcheance;
+    public void setContribuableDirect(Contribuable contribuable) {
+        this.contribuable = contribuable;
+    }
+
+    public Propriete getProprieteDirect() {
+        return propriete;
+    }
+
+    public void setProprieteDirect(Propriete propriete) {
+        this.propriete = propriete;
+    }
+
+    public String getNomBanque() {
+        return nomBanque;
+    }
+
+    public void setNomBanque(String nomBanque) {
+        this.nomBanque = nomBanque;
+    }
+
+    public String getNumeroCompte() {
+        return numeroCompte;
+    }
+
+    public void setNumeroCompte(String numeroCompte) {
+        this.numeroCompte = numeroCompte;
+    }
+
+    public String getIntituleCompte() {
+        return intituleCompte;
+    }
+
+    public void setIntituleCompte(String intituleCompte) {
+        this.intituleCompte = intituleCompte;
+    }
+
+    public String getMotifAnnulation() {
+        return motifAnnulation;
+    }
+
+    public void setMotifAnnulation(String motifAnnulation) {
+        this.motifAnnulation = motifAnnulation;
     }
 }

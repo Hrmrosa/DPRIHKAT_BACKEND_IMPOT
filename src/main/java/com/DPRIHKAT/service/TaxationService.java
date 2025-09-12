@@ -3,6 +3,7 @@ package com.DPRIHKAT.service;
 import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
+import com.DPRIHKAT.repository.AgentRepository;
 import com.DPRIHKAT.repository.ProprieteImpotRepository;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.TaxationRepository;
@@ -38,6 +39,9 @@ public class TaxationService {
     
     @Autowired
     private ProprieteImpotRepository proprieteImpotRepository;
+    
+    @Autowired
+    private AgentRepository agentRepository;
 
     /**
      * Récupère toutes les taxations
@@ -61,7 +65,13 @@ public class TaxationService {
      * @return La taxation correspondante, si elle existe
      */
     public Optional<Taxation> getTaxationById(UUID id) {
-        return taxationRepository.findById(id);
+        try {
+            Taxation taxation = taxationRepository.findByIdWithoutJoins(id);
+            return Optional.ofNullable(taxation);
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération de la taxation avec l'ID: {}", id, e);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -130,16 +140,22 @@ public class TaxationService {
             throw new Exception("Une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice");
         }
         
+        // Récupérer l'agent taxateur
+        Agent agentTaxateur = agentRepository.findById(agentTaxateurId)
+                .orElseThrow(() -> new Exception("Agent taxateur non trouvé avec l'ID: " + agentTaxateurId));
+        
         // Créer la taxation
         Taxation taxation = new Taxation();
         taxation.setDateTaxation(new Date());
         taxation.setExercice(exercice);
         taxation.setStatut(StatutTaxation.EN_ATTENTE);
         // Convertir le code de la nature d'impôt en TypeImpot
-        taxation.setTypeImpot(determineTypeImpotFromNature(proprieteImpot.getNatureImpot().getCode()));
+        TypeImpot typeImpot = determineTypeImpotFromNature(proprieteImpot.getNatureImpot().getCode());
+        taxation.setTypeImpot(typeImpot);
         taxation.setExoneration(false);
         taxation.setPropriete(propriete);
         taxation.setProprieteImpot(proprieteImpot);
+        taxation.setAgent(agentTaxateur);
         
         // Calculer le montant de la taxation
         double montant = calculateTaxAmount(propriete, proprieteImpot);
@@ -150,7 +166,18 @@ public class TaxationService {
         calendar.set(Integer.parseInt(exercice), Calendar.DECEMBER, 31);
         taxation.setDateEcheance(calendar.getTime());
         
-        // Sauvegarder la taxation
+        // Sauvegarder la taxation pour obtenir son ID
+        taxation = taxationRepository.save(taxation);
+        
+        // Générer le numéro de taxation
+        String numeroTaxation = generateNumeroTaxation(typeImpot, agentTaxateur, exercice);
+        taxation.setNumeroTaxation(numeroTaxation);
+        
+        // Générer le code QR
+        String codeQR = generateQRCode(taxation);
+        taxation.setCodeQR(codeQR);
+        
+        // Sauvegarder à nouveau la taxation avec le numéro et le code QR
         return taxationRepository.save(taxation);
     }
 
@@ -234,6 +261,39 @@ public class TaxationService {
             case "RL": return TypeImpot.RL;
             default: return TypeImpot.IF; // Valeur par défaut
         }
+    }
+
+    /**
+     * Génère un numéro de taxation au format 't_0001_typeimpot_codeBureauTaxateur_annee'
+     * @param typeImpot Le type d'impôt
+     * @param agent L'agent qui a effectué la taxation
+     * @param exercice L'exercice (année fiscale)
+     * @return Le numéro de taxation généré
+     */
+    private String generateNumeroTaxation(TypeImpot typeImpot, Agent agent, String exercice) {
+        // Récupérer le dernier numéro de taxation pour ce type d'impôt et cette année
+        String prefix = "t_";
+        String typeImpotStr = typeImpot.toString();
+        String codeBureau = agent.getBureau() != null ? agent.getBureau().getCode() : "UNKNOWN";
+        
+        // Compter le nombre de taxations existantes pour ce type d'impôt et cette année
+        long count = taxationRepository.countByTypeImpotAndExercice(typeImpot, exercice) + 1;
+        
+        // Formater le numéro séquentiel sur 4 chiffres
+        String sequentialNumber = String.format("%04d", count);
+        
+        // Construire le numéro de taxation
+        return prefix + sequentialNumber + "_" + typeImpotStr + "_" + codeBureau + "_" + exercice;
+    }
+
+    /**
+     * Génère un code QR pour une taxation
+     * @param taxation La taxation
+     * @return Le code QR généré
+     */
+    private String generateQRCode(Taxation taxation) {
+        // TODO : implémenter la génération du code QR
+        return "";
     }
 
     /**
@@ -402,5 +462,37 @@ public class TaxationService {
      */
     public Page<Taxation> getTaxationsByStatut(StatutTaxation statut, Pageable pageable) {
         return taxationRepository.findByStatutAndActifTrue(statut, pageable);
+    }
+    
+    /**
+     * Annule une taxation en spécifiant un motif d'annulation
+     * Cette opération ne peut être effectuée que par un chef de division ou un administrateur
+     * 
+     * @param taxationId L'ID de la taxation à annuler
+     * @param motifAnnulation Le motif d'annulation
+     * @return La taxation annulée
+     * @throws RuntimeException Si la taxation n'existe pas ou si elle est déjà annulée
+     */
+    public Taxation annulerTaxation(UUID taxationId, String motifAnnulation) {
+        if (motifAnnulation == null || motifAnnulation.trim().isEmpty()) {
+            throw new RuntimeException("Le motif d'annulation est obligatoire");
+        }
+        
+        // Récupérer la taxation par son ID
+        Taxation taxation = taxationRepository.findById(taxationId)
+                .orElseThrow(() -> new RuntimeException("Taxation non trouvée avec l'ID: " + taxationId));
+        
+        // Vérifier si la taxation est déjà annulée
+        if (!taxation.isActif()) {
+            throw new RuntimeException("Cette taxation est déjà annulée");
+        }
+        
+        // Annuler la taxation
+        taxation.setActif(false);
+        taxation.setMotifAnnulation(motifAnnulation);
+        taxation.setStatut(StatutTaxation.ANNULEE);
+        
+        // Sauvegarder les modifications
+        return taxationRepository.save(taxation);
     }
 }
