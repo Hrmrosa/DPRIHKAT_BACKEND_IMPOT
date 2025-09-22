@@ -1,17 +1,18 @@
 package com.DPRIHKAT.service;
 
-import com.DPRIHKAT.entity.Utilisateur;
-import com.DPRIHKAT.entity.Vehicule;
-import com.DPRIHKAT.entity.Vignette;
+import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.StatutVignette;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.repository.VehiculeRepository;
 import com.DPRIHKAT.repository.VignetteRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,8 @@ import java.util.*;
 
 @Service
 public class VignetteService {
+
+    private static final Logger logger = LoggerFactory.getLogger(VignetteService.class);
 
     @Autowired
     private VignetteRepository vignetteRepository;
@@ -28,6 +31,9 @@ public class VignetteService {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private TaxationService taxationService;
 
     /**
      * Generate a vignette for a vehicle
@@ -57,7 +63,7 @@ public class VignetteService {
         vignette.setStatut(StatutVignette.ACTIVE);
         vignette.setVehicule(vehicule);
         vignette.setAgent(agent.getAgent());
-        
+
         // Set tariff breakdown fields
         vignette.setTscrUsd(tb.tscrUsd);
         vignette.setImpotReelCdf(tb.impotReelCdf);
@@ -105,6 +111,68 @@ public class VignetteService {
     public List<Vignette> getExpiredVignettes() {
         Date now = new Date();
         return vignetteRepository.findByStatutAndDateExpirationBefore(StatutVignette.ACTIVE, now);
+    }
+
+    /**
+     * Génère une vignette pour un véhicule
+     * 
+     * @param vehiculeId ID du véhicule
+     * @return La vignette générée
+     */
+    @Transactional
+    public Vignette genererVignettePourVehicule(UUID vehiculeId) {
+        logger.info("Génération d'une vignette pour le véhicule {}", vehiculeId);
+
+        // Vérifier que le véhicule existe
+        Vehicule vehicule = vehiculeRepository.findById(vehiculeId)
+                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé avec ID: " + vehiculeId));
+
+        // Calculer la date d'expiration (1 an à partir d'aujourd'hui)
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.YEAR, 1);
+        Date dateExpiration = calendar.getTime();
+
+        // Calculer le montant (pourrait être configurable)
+        double montant = 25000.0; // Montant fixe pour les vignettes
+
+        // Générer un numéro unique
+        String numero = "VIG-" + UUID.randomUUID().toString().substring(0, 8);
+
+        // Créer la vignette
+        Vignette vignette = new Vignette();
+        vignette.setNumero(numero);
+        vignette.setDateEmission(new Date());
+        vignette.setDateExpiration(dateExpiration);
+        vignette.setMontant(montant);
+        vignette.setStatut(StatutVignette.ACTIVE);
+        vignette.setActif(true);
+        vignette.setVehicule(vehicule);
+
+        // Générer une taxation associée
+        Taxation taxation = taxationService.genererTaxationPourVignette(vignette);
+        vignette.setTaxation(taxation);
+
+        // Sauvegarder la vignette
+        vignette = vignetteRepository.save(vignette);
+
+        logger.info("Vignette générée avec succès pour le véhicule {}", vehiculeId);
+        return vignette;
+    }
+
+    /**
+     * Vérifie si un véhicule a une vignette valide
+     * 
+     * @param vehiculeId ID du véhicule
+     * @return true si le véhicule a une vignette valide, false sinon
+     */
+    public boolean verifierVignetteValide(UUID vehiculeId) {
+        Vehicule vehicule = vehiculeRepository.findById(vehiculeId)
+                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé avec ID: " + vehiculeId));
+
+        return vehicule.getVignettes().stream()
+                .anyMatch(v -> v.isActif() && 
+                              v.getStatut() == StatutVignette.ACTIVE && 
+                              v.getDateExpiration().after(new Date()));
     }
 
     // === Private helper methods for tariff computation ===
@@ -241,78 +309,93 @@ public class VignetteService {
         // Load vehicle info from voiture.json (to get puissance/peso/categorie), or use override puissance
         VehicleInfo info = resolveVehicleInfo(vehicule, puissanceOverride);
 
-        // Decide category name in puissance_viscal.json
-        String categoryName = resolveCategoryName(vehicule, info);
+        // Utiliser le genre et la catégorie fournis par le client si disponibles
+        String genre = vehicule.getGenre();
+        String categorie = vehicule.getCategorie();
 
-        // Decide band/plage in puissance_viscal.json
-        String plage = resolvePlage(info);
+        // Si genre ou catégorie ne sont pas fournis, utiliser les valeurs par défaut
+        if (genre == null || genre.isEmpty()) {
+            genre = "Véhicules de tourisme"; // Valeur par défaut
+        }
+        
+        if (categorie == null || categorie.isEmpty()) {
+            categorie = "Personnes Physiques"; // Valeur par défaut
+            
+            // Déterminer la catégorie en fonction du type de contribuable
+            if (vehicule.getProprietaire() != null && 
+                vehicule.getProprietaire().getType() != null && 
+                vehicule.getProprietaire().getType().toString().contains("MORALE")) {
+                categorie = "Personnes Morales";
+            }
+        }
 
-        // Read puissance_viscal.json
-        JsonNode root = loadJson("puissance_viscal.json");
-        JsonNode categories = root.path("categories");
-        JsonNode categoryNode = null;
+        // Déterminer la plage de puissance
+        String plage = determinePlagePuissance(info.puissanceCV);
+
+        // Lire le fichier taux_IRV.json
+        JsonNode root = loadJson("taux_IRV.json");
+        JsonNode taxesCirculation = root.path("taxes_circulation");
+        JsonNode categories = taxesCirculation.path("categories");
+
+        // Trouver la catégorie correspondante
+        JsonNode categorieNode = null;
         for (JsonNode cat : categories) {
-            if (categoryName.equalsIgnoreCase(cat.path("nom").asText())) {
-                categoryNode = cat;
+            if (categorie.equalsIgnoreCase(cat.path("categorie").asText())) {
+                categorieNode = cat;
                 break;
             }
         }
-        if (categoryNode == null) {
-            throw new IOException("Catégorie non trouvée dans puissance_viscal.json: " + categoryName);
+        
+        if (categorieNode == null) {
+            throw new IOException("Catégorie non trouvée dans taux_IRV.json: " + categorie);
         }
 
-        // Find matching type by plage (or type for Bateaux) and compute breakdown
-        TariffBreakdown tb = new TariffBreakdown();
-        tb.categorie = categoryName;
-        tb.plage = plage;
-        tb.puissanceUsed = info.puissanceCV;
-
-        JsonNode types = categoryNode.path("types");
-        for (JsonNode type : types) {
-            String typePlage = type.path("plage").asText(null);
-            String typeType = type.path("type").asText(null);
-            // For Bateaux, match by type; for others, match by plage
-            boolean match = categoryName.equalsIgnoreCase("Bateaux") ? 
-                (typeType != null && typeType.equalsIgnoreCase(plage)) :
-                (typePlage != null && typePlage.equalsIgnoreCase(plage));
-            if (match) {
-                // Compute TSCR (USD)
-                Double tscr = null;
-                if (type.hasNonNull("tscr_usd")) {
-                    String expr = type.path("tscr_usd").asText(null);
-                    if (expr != null && expr.contains("/CV") && info.puissanceCV != null) {
-                        String num = expr.replace("/CV", "").trim().replace(",", ".");
-                        tscr = Double.parseDouble(num) * info.puissanceCV;
-                    }
-                }
-
-                // Compute IR (CDF)
-                Double ir = null;
-                if (type.hasNonNull("impot_reel_cdf")) {
-                    String expr = type.path("impot_reel_cdf").asText(null);
-                    if (expr != null && expr.contains("/CV") && info.puissanceCV != null) {
-                        String num = expr.replace("/CV", "").trim().replace(",", ".");
-                        ir = Double.parseDouble(num) * info.puissanceCV;
-                    }
-                }
-
-                // Compute total (CDF)
-                Double total = null;
-                if (type.hasNonNull("total_cdf")) {
-                    String expr = type.path("total_cdf").asText(null);
-                    if (expr != null && expr.contains("/CV") && info.puissanceCV != null) {
-                        String num = expr.replace("/CV", "").trim().replace(",", ".");
-                        total = Double.parseDouble(num) * info.puissanceCV;
-                    }
-                }
-
-                tb.tscrUsd = tscr;
-                tb.impotReelCdf = ir;
-                tb.totalCdf = total != null ? total : (ir != null ? ir : 0d);
-                return tb;
+        // Trouver la plage de puissance correspondante
+        JsonNode vehicules = categorieNode.path("vehicules");
+        JsonNode vehiculeNode = null;
+        
+        for (JsonNode veh : vehicules) {
+            if (veh.has("puissance") && veh.get("puissance").asText().equalsIgnoreCase(plage)) {
+                vehiculeNode = veh;
+                break;
             }
         }
+        
+        if (vehiculeNode == null) {
+            throw new IOException("Plage de puissance non trouvée dans taux_IRV.json: " + plage + " pour catégorie " + categorie);
+        }
 
-        throw new IOException("Plage/type non trouvé dans puissance_viscal.json: " + plage + " pour catégorie " + categoryName);
+        // Extraire les taux
+        TariffBreakdown tb = new TariffBreakdown();
+        tb.categorie = categorie;
+        tb.plage = plage;
+        tb.puissanceUsed = info.puissanceCV;
+        
+        JsonNode tauxUsd = vehiculeNode.path("taux_usd");
+        
+        // Extraire les valeurs de taux
+        tb.tscrUsd = tauxUsd.has("tscr") ? tauxUsd.get("tscr").asDouble() : 0.0;
+        double vignette = tauxUsd.has("vignette") ? tauxUsd.get("vignette").asDouble() : 0.0;
+        tb.impotReelCdf = vignette * 2000; // Conversion approximative USD -> CDF
+        tb.totalCdf = tauxUsd.has("total") ? tauxUsd.get("total").asDouble() * 2000 : 0.0;
+        
+        return tb;
+    }
+    
+    /**
+     * Détermine la plage de puissance selon les critères du fichier taux_IRV.json
+     */
+    private String determinePlagePuissance(Double puissanceCV) {
+        if (puissanceCV == null) {
+            return "1-10 CV"; // Valeur par défaut
+        }
+        
+        if (puissanceCV <= 10) {
+            return "1-10 CV";
+        } else if (puissanceCV <= 15) {
+            return "11-15 CV";
+        } else {
+            return "+15 CV";
+        }
     }
 }

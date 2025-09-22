@@ -7,6 +7,7 @@ import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.security.JwtUtils;
 import com.DPRIHKAT.security.UserDetailsImpl;
+import com.DPRIHKAT.service.AuditLogService;
 import com.DPRIHKAT.util.LetsCrypt;
 import com.DPRIHKAT.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -35,6 +36,9 @@ public class AuthController {
 
     @Autowired
     JwtUtils jwtUtils;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -84,12 +88,15 @@ public class AuthController {
 
             JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getRole());
 
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+            Map<String, Object> response = ResponseUtil.createSuccessResponse(Map.of(
                     "token", jwtResponse.getAccessToken(),
                     "type", jwtResponse.getTokenType(),
                     "login", jwtResponse.getLogin(),
                     "role", jwtResponse.getRole()
-            )));
+            ));
+
+            auditLogService.logLogin();
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
@@ -217,5 +224,11 @@ public class AuthController {
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PASSWORD_RESET_ERROR", "Erreur lors de la réinitialisation du mot de passe", e.getMessage()));
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser() {
+        auditLogService.logLogout();
+        return ResponseEntity.ok(new MessageResponse("User logged out successfully!"));
     }
 }

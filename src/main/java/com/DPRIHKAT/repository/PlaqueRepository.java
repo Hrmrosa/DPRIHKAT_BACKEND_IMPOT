@@ -1,6 +1,7 @@
 package com.DPRIHKAT.repository;
 
 import com.DPRIHKAT.entity.Plaque;
+import com.DPRIHKAT.entity.enums.StatutPlaque;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,5 @@ public interface PlaqueRepository extends JpaRepository<Plaque, UUID> {
     List<Plaque> findByDisponibleTrue();
     List<Plaque> findByDisponibleFalse();
     List<Plaque> findByVehiculeId(UUID vehiculeId);
+    List<Plaque> findByStatut(StatutPlaque statut);
 }

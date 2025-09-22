@@ -1,10 +1,12 @@
 package com.DPRIHKAT.controller;
 
+import com.DPRIHKAT.dto.ProprieteCreationDTO;
 import com.DPRIHKAT.entity.Propriete;
 import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.enums.TypeImpot;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
+import com.DPRIHKAT.service.ProprieteService;
 import com.DPRIHKAT.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -41,8 +44,11 @@ public class ProprieteController {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
+    @Autowired
+    private ProprieteService proprieteService;
+
     @GetMapping
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_CHEF_DE_BUREAU', 'ROLE_CHEF_DE_DIVISION', 'ROLE_DIRECTEUR', 'ROLE_ADMIN', 'ROLE_INFORMATICIEN')")
     public ResponseEntity<?> getAllProprietes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -65,7 +71,7 @@ public class ProprieteController {
     }
     
     @GetMapping("/paginated")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_CHEF_DE_BUREAU', 'ROLE_CHEF_DE_DIVISION', 'ROLE_DIRECTEUR', 'ROLE_ADMIN', 'ROLE_INFORMATICIEN')")
     public ResponseEntity<?> getAllProprietesPaginated(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -94,7 +100,7 @@ public class ProprieteController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_CHEF_DE_BUREAU', 'ROLE_CHEF_DE_DIVISION', 'ROLE_DIRECTEUR', 'ROLE_ADMIN', 'ROLE_INFORMATICIEN')")
     public ResponseEntity<?> getProprieteById(@PathVariable UUID id) {
         try {
             Propriete propriete = proprieteRepository.findById(id).orElse(null);
@@ -112,7 +118,7 @@ public class ProprieteController {
     }
 
     @GetMapping("/mine")
-    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    @PreAuthorize("hasRole('ROLE_CONTRIBUABLE')")
     public ResponseEntity<?> getMyProprietes(Authentication authentication) {
         try {
             String login = authentication.getName();
@@ -133,7 +139,7 @@ public class ProprieteController {
     }
     
     @GetMapping("/mine/paginated")
-    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    @PreAuthorize("hasRole('ROLE_CONTRIBUABLE')")
     public ResponseEntity<?> getMyProprietesPaginated(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
@@ -171,7 +177,7 @@ public class ProprieteController {
     }
 
     @PatchMapping("/{id}/location")
-    @PreAuthorize("hasRole('CONTROLLEUR')")
+    @PreAuthorize("hasRole('ROLE_CONTROLLEUR')")
     public ResponseEntity<?> updateProprieteLocation(@PathVariable UUID id, @RequestBody Map<String, Object> payload) {
         try {
             Propriete propriete = proprieteRepository.findById(id).orElse(null);
@@ -212,7 +218,7 @@ public class ProprieteController {
     }
 
     @GetMapping("/by-contribuable/{contribuableId}")
-    @PreAuthorize("hasRole('CONTROLLEUR')")
+    @PreAuthorize("hasRole('ROLE_CONTROLLEUR')")
     public ResponseEntity<?> getProprietesByContribuable(@PathVariable UUID contribuableId) {
         try {
             List<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(contribuableId);
@@ -225,7 +231,7 @@ public class ProprieteController {
     }
     
     @GetMapping("/mine/with-tax-types")
-    @PreAuthorize("hasRole('CONTRIBUABLE')")
+    @PreAuthorize("hasRole('ROLE_CONTRIBUABLE')")
     public ResponseEntity<?> getMyProprietesWithTaxTypes(Authentication authentication) {
         try {
             logger.info("Début de la méthode getMyProprietesWithTaxTypes");
@@ -350,6 +356,119 @@ public class ProprieteController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PROPRIETES_DEBUG_ERROR", "Erreur lors de la récupération des propriétés de l'utilisateur", e.getMessage()));
+        }
+    }
+
+    /**
+     * Récupère toutes les propriétés d'un contribuable spécifique par son ID
+     * Accessible à tous les rôles
+     * 
+     * @param contribuableId ID du contribuable
+     * @param page numéro de page (commence à 0)
+     * @param size nombre d'éléments par page
+     * @param sortBy champ de tri
+     * @param sortDir direction du tri (asc/desc)
+     * @return liste paginée des propriétés du contribuable
+     */
+    @GetMapping("/contribuable/{contribuableId}")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_CHEF_DE_BUREAU', 'ROLE_CHEF_DE_DIVISION', 'ROLE_DIRECTEUR', 'ROLE_ADMIN', 'ROLE_INFORMATICIEN', 'ROLE_CONTRIBUABLE')")
+    public ResponseEntity<?> getProprietesByContribuableId(
+            @PathVariable UUID contribuableId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            logger.info("Récupération des propriétés du contribuable avec ID: {}", contribuableId);
+            
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(contribuableId, pageable);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("totalItems", proprietes.getTotalElements());
+            data.put("totalPages", proprietes.getTotalPages());
+            data.put("currentPage", proprietes.getNumber());
+            data.put("proprietes", proprietes.getContent());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("data", data)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des propriétés du contribuable avec ID: {}", contribuableId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETES_FETCH_ERROR", 
+                            "Erreur lors de la récupération des propriétés du contribuable", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère toutes les propriétés d'un contribuable spécifique par son ID (sans pagination)
+     * Accessible à tous les rôles
+     * 
+     * @param contribuableId ID du contribuable
+     * @return liste des propriétés du contribuable
+     */
+    @GetMapping("/contribuable/{contribuableId}/all")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_CHEF_DE_BUREAU', 'ROLE_CHEF_DE_DIVISION', 'ROLE_DIRECTEUR', 'ROLE_ADMIN', 'ROLE_INFORMATICIEN', 'ROLE_CONTRIBUABLE')")
+    public ResponseEntity<?> getAllProprietesByContribuableId(@PathVariable UUID contribuableId) {
+        try {
+            logger.info("Récupération de toutes les propriétés du contribuable avec ID: {}", contribuableId);
+            
+            List<Propriete> proprietes = proprieteRepository.findByProprietaire_Id(contribuableId);
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("proprietes", proprietes)));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération de toutes les propriétés du contribuable avec ID: {}", contribuableId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETES_FETCH_ERROR", 
+                            "Erreur lors de la récupération de toutes les propriétés du contribuable", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
+     * Crée une nouvelle propriété avec les natures d'impôt associées
+     * 
+     * @param proprieteDTO DTO contenant les informations de la propriété et les IDs des natures d'impôt
+     * @return La propriété créée
+     */
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_CHEF_DE_BUREAU', 'ROLE_ADMIN')")
+    public ResponseEntity<?> createPropriete(@RequestBody ProprieteCreationDTO proprieteDTO) {
+        try {
+            logger.info("Tentative de création d'une propriété - DTO reçu: {}", proprieteDTO);
+            
+            // Log des informations d'authentification
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null) {
+                logger.info("Utilisateur authentifié: {}", auth.getName());
+                logger.info("Rôles: {}", auth.getAuthorities());
+            } else {
+                logger.warn("Aucune authentification détectée");
+            }
+            
+            Propriete propriete = proprieteService.createPropriete(proprieteDTO);
+            logger.info("Propriété créée avec succès: {}", propriete.getId());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "propriete", propriete, 
+                    "message", "Propriété créée avec succès"
+            )));
+        } catch (IllegalArgumentException e) {
+            logger.error("Erreur de validation: {}", e.getMessage());
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("INVALID_DATA", "Données invalides", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la création de la propriété", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETE_CREATE_ERROR", "Erreur lors de la création de la propriété", e.getMessage()));
         }
     }
 }

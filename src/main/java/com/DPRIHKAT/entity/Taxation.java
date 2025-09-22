@@ -108,6 +108,21 @@ public class Taxation {
     @JsonIdentityReference(alwaysAsId = true)
     private Propriete propriete;
 
+    // Demande de plaque associée à cette taxation
+    @OneToOne(mappedBy = "taxation")
+    @JsonIdentityReference(alwaysAsId = true)
+    private DemandePlaque demande;
+
+    // Vignette associée à cette taxation
+    @OneToOne(mappedBy = "taxation")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Vignette vignette;
+    
+    // Concession minière associée à cette taxation
+    @OneToOne(mappedBy = "taxation")
+    @JsonIdentityReference(alwaysAsId = true)
+    private ConcessionMinier concessionMinier;
+
     public Taxation() {
     }
 
@@ -448,5 +463,29 @@ public class Taxation {
 
     public void setMotifAnnulation(String motifAnnulation) {
         this.motifAnnulation = motifAnnulation;
+    }
+
+    public DemandePlaque getDemande() {
+        return demande;
+    }
+
+    public void setDemande(DemandePlaque demande) {
+        this.demande = demande;
+    }
+
+    public Vignette getVignette() {
+        return vignette;
+    }
+
+    public void setVignette(Vignette vignette) {
+        this.vignette = vignette;
+    }
+    
+    public ConcessionMinier getConcessionMinier() {
+        return concessionMinier;
+    }
+
+    public void setConcessionMinier(ConcessionMinier concessionMinier) {
+        this.concessionMinier = concessionMinier;
     }
 }

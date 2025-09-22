@@ -4,18 +4,22 @@ import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.StatutTaxation;
 import com.DPRIHKAT.entity.enums.TypeImpot;
 import com.DPRIHKAT.repository.AgentRepository;
+import com.DPRIHKAT.repository.ConcessionMinierRepository;
+import com.DPRIHKAT.repository.DemandePlaqueRepository;
 import com.DPRIHKAT.repository.ProprieteImpotRepository;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.TaxationRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.DPRIHKAT.repository.ConcessionMinierRepository; // Ajout de l'import
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +46,12 @@ public class TaxationService {
     
     @Autowired
     private AgentRepository agentRepository;
+    
+    @Autowired
+    private DemandePlaqueRepository demandePlaqueRepository;
+    
+    @Autowired
+    private ConcessionMinierRepository concessionMinierRepository;
 
     /**
      * Récupère toutes les taxations
@@ -259,6 +269,7 @@ public class TaxationService {
             case "ICM": return TypeImpot.ICM;
             case "IRV": return TypeImpot.IRV;
             case "RL": return TypeImpot.RL;
+            case "Plaque": return TypeImpot.PLAQUE;
             default: return TypeImpot.IF; // Valeur par défaut
         }
     }
@@ -494,5 +505,171 @@ public class TaxationService {
         
         // Sauvegarder les modifications
         return taxationRepository.save(taxation);
+    }
+
+    /**
+     * Génère une taxation pour une demande de plaque
+     * 
+     * @param demande La demande de plaque
+     * @return La taxation générée
+     */
+    @Transactional
+    public Taxation genererTaxationPourPlaque(DemandePlaque demande) {
+        logger.info("Génération d'une taxation pour la demande de plaque {}", demande.getId());
+        
+        // Vérifier que la demande est valide
+        if (!demande.getStatut().equals("VALIDEE")) {
+            throw new RuntimeException("La demande doit être validée avant de générer une taxation");
+        }
+        
+        // Calculer le montant (pourrait être configurable)
+        double montant = 50000.0; // Montant fixe pour les plaques
+        
+        // Créer la taxation
+        Taxation taxation = new Taxation();
+        taxation.setDateTaxation(new Date());
+        taxation.setMontant(montant);
+        taxation.setExercice(String.valueOf(LocalDate.now().getYear()));
+        taxation.setStatut(StatutTaxation.EN_ATTENTE);
+        taxation.setTypeImpot(TypeImpot.PLAQUE);
+        taxation.setNumeroTaxation(genererNumeroTaxation(demande));
+        taxation.setDateEcheance(Date.from(LocalDate.now().plusMonths(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC)));
+        taxation.setContribuable(demande.getContribuable());
+        taxation.setAgent(demande.getValidateur().getAgent());
+        
+        // Sauvegarder la taxation
+        taxation = taxationRepository.save(taxation);
+        
+        logger.info("Taxation générée avec succès pour la demande de plaque {}", demande.getId());
+        return taxation;
+    }
+    
+    /**
+     * Génère une taxation pour une vignette
+     */
+    @Transactional
+    public Taxation genererTaxationPourVignette(Vignette vignette) {
+        logger.info("Génération d'une taxation pour la vignette");
+        
+        // Récupérer le véhicule associé à la vignette
+        Vehicule vehicule = vignette.getVehicule();
+        if (vehicule == null) {
+            throw new RuntimeException("La vignette doit être associée à un véhicule");
+        }
+        
+        // Utiliser les informations de genre et catégorie du véhicule pour le calcul du montant
+        String genre = vehicule.getGenre();
+        String categorie = vehicule.getCategorie();
+        
+        // Si genre ou catégorie ne sont pas définis, utiliser des valeurs par défaut
+        if (genre == null || genre.isEmpty()) {
+            genre = "Véhicules de tourisme"; // Valeur par défaut
+        }
+        
+        if (categorie == null || categorie.isEmpty()) {
+            categorie = "Personnes Physiques"; // Valeur par défaut
+            
+            // Déterminer la catégorie en fonction du type de contribuable
+            if (vehicule.getProprietaire() != null && 
+                vehicule.getProprietaire().getType() != null && 
+                vehicule.getProprietaire().getType().toString().contains("MORALE")) {
+                categorie = "Personnes Morales";
+            }
+        }
+        
+        // Créer la taxation
+        Taxation taxation = new Taxation();
+        taxation.setDateTaxation(new Date());
+        taxation.setMontant(vignette.getMontant());
+        taxation.setExercice(String.valueOf(LocalDate.now().getYear()));
+        taxation.setStatut(StatutTaxation.EN_ATTENTE);
+        taxation.setTypeImpot(TypeImpot.IRV); // Utiliser IRV pour les vignettes
+        
+        // Générer un numéro de taxation qui inclut les informations de genre et catégorie
+        String numeroTaxation = String.format("VIG_%s_%s_%s_%d", 
+            UUID.randomUUID().toString().substring(0, 4),
+            genre.replaceAll("\\s+", "_").toUpperCase(),
+            categorie.replaceAll("\\s+", "_").toUpperCase(),
+            LocalDate.now().getYear()
+        );
+        taxation.setNumeroTaxation(numeroTaxation);
+        
+        taxation.setDateEcheance(Date.from(LocalDate.now().plusMonths(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC)));
+        taxation.setContribuable(vehicule.getProprietaire());
+        taxation.setAgent(vignette.getAgent());
+        
+        return taxationRepository.save(taxation);
+    }
+    
+    private String genererNumeroTaxation(DemandePlaque demande) {
+        return String.format("T_%s_%s_%s_%d", 
+            UUID.randomUUID().toString().substring(0, 8),
+            "PLAQUE",
+            demande.getContribuable().getNom().replaceAll("\\s+", "_").toUpperCase(),
+            LocalDate.now().getYear()
+        );
+    }
+
+    /**
+     * Crée une taxation pour une concession minière
+     * @param concessionId ID de la concession minière
+     * @param agentId ID de l'agent qui effectue la taxation
+     * @param exercice Exercice fiscal (année)
+     * @return La taxation créée
+     */
+    @Transactional
+    public Taxation createTaxationForConcessionMiniere(UUID concessionId, UUID agentId, String exercice) {
+        logger.info("Création d'une taxation pour la concession minière ID: {}", concessionId);
+        
+        // Récupérer la concession
+        ConcessionMinier concession = concessionMinierRepository.findById(concessionId)
+            .orElseThrow(() -> new IllegalArgumentException("Concession minière non trouvée avec l'ID: " + concessionId));
+        
+        // Récupérer l'agent
+        Agent agent = agentRepository.findById(agentId)
+            .orElseThrow(() -> new IllegalArgumentException("Agent non trouvé avec l'ID: " + agentId));
+        
+        // Calculer le montant de l'impôt
+        concession.calculerImpôt();
+        Double montant = concession.getMontantImpot();
+        
+        // Créer la taxation
+        Taxation taxation = new Taxation();
+        taxation.setDateTaxation(new Date());
+        taxation.setMontant(montant);
+        taxation.setExercice(exercice);
+        taxation.setStatut(StatutTaxation.EN_ATTENTE);
+        taxation.setTypeImpot(TypeImpot.ICM);
+        taxation.setExoneration(false);
+        taxation.setAgent(agent);
+        taxation.setContribuable(concession.getTitulaire());
+        
+        // Générer un numéro de taxation
+        String numeroTaxation = generateNumeroTaxation(TypeImpot.ICM, agent, exercice);
+        taxation.setNumeroTaxation(numeroTaxation);
+        
+        // Définir la date d'échéance (par exemple, 30 jours après la date de taxation)
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(taxation.getDateTaxation());
+        calendar.add(Calendar.DAY_OF_MONTH, 30);
+        taxation.setDateEcheance(calendar.getTime());
+        
+        // Sauvegarder la taxation
+        Taxation savedTaxation = taxationRepository.save(taxation);
+        
+        // Associer la taxation à la concession minière
+        concession.setTaxation(savedTaxation);
+        concessionMinierRepository.save(concession);
+        
+        return savedTaxation;
+    }
+
+    /**
+     * Récupère toutes les taxations pour un contribuable donné
+     * @param contribuableId ID du contribuable
+     * @return Liste des taxations du contribuable
+     */
+    public List<Taxation> getTaxationsByContribuableId(UUID contribuableId) {
+        return taxationRepository.findByContribuable_IdAndActifTrue(contribuableId);
     }
 }

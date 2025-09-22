@@ -8,6 +8,7 @@ package com.DPRIHKAT.entity;
  *
  * @author amateur
  */
+import com.DPRIHKAT.entity.enums.StatutPlaque;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
@@ -32,6 +33,9 @@ public class Plaque {
     
     @Column(name = "document", nullable = false)
     private String document;
+    
+    @Enumerated(EnumType.STRING)
+    private StatutPlaque statut = StatutPlaque.STOCK;
 
     @ManyToOne
     @JoinColumn(name = "vehicule_id")
@@ -42,6 +46,11 @@ public class Plaque {
     @JoinColumn(name = "propriete_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Propriete propriete;
+    
+    @OneToOne
+    @JoinColumn(name = "demande_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private DemandePlaque demande;
 
     public Plaque() {
     }
@@ -50,6 +59,7 @@ public class Plaque {
         this.numeroSerie = numeroSerie;
         this.numplaque = numplaque;
         this.disponible = disponible;
+        this.statut = StatutPlaque.STOCK;
     }
 
     // Getters et Setters
@@ -115,5 +125,21 @@ public class Plaque {
 
     public void setPropriete(Propriete propriete) {
         this.propriete = propriete;
+    }
+    
+    public StatutPlaque getStatut() {
+        return statut;
+    }
+    
+    public void setStatut(StatutPlaque statut) {
+        this.statut = statut;
+    }
+    
+    public DemandePlaque getDemande() {
+        return demande;
+    }
+    
+    public void setDemande(DemandePlaque demande) {
+        this.demande = demande;
     }
 }

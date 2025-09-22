@@ -21,6 +21,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -67,6 +68,12 @@ public class ConcessionMinier {
     private List<Declaration> declarations = new ArrayList<>();
 
     private Double montantImpot;
+    
+    // Relation avec la taxation
+    @OneToOne
+    @JoinColumn(name = "taxation_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Taxation taxation;
 
     public ConcessionMinier() {
     }
@@ -180,5 +187,13 @@ public class ConcessionMinier {
 
     public void setMontantImpot(Double montantImpot) {
         this.montantImpot = montantImpot;
+    }
+    
+    public Taxation getTaxation() {
+        return taxation;
+    }
+
+    public void setTaxation(Taxation taxation) {
+        this.taxation = taxation;
     }
 }

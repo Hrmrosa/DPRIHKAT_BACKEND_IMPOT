@@ -178,4 +178,38 @@ public class PlaqueController {
                     .body(null);
         }
     }
+
+    /**
+     * Crée directement une plaque (par un taxateur ou admin)
+     */
+    @PostMapping("/creer-directement")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_ADMIN')")
+    public ResponseEntity<?> creerPlaqueDirectement(
+            @RequestParam UUID vehiculeId,
+            @RequestParam String numeroPlaque,
+            Authentication authentication) {
+        try {
+            // Récupérer l'utilisateur authentifié
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+            
+            Plaque plaque = plaqueService.creerPlaqueDirectement(
+                vehiculeId, 
+                numeroPlaque,
+                utilisateur.getId()
+            );
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                "plaque", plaque,
+                "message", "Plaque créée directement avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_CREATION_ERROR", 
+                            "Erreur lors de la création directe de la plaque", 
+                            e.getMessage()));
+        }
+    }
 }

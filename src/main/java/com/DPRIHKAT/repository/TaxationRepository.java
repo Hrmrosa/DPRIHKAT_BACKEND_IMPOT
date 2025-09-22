@@ -21,7 +21,7 @@ import java.util.UUID;
  * Repository pour l'entité Taxation
  */
 @Repository
-public interface TaxationRepository extends JpaRepository<Taxation, UUID> {
+public interface TaxationRepository extends JpaRepository<Taxation, UUID>, TaxationRepositoryCustom {
     
     /**
      * Trouve toutes les taxations actives
@@ -171,6 +171,21 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID> {
         @Param("propriete") com.DPRIHKAT.entity.Propriete propriete,
         @Param("typeImpot") com.DPRIHKAT.entity.enums.TypeImpot typeImpot, 
         @Param("exercice") String exercice, Pageable pageable);
+    
+    /**
+     * Trouve toutes les taxations pour un contribuable donné
+     * @param contribuableId l'ID du contribuable
+     * @return la liste des taxations pour ce contribuable
+     */
+    List<Taxation> findByContribuable_IdAndActifTrue(UUID contribuableId);
+    
+    /**
+     * Trouve toutes les taxations pour un contribuable donné avec pagination
+     * @param contribuableId l'ID du contribuable
+     * @param pageable informations de pagination
+     * @return page de taxations pour ce contribuable
+     */
+    Page<Taxation> findByContribuable_IdAndActifTrue(UUID contribuableId, Pageable pageable);
     
     /**
      * Trouve une taxation par son ID sans charger les relations profondes

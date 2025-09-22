@@ -6,6 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
+/**
+ * Repository pour l'entité Relance
+ * Étend RelanceRepositoryCustom pour ajouter les méthodes personnalisées
+ * permettant de récupérer les informations détaillées des relances
+ */
 @Repository
-public interface RelanceRepository extends JpaRepository<Relance, UUID> {
+public interface RelanceRepository extends RelanceRepositoryCustom, JpaRepository<Relance, UUID> {
+    // Méthodes existantes
 }

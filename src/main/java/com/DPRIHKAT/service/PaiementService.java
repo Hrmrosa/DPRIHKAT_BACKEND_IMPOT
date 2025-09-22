@@ -6,6 +6,8 @@ import com.DPRIHKAT.entity.enums.StatutPaiement;
 import com.DPRIHKAT.repository.DeclarationRepository;
 import com.DPRIHKAT.repository.PaiementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -64,5 +66,29 @@ public class PaiementService {
      */
     public List<Paiement> getPaymentsByStatus(StatutPaiement statut) {
         return paiementRepository.findByStatut(statut);
+    }
+    
+    /**
+     * Get paginated payments with optional filters
+     */
+    public Page<Paiement> getPaginatedPayments(
+            StatutPaiement statut,
+            Date startDate,
+            Date endDate,
+            Pageable pageable) {
+        
+        // Utilisation de la méthode corrigée avec des booléens pour indiquer la présence des dates
+        boolean hasStartDate = startDate != null;
+        boolean hasEndDate = endDate != null;
+        
+        // Utiliser des dates par défaut si null pour éviter les erreurs SQL
+        Date safeStartDate = startDate != null ? startDate : new Date(0); // 1970-01-01
+        Date safeEndDate = endDate != null ? endDate : new Date(); // Date actuelle
+        
+        return paiementRepository.findPaiementsWithFilters(
+                statut, 
+                hasStartDate, safeStartDate, 
+                hasEndDate, safeEndDate, 
+                pageable);
     }
 }

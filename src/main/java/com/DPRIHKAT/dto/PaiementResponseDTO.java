@@ -30,8 +30,14 @@ public class PaiementResponseDTO {
     private TypeImpot typeImpot;
     private String exerciceFiscal;
     
+    // ID de la déclaration associée
+    private UUID declarationId;
+    
     // Détails de la taxation
     private TaxationDTO taxation;
+    
+    // Détails de l'apurement associé
+    private ApurementDTO apurement;
     
     // Getters et Setters
     public UUID getId() {
@@ -144,6 +150,22 @@ public class PaiementResponseDTO {
     
     public void setTaxation(TaxationDTO taxation) {
         this.taxation = taxation;
+    }
+    
+    public ApurementDTO getApurement() {
+        return apurement;
+    }
+    
+    public void setApurement(ApurementDTO apurement) {
+        this.apurement = apurement;
+    }
+    
+    public UUID getDeclarationId() {
+        return declarationId;
+    }
+    
+    public void setDeclarationId(UUID declarationId) {
+        this.declarationId = declarationId;
     }
     
     // Classe DTO interne pour les informations de taxation

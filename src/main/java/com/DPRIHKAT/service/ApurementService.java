@@ -36,6 +36,7 @@ public class ApurementService {
 
     /**
      * Create an apurement for a declaration with optional motif
+     * L'apurement est directement validé lors de l'enregistrement manuel
      */
     public Apurement createApurement(UUID declarationId, UUID agentId, TypeApurement type, String motif) {
         // Get declaration and agent
@@ -52,8 +53,12 @@ public class ApurementService {
         apurement.setDateDemande(new Date());
         apurement.setDeclaration(declaration);
         apurement.setAgent(utilisateur.getAgent());
-        apurement.setStatut(StatutApurement.PROVISOIRE);
-
+        
+        // Définir directement comme validé au lieu de provisoire
+        apurement.setStatut(StatutApurement.ACCEPTEE);
+        apurement.setDateValidation(new Date());
+        apurement.setAgentValidateur(utilisateur.getAgent());
+        
         return apurementRepository.save(apurement);
     }
 

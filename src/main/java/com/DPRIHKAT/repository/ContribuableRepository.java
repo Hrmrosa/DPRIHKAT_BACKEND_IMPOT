@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface ContribuableRepository extends JpaRepository<Contribuable, UUID> {
+public interface ContribuableRepository extends JpaRepository<Contribuable, UUID>, ContribuableRepositoryCustom {
     /**
      * Trouve tous les contribuables actifs avec pagination
      * @param pageable informations de pagination

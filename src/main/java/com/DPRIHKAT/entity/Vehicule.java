@@ -36,18 +36,30 @@ public class Vehicule {
     @Column(name = "date_enregistrement")
     private Date dateEnregistrement;
     
-    @ManyToOne
+    @Column(name = "genre")
+    private String genre;
+    
+    @Column(name = "categorie")
+    private String categorie;
+    
+    @Column(name = "puissance_fiscale")
+    private Double puissanceFiscale;
+    
+    @Column(name = "unite_puissance")
+    private String unitePuissance;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proprietaire_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Contribuable proprietaire;
     
-    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Plaque> plaques;
     
-    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Certificat> certificats;
     
-    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Vignette> vignettes;
     
     // Constructors
@@ -106,7 +118,7 @@ public class Vehicule {
     public String getNumeroChassis() {
         return numeroChassis;
     }
-    
+
     public void setNumeroChassis(String numeroChassis) {
         this.numeroChassis = numeroChassis;
     }
@@ -117,6 +129,38 @@ public class Vehicule {
     
     public void setDateEnregistrement(Date dateEnregistrement) {
         this.dateEnregistrement = dateEnregistrement;
+    }
+    
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public String getCategorie() {
+        return categorie;
+    }
+
+    public void setCategorie(String categorie) {
+        this.categorie = categorie;
+    }
+    
+    public Double getPuissanceFiscale() {
+        return puissanceFiscale;
+    }
+
+    public void setPuissanceFiscale(Double puissanceFiscale) {
+        this.puissanceFiscale = puissanceFiscale;
+    }
+
+    public String getUnitePuissance() {
+        return unitePuissance;
+    }
+
+    public void setUnitePuissance(String unitePuissance) {
+        this.unitePuissance = unitePuissance;
     }
     
     public Contribuable getProprietaire() {

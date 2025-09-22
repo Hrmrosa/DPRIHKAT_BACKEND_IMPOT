@@ -14,7 +14,99 @@ Les propriétés représentent les biens immobiliers ou fonciers appartenant aux
 
 ## Endpoints
 
-### 1. Récupérer toutes les propriétés
+### 1. Créer une nouvelle propriété
+
+Crée une nouvelle propriété avec les natures d'impôt associées.
+
+- **URL**: `/api/proprietes`
+- **Méthode**: `POST`
+- **Rôles autorisés**: `TAXATEUR`, `ADMIN`, `DIRECTEUR`
+- **Corps de la requête**:
+
+```json
+{
+  "type": "VI",
+  "localite": "Lubumbashi",
+  "rangLocalite": 1,
+  "superficie": 500.0,
+  "adresse": "Avenue 123, Quartier Centre-ville",
+  "latitude": -11.6642,
+  "longitude": 27.4661,
+  "proprietaireId": "uuid-string-du-contribuable",
+  "naturesImpotIds": [
+    "uuid-string-nature-impot-1",
+    "uuid-string-nature-impot-2"
+  ]
+}
+```
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "propriete": {
+      "id": "uuid-string",
+      "type": "VI",
+      "localite": "Lubumbashi",
+      "rangLocalite": 1,
+      "superficie": 500.0,
+      "adresse": "Avenue 123, Quartier Centre-ville",
+      "actif": true,
+      "declare": false,
+      "declarationEnLigne": false,
+      "naturesImpot": [
+        {
+          "id": "uuid-string-nature-impot-1",
+          "code": "IF",
+          "nom": "Impôt Foncier",
+          "description": "Impôt sur les propriétés immobilières",
+          "actif": true
+        },
+        {
+          "id": "uuid-string-nature-impot-2",
+          "code": "IRL",
+          "nom": "Impôt sur les Revenus Locatifs",
+          "description": "Impôt sur les revenus générés par la location de biens immobiliers",
+          "actif": true
+        }
+      ],
+      "proprietaire": {
+        "id": "uuid-string-du-contribuable",
+        "nom": "Nom du contribuable",
+        "type": "PERSONNE_PHYSIQUE",
+        "idNat": "IDNAT-123456",
+        "numeroImpot": "A1234567B"
+      }
+    },
+    "message": "Propriété créée avec succès"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-14T12:05:00.000Z"
+  }
+}
+```
+
+#### Réponse en cas d'erreur
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_DATA",
+    "message": "Données invalides",
+    "details": "Contribuable non trouvé avec ID: uuid-string-du-contribuable"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-14T12:05:00.000Z"
+  }
+}
+```
+
+### 2. Récupérer toutes les propriétés
 
 Récupère la liste de toutes les propriétés enregistrées dans le système avec pagination simple.
 
@@ -67,66 +159,6 @@ Récupère la liste de toutes les propriétés enregistrées dans le système av
   "error": {
     "code": "PROPRIETES_FETCH_ERROR",
     "message": "Erreur lors de la récupération des propriétés",
-    "details": "Message d'erreur détaillé"
-  }
-}
-```
-
-### 2. Récupérer toutes les propriétés (paginées avec tri)
-
-Récupère la liste de toutes les propriétés avec pagination avancée et options de tri.
-
-- **URL**: `/api/proprietes/paginated`
-- **Méthode**: `GET`
-- **Rôles autorisés**: `TAXATEUR`, `RECEVEUR_DES_IMPOTS`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `DIRECTEUR`, `ADMIN`, `INFORMATICIEN`
-- **Paramètres**:
-  - `page` (query, optionnel): Numéro de page (défaut: 0)
-  - `size` (query, optionnel): Nombre d'éléments par page (défaut: 10)
-  - `sortBy` (query, optionnel): Champ de tri (défaut: "id")
-  - `sortDir` (query, optionnel): Direction du tri (asc/desc, défaut: "asc")
-
-#### Réponse en cas de succès
-
-```json
-{
-  "success": true,
-  "data": {
-    "data": {
-      "totalItems": 42,
-      "totalPages": 5,
-      "currentPage": 0,
-      "proprietes": [
-        {
-          "id": "uuid-string",
-          "designation": "Résidence principale",
-          "adresse": "Avenue 123, Quartier Centre-ville",
-          "superficie": 500.0,
-          "nombreNiveaux": 2,
-          "nombrePieces": 6,
-          "dateConstruction": "2010-01-01",
-          "location": {
-            "type": "Point",
-            "coordinates": [-11.6642, 27.4661]
-          },
-          "proprietaire": {
-            "id": "uuid-string",
-            "nom": "Nom du contribuable"
-          }
-        }
-      ]
-    }
-  }
-}
-```
-
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "PROPRIETES_FETCH_ERROR",
-    "message": "Erreur lors de la récupération des propriétés paginées",
     "details": "Message d'erreur détaillé"
   }
 }
@@ -285,28 +317,19 @@ Permet à un contribuable de récupérer la liste de ses propres propriétés av
 }
 ```
 
-### 6. Créer une nouvelle propriété
+### 6. Récupérer les propriétés d'un contribuable (paginé)
 
-Crée une nouvelle propriété dans le système.
+Récupère la liste paginée des propriétés appartenant à un contribuable spécifique.
 
-- **URL**: `/api/proprietes`
-- **Méthode**: `POST`
-- **Rôles autorisés**: `TAXATEUR`, `CHEF_DE_BUREAU`, `ADMIN`
-- **Corps de la requête**:
-
-```json
-{
-  "designation": "Résidence principale",
-  "adresse": "Avenue 123, Quartier Centre-ville",
-  "superficie": 500.0,
-  "nombreNiveaux": 2,
-  "nombrePieces": 6,
-  "dateConstruction": "2010-01-01",
-  "latitude": -11.6642,
-  "longitude": 27.4661,
-  "proprietaireId": "uuid-string"
-}
-```
+- **URL**: `/api/proprietes/contribuable/{contribuableId}`
+- **Méthode**: `GET`
+- **Rôles autorisés**: `TAXATEUR`, `RECEVEUR_DES_IMPOTS`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `DIRECTEUR`, `ADMIN`, `INFORMATICIEN`, `CONTRIBUABLE`
+- **Paramètres**:
+  - `contribuableId` (path): UUID du contribuable
+  - `page` (query, optionnel): Numéro de page (défaut: 0)
+  - `size` (query, optionnel): Nombre d'éléments par page (défaut: 10)
+  - `sortBy` (query, optionnel): Champ de tri (défaut: id)
+  - `sortDir` (query, optionnel): Direction du tri (asc/desc, défaut: "asc")
 
 #### Réponse en cas de succès
 
@@ -314,23 +337,63 @@ Crée une nouvelle propriété dans le système.
 {
   "success": true,
   "data": {
-    "propriete": {
-      "id": "uuid-string",
-      "designation": "Résidence principale",
-      "adresse": "Avenue 123, Quartier Centre-ville",
-      "superficie": 500.0,
-      "nombreNiveaux": 2,
-      "nombrePieces": 6,
-      "dateConstruction": "2010-01-01",
-      "location": {
-        "type": "Point",
-        "coordinates": [-11.6642, 27.4661]
-      },
-      "proprietaire": {
-        "id": "uuid-string",
-        "nom": "Nom du contribuable"
-      }
+    "data": {
+      "totalItems": 5,
+      "totalPages": 1,
+      "currentPage": 0,
+      "proprietes": [
+        {
+          "id": "uuid-string",
+          "type": "VI",
+          "localite": "Lubumbashi",
+          "rangLocalite": 1,
+          "superficie": 500.0,
+          "adresse": "Avenue 123, Quartier Centre-ville",
+          "actif": true,
+          "declare": true,
+          "declarationEnLigne": false,
+          "proprietaire": {
+            "id": "uuid-string",
+            "nom": "Société Minière du Katanga",
+            "type": "PERSONNE_MORALE",
+            "rccm": "CD/LSH/RCCM/22-B-01234",
+            "idNat": "AB123456",
+            "numeroImpot": "A1234567B",
+            "adressePrincipale": "Avenue Mobutu 123, Lubumbashi",
+            "telephonePrincipal": "+243123456789",
+            "email": "contact@smk.cd"
+          },
+          "montantImpot": 1500.0
+        },
+        {
+          "id": "uuid-string-2",
+          "type": "AP",
+          "localite": "Lubumbashi",
+          "rangLocalite": 2,
+          "superficie": 120.0,
+          "adresse": "Avenue Lumumba 45, Quartier Golf",
+          "actif": true,
+          "declare": true,
+          "declarationEnLigne": true,
+          "proprietaire": {
+            "id": "uuid-string",
+            "nom": "Société Minière du Katanga",
+            "type": "PERSONNE_MORALE",
+            "rccm": "CD/LSH/RCCM/22-B-01234",
+            "idNat": "AB123456",
+            "numeroImpot": "A1234567B",
+            "adressePrincipale": "Avenue Mobutu 123, Lubumbashi",
+            "telephonePrincipal": "+243123456789",
+            "email": "contact@smk.cd"
+          },
+          "montantImpot": 800.0
+        }
+      ]
     }
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-13T18:10:00.000Z"
   }
 }
 ```
@@ -341,14 +404,107 @@ Crée une nouvelle propriété dans le système.
 {
   "success": false,
   "error": {
-    "code": "PROPRIETE_CREATE_ERROR",
-    "message": "Erreur lors de la création de la propriété",
-    "details": "Message d'erreur détaillé"
+    "code": "PROPRIETES_FETCH_ERROR",
+    "message": "Erreur lors de la récupération des propriétés du contribuable",
+    "details": "Détails de l'erreur"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-13T18:10:00.000Z"
   }
 }
 ```
 
-### 7. Mettre à jour une propriété
+### 7. Récupérer toutes les propriétés d'un contribuable (sans pagination)
+
+Récupère la liste complète des propriétés appartenant à un contribuable spécifique sans pagination.
+
+- **URL**: `/api/proprietes/contribuable/{contribuableId}/all`
+- **Méthode**: `GET`
+- **Rôles autorisés**: `TAXATEUR`, `RECEVEUR_DES_IMPOTS`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `DIRECTEUR`, `ADMIN`, `INFORMATICIEN`, `CONTRIBUABLE`
+- **Paramètres**:
+  - `contribuableId` (path): UUID du contribuable
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "proprietes": [
+      {
+        "id": "uuid-string",
+        "type": "VI",
+        "localite": "Lubumbashi",
+        "rangLocalite": 1,
+        "superficie": 500.0,
+        "adresse": "Avenue 123, Quartier Centre-ville",
+        "actif": true,
+        "declare": true,
+        "declarationEnLigne": false,
+        "proprietaire": {
+          "id": "uuid-string",
+          "nom": "Société Minière du Katanga",
+          "type": "PERSONNE_MORALE",
+          "rccm": "CD/LSH/RCCM/22-B-01234",
+          "idNat": "AB123456",
+          "numeroImpot": "A1234567B",
+          "adressePrincipale": "Avenue Mobutu 123, Lubumbashi",
+          "telephonePrincipal": "+243123456789",
+          "email": "contact@smk.cd"
+        },
+        "montantImpot": 1500.0
+      },
+      {
+        "id": "uuid-string-2",
+        "type": "AP",
+        "localite": "Lubumbashi",
+        "rangLocalite": 2,
+        "superficie": 120.0,
+        "adresse": "Avenue Lumumba 45, Quartier Golf",
+        "actif": true,
+        "declare": true,
+        "declarationEnLigne": true,
+        "proprietaire": {
+          "id": "uuid-string",
+          "nom": "Société Minière du Katanga",
+          "type": "PERSONNE_MORALE",
+          "rccm": "CD/LSH/RCCM/22-B-01234",
+          "idNat": "AB123456",
+          "numeroImpot": "A1234567B",
+          "adressePrincipale": "Avenue Mobutu 123, Lubumbashi",
+          "telephonePrincipal": "+243123456789",
+          "email": "contact@smk.cd"
+        },
+        "montantImpot": 800.0
+      }
+    ]
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-13T18:10:00.000Z"
+  }
+}
+```
+
+#### Réponse en cas d'erreur
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PROPRIETES_FETCH_ERROR",
+    "message": "Erreur lors de la récupération de toutes les propriétés du contribuable",
+    "details": "Détails de l'erreur"
+  },
+  "meta": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-13T18:10:00.000Z"
+  }
+}
+```
+
+### 8. Mettre à jour une propriété
 
 Met à jour les informations d'une propriété existante.
 
@@ -411,7 +567,7 @@ Met à jour les informations d'une propriété existante.
 }
 ```
 
-### 8. Supprimer une propriété
+### 9. Supprimer une propriété
 
 Supprime une propriété du système.
 
@@ -441,6 +597,69 @@ Supprime une propriété du système.
     "code": "PROPRIETE_DELETE_ERROR",
     "message": "Erreur lors de la suppression de la propriété",
     "details": "Message d'erreur détaillé"
+  }
+}
+```
+
+### 10. Récupérer les propriétés avec types d'impôts
+
+Récupère les propriétés du contribuable connecté avec les types d'impôts applicables pour chacune.
+
+- **URL**: `/api/proprietes/mine/with-tax-types`
+- **Méthode**: `GET`
+- **Rôles autorisés**: `CONTRIBUABLE`
+- **Paramètres**: Aucun
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "proprietes": [
+      {
+        "id": "uuid-string",
+        "designation": "Résidence principale",
+        "adresse": "Avenue 123, Quartier Centre-ville",
+        "superficie": 500.0,
+        "nombreNiveaux": 2,
+        "nombrePieces": 6,
+        "dateConstruction": "2010-01-01",
+        "location": {
+          "type": "Point",
+          "coordinates": [-11.6642, 27.4661]
+        },
+        "typesImpot": [
+          {
+            "id": "uuid-string-type-impot-1",
+            "code": "IF",
+            "nom": "Impôt Foncier",
+            "description": "Impôt sur les propriétés immobilières",
+            "actif": true
+          },
+          {
+            "id": "uuid-string-type-impot-2",
+            "code": "IRL",
+            "nom": "Impôt sur les Revenus Locatifs",
+            "description": "Impôt sur les revenus générés par la location de biens immobiliers",
+            "actif": true
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### Réponse en cas d'erreur
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_USER",
+    "message": "Utilisateur non valide",
+    "details": "Seuls les contribuables peuvent voir leurs propriétés"
   }
 }
 ```

@@ -1,5 +1,6 @@
 package com.DPRIHKAT.service;
 
+import com.DPRIHKAT.entity.DemandePlaque;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
  * @author amateur
  */
 @Service
-public class EmailService {
+public class    EmailService {
     
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     
@@ -73,6 +74,125 @@ public class EmailService {
             "Cordialement,\n" +
             "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
             declarationId, montant
+        );
+        
+        sendEmail(to, subject, text);
+    }
+    
+    /**
+     * Envoie une notification de validation de demande de plaque
+     * 
+     * @param demande La demande de plaque validée
+     */
+    public void envoyerNotificationValidation(DemandePlaque demande) {
+        if (demande.getContribuable() == null || demande.getContribuable().getEmail() == null) {
+            logger.warn("Impossible d'envoyer la notification de validation : contribuable ou email manquant");
+            return;
+        }
+        
+        String to = demande.getContribuable().getEmail();
+        String subject = "Demande de plaque validée - Notification";
+        String text = String.format(
+            "Bonjour %s,\n\n" +
+            "Votre demande de plaque d'immatriculation (ID: %s) pour votre véhicule %s %s a été validée avec succès.\n\n" +
+            "Une note de taxation a été générée. Veuillez procéder au paiement dans les délais impartis.\n\n" +
+            "Cordialement,\n" +
+            "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
+            demande.getContribuable().getNom(),
+            demande.getId(),
+            demande.getVehicule().getMarque(),
+            demande.getVehicule().getModele()
+        );
+        
+        sendEmail(to, subject, text);
+    }
+    
+    /**
+     * Envoie une notification de rejet de demande de plaque
+     * 
+     * @param demande La demande de plaque rejetée
+     */
+    public void envoyerNotificationRejet(DemandePlaque demande) {
+        if (demande.getContribuable() == null || demande.getContribuable().getEmail() == null) {
+            logger.warn("Impossible d'envoyer la notification de rejet : contribuable ou email manquant");
+            return;
+        }
+        
+        String to = demande.getContribuable().getEmail();
+        String subject = "Demande de plaque rejetée - Notification";
+        String text = String.format(
+            "Bonjour %s,\n\n" +
+            "Votre demande de plaque d'immatriculation (ID: %s) pour votre véhicule %s %s a été rejetée.\n\n" +
+            "Motif du rejet : %s\n\n" +
+            "Pour plus d'informations, veuillez contacter nos services.\n\n" +
+            "Cordialement,\n" +
+            "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
+            demande.getContribuable().getNom(),
+            demande.getId(),
+            demande.getVehicule().getMarque(),
+            demande.getVehicule().getModele(),
+            demande.getMotifRejet()
+        );
+        
+        sendEmail(to, subject, text);
+    }
+    
+    /**
+     * Envoie une notification de paiement de demande de plaque
+     * 
+     * @param demande La demande de plaque payée
+     */
+    public void envoyerNotificationPaiement(DemandePlaque demande) {
+        if (demande.getContribuable() == null || demande.getContribuable().getEmail() == null) {
+            logger.warn("Impossible d'envoyer la notification de paiement : contribuable ou email manquant");
+            return;
+        }
+        
+        String to = demande.getContribuable().getEmail();
+        String subject = "Paiement de plaque confirmé - Notification";
+        String text = String.format(
+            "Bonjour %s,\n\n" +
+            "Nous confirmons la réception du paiement pour votre demande de plaque d'immatriculation (ID: %s) " +
+            "pour votre véhicule %s %s.\n\n" +
+            "Votre plaque est en cours de préparation et vous serez notifié(e) lorsqu'elle sera prête à être livrée.\n\n" +
+            "Cordialement,\n" +
+            "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
+            demande.getContribuable().getNom(),
+            demande.getId(),
+            demande.getVehicule().getMarque(),
+            demande.getVehicule().getModele()
+        );
+        
+        sendEmail(to, subject, text);
+    }
+    
+    /**
+     * Envoie une notification de livraison de plaque
+     * 
+     * @param demande La demande de plaque livrée
+     */
+    public void envoyerNotificationLivraison(DemandePlaque demande) {
+        if (demande.getContribuable() == null || demande.getContribuable().getEmail() == null) {
+            logger.warn("Impossible d'envoyer la notification de livraison : contribuable ou email manquant");
+            return;
+        }
+        
+        String to = demande.getContribuable().getEmail();
+        String subject = "Plaque d'immatriculation prête - Notification";
+        String text = String.format(
+            "Bonjour %s,\n\n" +
+            "Votre plaque d'immatriculation pour votre véhicule %s %s est prête à être récupérée.\n\n" +
+            "Détails de la plaque :\n" +
+            "- Numéro de plaque : %s\n" +
+            "- Numéro de série : %s\n\n" +
+            "Veuillez vous présenter à nos bureaux avec une pièce d'identité pour récupérer votre plaque.\n\n" +
+            "Cordialement,\n" +
+            "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
+            demande.getContribuable().getNom(),
+            demande.getVehicule().getMarque(),
+            demande.getVehicule().getModele(),
+            demande.getPlaque() != null ? demande.getPlaque().getNumplaque() : "Non disponible",
+            demande.getPlaque() != null ? demande.getPlaque().getNumeroSerie() : "Non disponible"
         );
         
         sendEmail(to, subject, text);

@@ -11,5 +11,5 @@ package com.DPRIHKAT.entity.enums;
 
 
 public enum TypeImpot {
-    IF, IRL, ICM, IRV, RL
+    IF, IRL, ICM, IRV, RL, PLAQUE, VIGNETTE
 }

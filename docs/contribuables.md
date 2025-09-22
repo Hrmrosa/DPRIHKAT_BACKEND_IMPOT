@@ -47,7 +47,6 @@ Récupère la liste de tous les contribuables enregistrés dans le système.
         "type": "PERSONNE_PHYSIQUE",
         "idNat": "IDNAT-123456",
         "numeroIdentificationContribuable": "NIF-123456789",
-        "codeQR": "string",
         "actif": true
       }
     ]
@@ -101,7 +100,6 @@ Récupère les détails d'un contribuable spécifique à partir de son identifia
       "type": "PERSONNE_PHYSIQUE",
       "idNat": "IDNAT-123456",
       "numeroIdentificationContribuable": "NIF-123456789",
-      "codeQR": "string",
       "actif": true
     }
   }
@@ -148,8 +146,7 @@ Crée un nouveau contribuable dans le système.
   "idNat": "IDNAT-123456",
   "NRC": "RCCM-CD/LUB/2020-B-1234",
   "sigle": "ABC01",
-  "numeroIdentificationContribuable": "NIF-123456789",
-  "codeQR": "string"
+  "numeroIdentificationContribuable": "NIF-123456789"
 }
 ```
 
@@ -176,7 +173,6 @@ Crée un nouveau contribuable dans le système.
       "type": "PERSONNE_PHYSIQUE",
       "idNat": "IDNAT-123456",
       "numeroIdentificationContribuable": "NIF-123456789",
-      "codeQR": "string",
       "actif": true
     }
   }
@@ -198,7 +194,7 @@ Crée un nouveau contribuable dans le système.
 
 ### 4. Mettre à jour un contribuable
 
-Met à jour les informations d'un contribuable existant.
+Met à jour les informations d'un contribuable existant. Tous les champs du contribuable peuvent être modifiés.
 
 - **URL**: `/api/contribuables/{id}`
 - **Méthode**: `PUT`
@@ -210,10 +206,21 @@ Met à jour les informations d'un contribuable existant.
 ```json
 {
   "nom": "Nouveau nom du contribuable",
+  "postnom": "Nouveau postnom",
+  "prenom": "Nouveau prenom",
+  "sexe": "F",
+  "matricule": "CONT-001",
   "adressePrincipale": "Nouvelle adresse principale",
+  "adresseSecondaire": "Nouvelle adresse secondaire",
   "telephonePrincipal": "+243820654321",
+  "telephoneSecondaire": "+243820123456",
   "email": "nouveau.email@example.com",
-  "codeQR": "string"
+  "nationalite": "RDC",
+  "type": "PERSONNE_MORALE",
+  "idNat": "IDNAT-654321",
+  "NRC": "NRC-654321",
+  "sigle": "SMK",
+  "numeroIdentificationContribuable": "NIF-987654321"
 }
 ```
 
@@ -226,7 +233,9 @@ Met à jour les informations d'un contribuable existant.
     "contribuable": {
       "id": "uuid-string",
       "nom": "Nouveau nom du contribuable",
-      "sexe": "M",
+      "postnom": "Nouveau postnom",
+      "prenom": "Nouveau prenom",
+      "sexe": "F",
       "matricule": "CONT-001",
       "bureau": {
         "id": "uuid-string",
@@ -234,13 +243,16 @@ Met à jour les informations d'un contribuable existant.
         "code": "BC"
       },
       "adressePrincipale": "Nouvelle adresse principale",
+      "adresseSecondaire": "Nouvelle adresse secondaire",
       "telephonePrincipal": "+243820654321",
+      "telephoneSecondaire": "+243820123456",
       "email": "nouveau.email@example.com",
       "nationalite": "RDC",
-      "type": "PERSONNE_PHYSIQUE",
-      "idNat": "IDNAT-123456",
-      "numeroIdentificationContribuable": "NIF-123456789",
-      "codeQR": "string",
+      "type": "PERSONNE_MORALE",
+      "idNat": "IDNAT-654321",
+      "NRC": "NRC-654321",
+      "sigle": "SMK",
+      "numeroIdentificationContribuable": "NIF-987654321",
       "actif": true
     }
   }
@@ -260,15 +272,17 @@ Met à jour les informations d'un contribuable existant.
 }
 ```
 
-### 5. Supprimer un contribuable
+### 5. Désactiver un contribuable
 
-Supprime un contribuable du système (suppression logique).
+Désactive un contribuable du système (suppression logique). Le contribuable reste dans la base de données mais avec le statut "inactif".
+
+> **Note technique** : Cette opération utilise la méthode `deactivateContribuable` du service qui effectue une désactivation logique en définissant le champ `actif` à `false`. Cela préserve les relations avec d'autres entités (déclarations, propriétés, etc.) et évite les erreurs de contrainte de clé étrangère.
 
 - **URL**: `/api/contribuables/{id}`
 - **Méthode**: `DELETE`
 - **Rôles autorisés**: `ADMIN`, `DIRECTEUR`, `INFORMATICIEN`
 - **Paramètres**:
-  - `id` (path): UUID du contribuable à supprimer
+  - `id` (path): UUID du contribuable à désactiver
 
 #### Réponse en cas de succès
 
@@ -276,7 +290,23 @@ Supprime un contribuable du système (suppression logique).
 {
   "success": true,
   "data": {
-    "message": "Contribuable supprimé avec succès"
+    "message": "Contribuable désactivé avec succès",
+    "contribuable": {
+      "id": "uuid-string",
+      "nom": "Nom du contribuable",
+      "postnom": "Postnom",
+      "prenom": "Prenom",
+      "sexe": "M",
+      "matricule": "CONT-001",
+      "adressePrincipale": "Adresse principale",
+      "email": "email@example.com",
+      "nationalite": "RDC",
+      "type": "PERSONNE_PHYSIQUE",
+      "idNat": "IDNAT-123456",
+      "NRC": "NRC-123456",
+      "numeroIdentificationContribuable": "NIF-123456789",
+      "actif": false
+    }
   }
 }
 ```
@@ -287,8 +317,8 @@ Supprime un contribuable du système (suppression logique).
 {
   "success": false,
   "error": {
-    "code": "CONTRIBUABLE_DELETE_ERROR",
-    "message": "Erreur lors de la suppression du contribuable",
+    "code": "CONTRIBUABLE_DEACTIVATION_ERROR",
+    "message": "Erreur lors de la désactivation du contribuable",
     "details": "Message d'erreur détaillé"
   }
 }
@@ -300,6 +330,8 @@ Supprime un contribuable du système (suppression logique).
 |-------|------|-------------|
 | id | UUID | Identifiant unique du contribuable |
 | nom | String | Nom complet du contribuable |
+| postnom | String | Postnom du contribuable |
+| prenom | String | Prenom du contribuable |
 | sexe | Enum (Sexe) | Genre du contribuable (M/F) |
 | matricule | String | Matricule unique du contribuable |
 | bureau | Bureau | Bureau auquel est rattaché le contribuable |
@@ -314,7 +346,6 @@ Supprime un contribuable du système (suppression logique).
 | NRC | String | Numéro de registre de commerce (pour les personnes morales) |
 | sigle | String | Sigle ou acronyme (pour les personnes morales) |
 | numeroIdentificationContribuable | String | Numéro d'identification fiscale (NIF) |
-| codeQR | String | Code QR du contribuable |
 | actif | boolean | Indique si le contribuable est actif dans le système |
 
 ## Règles métier

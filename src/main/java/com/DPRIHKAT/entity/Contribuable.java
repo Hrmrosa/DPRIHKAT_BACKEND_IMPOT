@@ -9,6 +9,7 @@ import com.DPRIHKAT.entity.enums.TypeContribuable;
 import com.DPRIHKAT.entity.enums.TypeImpot;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class Contribuable extends Agent {
 
     private String idNat;
 
+    @JsonProperty("NRC")
     private String NRC;
 
     private String sigle;
@@ -58,19 +60,29 @@ public class Contribuable extends Agent {
 
     // Désactivé temporairement pour résoudre l'erreur ArrayIndexOutOfBoundsException
     /*
-    @OneToMany(mappedBy = "proprietaire")
+    @OneToMany(mappedBy = "proprietaire", fetch = FetchType.LAZY)
     private List<Propriete> proprietes = new ArrayList<>();
 
-    @OneToOne(mappedBy = "contribuable")
+    @OneToOne(mappedBy = "contribuable", fetch = FetchType.LAZY)
     private DossierRecouvrement dossierRecouvrement;
 
-    @OneToOne(mappedBy = "agent")
+    @OneToOne(mappedBy = "agent", fetch = FetchType.LAZY)
     private Utilisateur utilisateur;
     
     // Déclarations faites par ce contribuable
-    @OneToMany(mappedBy = "contribuable")
+    @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
     private List<Declaration> declarations = new ArrayList<>();
     */
+    
+    // Taxations associées à ce contribuable
+    @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Taxation> taxations = new ArrayList<>();
+    
+    // Concessions minières de ce contribuable
+    @OneToMany(mappedBy = "titulaire", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<ConcessionMinier> concessions = new ArrayList<>();
 
     public Contribuable() {
         super();
@@ -218,5 +230,21 @@ public class Contribuable extends Agent {
     @Override
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
+    }
+    
+    public List<Taxation> getTaxations() {
+        return taxations;
+    }
+
+    public void setTaxations(List<Taxation> taxations) {
+        this.taxations = taxations;
+    }
+    
+    public List<ConcessionMinier> getConcessions() {
+        return concessions;
+    }
+
+    public void setConcessions(List<ConcessionMinier> concessions) {
+        this.concessions = concessions;
     }
 }

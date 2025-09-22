@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapports</title>
+    <link rel="stylesheet" href="/css/reports.css">
+</head>
+<body>
+    <div class="report-container">
+        <h1>Génération de Rapports</h1>
+        
+        <!-- Formulaire de sélection du rapport -->
+        <div class="report-form">
+            <form id="report-form" method="GET">
+                <div class="form-group">
+                    <label for="report-type">Type de rapport:</label>
+                    <select id="report-type" name="reportType" required>
+                        <option th:each="type : ${reportTypes}" 
+                                th:value="${type}" 
+                                th:text="${type}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="start-date">Date de début:</label>
+                    <input type="date" id="start-date" name="startDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end-date">Date de fin:</label>
+                    <input type="date" id="end-date" name="endDate" required>
+                </div>
+                
+                <button type="submit" class="btn-generate">Générer le rapport</button>
+            </form>
+        </div>
+        
+        <!-- Zone d'affichage du rapport -->
+        <div id="report-results" class="report-results">
+            <!-- Les résultats seront chargés ici via JavaScript -->
+        </div>
+        
+        <!-- Bouton d'export -->
+        <div class="export-actions" th:if="${report}">
+            <button id="export-pdf" class="btn-export">Exporter en PDF</button>
+            <button id="export-excel" class="btn-export">Exporter en Excel</button>
+        </div>
+    </div>
+    
+    <script src="/js/reports.js"></script>
+</body>
+</html>

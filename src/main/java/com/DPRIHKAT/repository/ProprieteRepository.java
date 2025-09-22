@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ProprieteRepository extends JpaRepository<Propriete, UUID> {
+public interface ProprieteRepository extends JpaRepository<Propriete, UUID>, ProprieteRepositoryCustom {
     List<Propriete> findByProprietaire_Id(UUID proprietaireId);
     
     /**

@@ -6,6 +6,25 @@ Cette documentation détaille les endpoints disponibles pour l'authentification 
 
 Le système d'authentification permet aux utilisateurs de se connecter à l'application avec différents rôles (ADMIN, DIRECTEUR, CHEF_DE_BUREAU, TAXATEUR, RECEVEUR_DES_IMPOTS, CONTRIBUABLE, etc.). Chaque rôle a des permissions spécifiques pour accéder aux différentes fonctionnalités de l'application.
 
+## Authentification JWT
+
+### Nouveautés
+
+- **Nettoyage automatique des tokens** : Les tokens JWT sont maintenant automatiquement nettoyés des caractères invalides avant validation
+- **Validation renforcée** : Vérification de la structure du token (3 segments séparés par des points)
+- **Gestion des erreurs améliorée** : Messages d'erreur plus clairs pour les tokens invalides
+
+### Format du token
+
+Le token JWT doit être inclus dans le header `Authorization` sous la forme :
+```
+Bearer [token]
+```
+
+**Important** :
+- Le token ne doit pas contenir d'espaces ou de caractères spéciaux
+- Les tokens expirés ou malformés seront rejetés
+
 ## Base URL
 
 ```
@@ -39,116 +58,28 @@ Permet à un utilisateur de se connecter à l'application.
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "type": "Bearer",
     "login": "utilisateur123",
-    "role": "TAXATEUR"
+    "role": "TAXATEUR",
+    "userId": "123e4567-e89b-12d3-a456-426614174000"
   }
 }
 ```
 
-#### Réponse en cas de première connexion
+#### Nouveaux codes d'erreur possibles :
+- `INVALID_TOKEN_FORMAT` : Le token contient des caractères invalides
+- `MALFORMED_TOKEN` : La structure du token est incorrecte
+- `EXPIRED_TOKEN` : Le token a expiré
 
-```json
-{
-  "success": true,
-  "data": {
-    "premiereConnexion": true,
-    "message": "Vous devez changer votre mot de passe lors de la première connexion"
-  }
-}
+## Utilisation du token
+
+Toutes les requêtes API (sauf `/api/auth/login`) doivent inclure le token JWT dans le header :
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "INVALID_CREDENTIALS",
-    "message": "Identifiants invalides",
-    "details": "Le mot de passe est incorrect"
-  }
-}
-```
-
-### 2. Changement de mot de passe
-
-Permet à un utilisateur de changer son mot de passe.
-
-- **URL**: `/api/auth/change-password`
-- **Méthode**: `POST`
-- **Rôles autorisés**: Tous
-- **Corps de la requête**:
-
-```json
-{
-  "login": "utilisateur123",
-  "oldPassword": "ancienMotDePasse",
-  "newPassword": "nouveauMotDePasse"
-}
-```
-
-#### Réponse en cas de succès
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Mot de passe changé avec succès"
-  }
-}
-```
-
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "INVALID_CREDENTIALS",
-    "message": "Ancien mot de passe incorrect",
-    "details": "L'ancien mot de passe est incorrect"
-  }
-}
-```
-
-### 3. Réinitialisation de mot de passe
-
-Permet à un administrateur de réinitialiser le mot de passe d'un utilisateur.
-
-- **URL**: `/api/auth/reset-password`
-- **Méthode**: `POST`
-- **Rôles autorisés**: `ADMIN`
-- **Corps de la requête**:
-
-```json
-{
-  "userId": "uuid-string"
-}
-```
-
-#### Réponse en cas de succès
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Mot de passe réinitialisé avec succès",
-    "newPassword": "temporaryPassword123"
-  }
-}
-```
-
-#### Réponse en cas d'erreur
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "Utilisateur non trouvé",
-    "details": "Aucun utilisateur avec cet ID n'existe"
-  }
-}
-```
+**Important** :
+- Ne pas ajouter d'espaces supplémentaires dans le header
+- Le token doit être valide et non expiré
+- Les tokens sont valables 24 heures par défaut
 
 ## Base URL pour la gestion des utilisateurs
 

@@ -217,20 +217,89 @@ public class ContribuableService {
      * @param contribuable Les nouvelles informations du contribuable
      * @return Le contribuable mis à jour, s'il existe
      */
-    public Contribuable update(UUID id, Contribuable contribuable) {
-        if (contribuableRepository.existsById(id)) {
-            contribuable.setId(id);
-            return contribuableRepository.save(contribuable);
-        }
-        return null;
+    @Transactional
+    public Contribuable update(UUID id, Contribuable contribuableDetails) {
+        logger.info("Mise à jour du contribuable avec ID: {}", id);
+        
+        return contribuableRepository.findById(id)
+                .map(existingContribuable -> {
+                    // Mise à jour des champs spécifiques à Contribuable
+                    existingContribuable.setAdressePrincipale(contribuableDetails.getAdressePrincipale());
+                    existingContribuable.setAdresseSecondaire(contribuableDetails.getAdresseSecondaire());
+                    existingContribuable.setTelephonePrincipal(contribuableDetails.getTelephonePrincipal());
+                    existingContribuable.setTelephoneSecondaire(contribuableDetails.getTelephoneSecondaire());
+                    existingContribuable.setEmail(contribuableDetails.getEmail());
+                    existingContribuable.setNationalite(contribuableDetails.getNationalite());
+                    existingContribuable.setType(contribuableDetails.getType());
+                    existingContribuable.setIdNat(contribuableDetails.getIdNat());
+                    existingContribuable.setNRC(contribuableDetails.getNRC());
+                    existingContribuable.setSigle(contribuableDetails.getSigle());
+                    existingContribuable.setNumeroIdentificationContribuable(contribuableDetails.getNumeroIdentificationContribuable());
+                    
+                    // Mise à jour des champs hérités de Agent
+                    existingContribuable.setNom(contribuableDetails.getNom());
+                    existingContribuable.setSexe(contribuableDetails.getSexe());
+                    existingContribuable.setMatricule(contribuableDetails.getMatricule());
+                    
+                    // Ne pas écraser les relations existantes
+                    // (utilisateur, propriétés, déclarations, etc.)
+                    
+                    logger.info("Contribuable mis à jour avec succès: {}", existingContribuable.getId());
+                    return contribuableRepository.save(existingContribuable);
+                })
+                .orElseGet(() -> {
+                    logger.warn("Contribuable avec ID {} non trouvé", id);
+                    return null;
+                });
+    }
+
+    /**
+     * Désactive un contribuable par son ID (suppression logique)
+     * @param id L'ID du contribuable
+     * @return Le contribuable désactivé, ou null si non trouvé
+     */
+    @Transactional
+    public Contribuable deactivateContribuable(UUID id) {
+        logger.info("Désactivation du contribuable avec ID: {}", id);
+        
+        return contribuableRepository.findById(id)
+                .map(contribuable -> {
+                    // Désactivation du contribuable (suppression logique)
+                    contribuable.setActif(false);
+                    logger.info("Contribuable désactivé avec succès: {}", id);
+                    return contribuableRepository.save(contribuable);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Active un contribuable par son ID (opération inverse de la désactivation)
+     * @param id L'ID du contribuable
+     * @return Le contribuable activé, ou null si non trouvé
+     */
+    @Transactional
+    public Contribuable activateContribuable(UUID id) {
+        logger.info("Activation du contribuable avec ID: {}", id);
+        
+        return contribuableRepository.findById(id)
+                .map(contribuable -> {
+                    // Activation du contribuable
+                    contribuable.setActif(true);
+                    logger.info("Contribuable activé avec succès: {}", id);
+                    return contribuableRepository.save(contribuable);
+                })
+                .orElse(null);
     }
 
     /**
      * Supprime un contribuable par son ID
      * @param id L'ID du contribuable
+     * @deprecated Utiliser deactivateContribuable à la place pour éviter les problèmes de contraintes de clés étrangères
      */
+    @Deprecated
     public void deleteById(UUID id) {
-        contribuableRepository.deleteById(id);
+        logger.warn("Méthode deleteById appelée, utiliser deactivateContribuable à la place");
+        deactivateContribuable(id);
     }
 
     /**

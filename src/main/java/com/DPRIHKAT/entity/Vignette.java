@@ -63,15 +63,20 @@ public class Vignette {
     @Column(name = "document", nullable = false)
     private String document;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicule_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Vehicule vehicule;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agent_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Agent agent;
+    
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "taxation_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Taxation taxation;
     
     // Constructors
     public Vignette() {}
@@ -222,5 +227,13 @@ public class Vignette {
     
     public void setAgent(Agent agent) {
         this.agent = agent;
+    }
+    
+    public Taxation getTaxation() {
+        return taxation;
+    }
+    
+    public void setTaxation(Taxation taxation) {
+        this.taxation = taxation;
     }
 }
