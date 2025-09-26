@@ -1,5 +1,6 @@
 package com.DPRIHKAT.repository;
 
+import com.DPRIHKAT.entity.enums.StatutDeclaration;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -19,7 +20,7 @@ public class DeclarationRepositoryCustomImpl implements DeclarationRepositoryCus
     }
 
     @Override
-    public long countByStatut(String statut) {
+    public long countByStatut(StatutDeclaration statut) {
         String jpql = "SELECT COUNT(d) FROM Declaration d WHERE d.statut = :statut";
         TypedQuery<Long> query = entityManager.createQuery(jpql, Long.class)
                 .setParameter("statut", statut);

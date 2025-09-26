@@ -21,6 +21,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
+/**
+ * Contrôleur pour la gestion des plaques d'immatriculation
+ * 
+ * <p>Ce contrôleur permet de :
+ * <ul>
+ *   <li>Créer, lire, mettre à jour et supprimer des plaques</li>
+ *   <li>Gérer les associations entre plaques et véhicules</li>
+ *   <li>Valider et vérifier les plaques</li>
+ * </ul>
+ * 
+ * @author DPRIHKAT
+ * @version 1.0
+ */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/plaques")
@@ -35,6 +48,14 @@ public class PlaqueController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    /**
+     * Assigner une plaque à un véhicule
+     * 
+     * @param vehiculeId L'ID du véhicule
+     * @param document Le document de la plaque
+     * @param authentication L'authentification de l'utilisateur
+     * @return La plaque assignée avec succès
+     */
     @PostMapping("/assign/{vehiculeId}")
     @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES','ADMIN')")
     public ResponseEntity<?> assignPlaqueToVehicle(
@@ -73,6 +94,12 @@ public class PlaqueController {
         }
     }
 
+    /**
+     * Récupérer une plaque par son ID
+     * 
+     * @param id L'ID de la plaque
+     * @return La plaque correspondante
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getPlaqueById(@PathVariable UUID id) {
@@ -86,38 +113,31 @@ public class PlaqueController {
         }
     }
 
+    /**
+     * Récupérer toutes les plaques
+     * 
+     * @param page La page actuelle
+     * @param size La taille de la page
+     * @param disponible La disponibilité des plaques
+     * @return Liste de toutes les plaques
+     */
     @GetMapping("")
     @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> getAllPlaques(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Boolean disponible) {
-        try {
-            List<Plaque> plaques;
-            if (disponible != null) {
-                if (disponible) {
-                    plaques = plaqueService.getAvailablePlaques();
-                } else {
-                    plaques = plaqueService.getAssignedPlaques();
-                }
-            } else {
-                plaques = plaqueService.getAllPlaques();
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("plaques", plaques);
-            response.put("currentPage", page);
-            response.put("totalItems", plaques.size());
-            response.put("totalPages", (int) Math.ceil((double) plaques.size() / size));
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("PLAQUE_FETCH_ERROR", "Erreur lors de la récupération des plaques", e.getMessage()));
-        }
+        return plaqueService.getAllPlaques(page, size, disponible);
     }
 
+    /**
+     * Récupérer les plaques d'un véhicule
+     * 
+     * @param vehiculeId L'ID du véhicule
+     * @param page La page actuelle
+     * @param size La taille de la page
+     * @return Liste des plaques du véhicule
+     */
     @GetMapping("/vehicule/{vehiculeId}")
     @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<?> getPlaquesByVehicle(
@@ -141,6 +161,13 @@ public class PlaqueController {
         }
     }
 
+    /**
+     * Vérifie si une plaque est disponible en stock
+     * 
+     * @return Un objet contenant :
+     *   - available (boolean): true si des plaques sont disponibles
+     *   - message (String): message descriptif
+     */
     @GetMapping("/stock")
     @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
     public ResponseEntity<?> checkPlaqueStock() {
@@ -154,10 +181,52 @@ public class PlaqueController {
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("STOCK_CHECK_ERROR", "Erreur lors de la vérification du stock", e.getMessage()));
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_STOCK_ERROR", "Erreur lors de la vérification du stock", e.getMessage()));
         }
     }
-    
+
+    /**
+     * Récupère les plaques disponibles (non attribuées)
+     * 
+     * @return Liste des plaques disponibles
+     */
+    @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
+    public ResponseEntity<?> getAvailablePlaques() {
+        try {
+            List<Plaque> plaques = plaqueService.getAvailablePlaques();
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("plaques", plaques)));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_FETCH_ERROR", "Erreur lors de la récupération des plaques disponibles", e.getMessage()));
+        }
+    }
+
+    /**
+     * Récupère les plaques attribuées
+     * 
+     * @return Liste des plaques attribuées
+     */
+    @GetMapping("/assigned")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
+    public ResponseEntity<?> getAssignedPlaques() {
+        try {
+            List<Plaque> plaques = plaqueService.getAssignedPlaques();
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("plaques", plaques)));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_FETCH_ERROR", "Erreur lors de la récupération des plaques attribuées", e.getMessage()));
+        }
+    }
+
+    /**
+     * Télécharger un fichier
+     * 
+     * @param fileName Le nom du fichier
+     * @return Le fichier téléchargé
+     */
     @GetMapping("/download/{fileName:.+}")
     @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
@@ -180,10 +249,16 @@ public class PlaqueController {
     }
 
     /**
-     * Crée directement une plaque (par un taxateur ou admin)
+     * Crée une plaque directement associée à un véhicule
+     * 
+     * @param vehiculeId L'ID du véhicule
+     * @param numeroPlaque Le numéro de la plaque
+     * @param authentication L'objet d'authentification Spring Security
+     * @return La plaque créée avec son véhicule associé
+     * @throws RuntimeException Si l'utilisateur n'est pas trouvé
      */
     @PostMapping("/creer-directement")
-    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'ADMIN')")
     public ResponseEntity<?> creerPlaqueDirectement(
             @RequestParam UUID vehiculeId,
             @RequestParam String numeroPlaque,
@@ -202,14 +277,133 @@ public class PlaqueController {
             
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
                 "plaque", plaque,
-                "message", "Plaque créée directement avec succès"
+                "message", "Plaque créée et associée au véhicule avec succès"
             )));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("PLAQUE_CREATION_ERROR", 
-                            "Erreur lors de la création directe de la plaque", 
-                            e.getMessage()));
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_CREATION_ERROR", "Erreur lors de la création directe de la plaque", e.getMessage()));
         }
+    }
+
+    /**
+     * Importe un fichier de plaques
+     * 
+     * @param file Le fichier à importer (format CSV ou Excel)
+     * @return Résultat de l'importation avec statistiques
+     */
+    @PostMapping("/import")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN')")
+    public ResponseEntity<?> importPlaques(@RequestParam("file") MultipartFile file) {
+        try {
+            Map<String, Object> result = plaqueService.importPlaques(file);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(result));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_IMPORT_ERROR", "Erreur lors de l'importation des plaques", e.getMessage()));
+        }
+    }
+
+    /**
+     * Exporte les plaques dans un fichier
+     * 
+     * @return Fichier contenant toutes les plaques
+     */
+    @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN')")
+    public ResponseEntity<?> exportPlaques() {
+        try {
+            Resource resource = plaqueService.exportPlaques();
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"plaques_export.xlsx\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_EXPORT_ERROR", "Erreur lors de l'exportation des plaques", e.getMessage()));
+        }
+    }
+
+    /**
+     * Met à jour une plaque existante
+     * 
+     * @param id L'ID de la plaque à mettre à jour
+     * @param plaque Les nouvelles données de la plaque
+     * @return La plaque mise à jour
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AGENT')")
+    public ResponseEntity<?> updatePlaque(@PathVariable UUID id, @RequestBody Plaque plaque) {
+        return plaqueService.updatePlaque(id, plaque);
+    }
+
+    /**
+     * Supprime une plaque
+     * 
+     * @param id L'ID de la plaque à supprimer
+     * @return Confirmation de la suppression
+     */
+    /**
+     * Valide une plaque d'immatriculation
+     * 
+     * @param numeroPlaque Le numéro de plaque à valider
+     * @return True si la plaque est valide, false sinon
+     */
+    @GetMapping("/validate/{numeroPlaque}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AGENT')")
+    public ResponseEntity<?> validatePlaque(@PathVariable String numeroPlaque) {
+        return plaqueService.validatePlaque(numeroPlaque);
+    }
+
+    /**
+     * Vérifie si une plaque existe déjà
+     * 
+     * @param numeroPlaque Le numéro de plaque à vérifier
+     * @return True si la plaque existe, false sinon
+     */
+    @GetMapping("/exists/{numeroPlaque}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AGENT')")
+    public ResponseEntity<?> plaqueExists(@PathVariable String numeroPlaque) {
+        return plaqueService.plaqueExists(numeroPlaque);
+    }
+
+    /**
+     * Associe une plaque à un véhicule
+     * 
+     * @param plaqueId L'ID de la plaque
+     * @param vehiculeId L'ID du véhicule
+     * @return Confirmation de l'association
+     */
+    @PostMapping("/{plaqueId}/vehicules/{vehiculeId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AGENT')")
+    public ResponseEntity<?> assignPlaqueToVehicule(@PathVariable UUID plaqueId, @PathVariable UUID vehiculeId) {
+        return plaqueService.assignPlaqueToVehicule(plaqueId, vehiculeId);
+    }
+
+    /**
+     * Dissocie une plaque d'un véhicule
+     * 
+     * @param plaqueId L'ID de la plaque
+     * @return Confirmation de la dissociation
+     */
+    @DeleteMapping("/{plaqueId}/vehicules")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AGENT')")
+    public ResponseEntity<?> unassignPlaqueFromVehicule(@PathVariable UUID plaqueId) {
+        return plaqueService.unassignPlaqueFromVehicule(plaqueId);
+    }
+
+    /**
+     * Récupère le véhicule associé à une plaque
+     * 
+     * @param plaqueId L'ID de la plaque
+     * @return Le véhicule associé
+     */
+    @GetMapping("/{plaqueId}/vehicules")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AGENT')")
+    public ResponseEntity<?> getVehiculeByPlaque(@PathVariable UUID plaqueId) {
+        return plaqueService.getVehiculeByPlaque(plaqueId);
     }
 }

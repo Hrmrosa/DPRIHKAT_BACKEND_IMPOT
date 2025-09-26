@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +32,9 @@ public interface DeclarationRepository extends JpaRepository<Declaration, UUID>,
      * @return Nombre de déclarations dans la période
      */
     @Query("SELECT COUNT(d) FROM Declaration d WHERE d.dateDeclaration BETWEEN :startDate AND :endDate")
-    Long countByDateDeclarationBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    Long countByDateDeclarationBetween(
+            @Param("startDate") Date startDate, 
+            @Param("endDate") Date endDate);
     
     /**
      * Trouve toutes les déclarations sans paiement associé

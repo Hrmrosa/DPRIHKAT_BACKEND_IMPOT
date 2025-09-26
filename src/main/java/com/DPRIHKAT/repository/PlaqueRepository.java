@@ -16,4 +16,11 @@ public interface PlaqueRepository extends JpaRepository<Plaque, UUID> {
     List<Plaque> findByDisponibleFalse();
     List<Plaque> findByVehiculeId(UUID vehiculeId);
     List<Plaque> findByStatut(StatutPlaque statut);
+    
+    boolean existsByNumplaque(String numplaque);
+    
+    // Pour la compatibilité avec l'ancien code
+    default boolean existsByNumeroPlaque(String numeroPlaque) {
+        return existsByNumplaque(numeroPlaque);
+    }
 }

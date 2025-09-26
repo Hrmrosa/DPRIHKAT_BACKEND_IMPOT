@@ -82,7 +82,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/declarations/soumettre").hasRole("CONTRIBUABLE")
                 .requestMatchers("/api/declarations/manuelle").hasAnyRole("TAXATEUR", "RECEVEUR_DES_IMPOTS")
-                .requestMatchers("/api/plaques/**").hasAnyRole("TAXATEUR", "RECEVEUR_DES_IMPOTS")
+                .requestMatchers("/api/plaques/**").hasAnyRole("TAXATEUR", "RECEVEUR_DES_IMPOTS", "ADMIN")
                 .requestMatchers("/api/penalites/ajuster").hasAnyRole("CHEF_DE_BUREAU", "CHEF_DE_DIVISION", "DIRECTEUR")
                 .anyRequest().authenticated()
             )
