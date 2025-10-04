@@ -43,4 +43,12 @@ public interface VehiculeRepositoryCustom {
      * @return True si le véhicule existe, False sinon
      */
     boolean existsByImmatriculation(String immatriculation);
+    
+    /**
+     * Change le propriétaire d'un véhicule
+     * @param vehiculeId ID du véhicule
+     * @param nouveauProprietaireId ID du nouveau propriétaire
+     * @return Nombre de véhicules mis à jour (1 si succès, 0 sinon)
+     */
+    int changerProprietaire(UUID vehiculeId, UUID nouveauProprietaireId);
 }

@@ -240,7 +240,40 @@ genre=Véhicule particulier&categorie=Personne Physique
 }
 ```
 
-### 2.6 Supprimer un Véhicule
+### 2.6 Mutation de véhicule entre contribuables
+
+Change le propriétaire d'un véhicule d'un contribuable à un autre.
+
+- **URL**: `/api/vehicules/{vehiculeId}/changer-proprietaire`
+- **Méthode**: `PUT`
+- **Rôles autorisés**: `ADMIN`, `DIRECTEUR`
+- **Corps de la requête**:
+```json
+{
+  "nouveauProprietaireId": "uuid-string"
+}
+```
+
+#### Réponse en cas de succès
+```json
+{
+  "success": true,
+  "message": "Propriétaire du véhicule mis à jour"
+}
+```
+
+#### Réponse en cas d'erreur
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VEHICULE_NOT_FOUND",
+    "message": "Véhicule ou nouveau propriétaire non trouvé"
+  }
+}
+```
+
+### 2.7 Supprimer un Véhicule
 ```
 DELETE /api/vehicules/{id}
 Authorization: Bearer {token}

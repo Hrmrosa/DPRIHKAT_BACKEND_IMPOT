@@ -100,7 +100,22 @@ Récupère les détails d'un contribuable spécifique à partir de son identifia
       "type": "PERSONNE_PHYSIQUE",
       "idNat": "IDNAT-123456",
       "numeroIdentificationContribuable": "NIF-123456789",
-      "actif": true
+      "actif": true,
+      "vehicules": [
+        {
+          "id": "uuid-string",
+          "marque": "Toyota",
+          "modele": "Corolla",
+          "immatriculation": "CD-123-ABC"
+        }
+      ],
+      "concessions": [
+        {
+          "id": "uuid-string",
+          "numero": "CONC-2023-001",
+          "localisation": "Lubumbashi"
+        }
+      ]
     }
   }
 }
@@ -253,7 +268,22 @@ Met à jour les informations d'un contribuable existant. Tous les champs du cont
       "NRC": "NRC-654321",
       "sigle": "SMK",
       "numeroIdentificationContribuable": "NIF-987654321",
-      "actif": true
+      "actif": true,
+      "vehicules": [
+        {
+          "id": "uuid-string",
+          "marque": "Toyota",
+          "modele": "Corolla",
+          "immatriculation": "CD-123-ABC"
+        }
+      ],
+      "concessions": [
+        {
+          "id": "uuid-string",
+          "numero": "CONC-2023-001",
+          "localisation": "Lubumbashi"
+        }
+      ]
     }
   }
 }
@@ -272,7 +302,42 @@ Met à jour les informations d'un contribuable existant. Tous les champs du cont
 }
 ```
 
-### 5. Désactiver un contribuable
+### 5. Récupérer les détails complets d'un contribuable
+
+Retourne tous les détails d'un contribuable, y compris ses biens immobiliers et véhicules.
+
+- **URL**: `/api/contribuables/{id}/details`
+- **Méthode**: `GET`
+- **Rôles autorisés**: `ADMIN`, `DIRECTEUR`, `INFORMATICIEN`, `CONTROLLEUR`
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "UUID",
+    "nom": "string",
+    "proprietes": [
+      {
+        "id": "UUID",
+        "adresse": "string",
+        "valeur": 0
+      }
+    ],
+    "vehicules": [
+      {
+        "id": "UUID",
+        "immatriculation": "string",
+        "marque": "string",
+        "modele": "string"
+      }
+    ]
+  }
+}
+```
+
+### 6. Désactiver un contribuable
 
 Désactive un contribuable du système (suppression logique). Le contribuable reste dans la base de données mais avec le statut "inactif".
 
@@ -347,6 +412,12 @@ Désactive un contribuable du système (suppression logique). Le contribuable re
 | sigle | String | Sigle ou acronyme (pour les personnes morales) |
 | numeroIdentificationContribuable | String | Numéro d'identification fiscale (NIF) |
 | actif | boolean | Indique si le contribuable est actif dans le système |
+
+## Structure des données
+
+Un contribuable possède :
+- Biens immobiliers (propriétés)
+- Véhicules (avec plaque d'immatriculation)
 
 ## Règles métier
 

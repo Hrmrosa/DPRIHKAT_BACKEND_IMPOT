@@ -41,7 +41,7 @@ public class RelanceDetailDTO {
     
     // Informations sur le dossier de recouvrement
     private UUID dossierRecouvrementId;
-    private Double totalDu;
+    private Double totalDette;
     private Double totalRecouvre;
     private Date dateOuverture;
     
@@ -193,12 +193,12 @@ public class RelanceDetailDTO {
         this.dossierRecouvrementId = dossierRecouvrementId;
     }
     
-    public Double getTotalDu() {
-        return totalDu;
+    public Double getTotalDette() {
+        return totalDette;
     }
     
-    public void setTotalDu(Double totalDu) {
-        this.totalDu = totalDu;
+    public void setTotalDette(Double totalDette) {
+        this.totalDette = totalDette;
     }
     
     public Double getTotalRecouvre() {

@@ -286,4 +286,16 @@ public class Propriete {
     public void setNaturesImpot(List<NatureImpot> naturesImpot) {
         this.naturesImpot = naturesImpot;
     }
+
+    public Double getValeurLocative() {
+        return this.superficie * 1000; // Valeur locative par défaut
+    }
+
+    public TypePropriete getTypePropriete() {
+        return this.type;
+    }
+
+    public Double getSuperficieDouble() {
+        return this.superficie;
+    }
 }

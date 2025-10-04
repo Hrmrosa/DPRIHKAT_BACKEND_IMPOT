@@ -1,12 +1,16 @@
 package com.DPRIHKAT.service;
 
 import com.DPRIHKAT.model.Vehicule;
+import com.DPRIHKAT.repository.ContribuableRepository;
+import com.DPRIHKAT.repository.VehiculeRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.*;
@@ -21,6 +25,12 @@ public class VehiculeService {
     
     private static final Logger logger = LoggerFactory.getLogger(VehiculeService.class);
     private final Map<String, List<String>> marquesModeles = new HashMap<>();
+    
+    @Autowired
+    private VehiculeRepository vehiculeRepository;
+    
+    @Autowired
+    private ContribuableRepository contribuableRepository;
     
     public VehiculeService() {
         chargerVehicules();
@@ -131,5 +141,23 @@ public class VehiculeService {
      */
     public void rechargerVehicules() {
         chargerVehicules();
+    }
+    
+    /**
+     * Change le propriétaire d'un véhicule
+     * @param vehiculeId ID du véhicule
+     * @param nouveauProprietaireId ID du nouveau propriétaire
+     * @return true si la mutation a réussi, false sinon
+     */
+    @Transactional
+    public boolean changerProprietaire(UUID vehiculeId, UUID nouveauProprietaireId) {
+        // Vérifier que le nouveau propriétaire existe
+        if (!contribuableRepository.existsById(nouveauProprietaireId)) {
+            return false;
+        }
+        
+        // Effectuer la mutation
+        int updated = vehiculeRepository.changerProprietaire(vehiculeId, nouveauProprietaireId);
+        return updated == 1;
     }
 }

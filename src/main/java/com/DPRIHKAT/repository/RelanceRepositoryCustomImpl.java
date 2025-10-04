@@ -58,7 +58,7 @@ public class RelanceRepositoryCustomImpl implements RelanceRepositoryCustom {
         
         // Ajouter les informations du dossier de recouvrement
         dto.setDossierRecouvrementId(dossier.getId());
-        dto.setTotalDu(dossier.getTotalDu());
+        dto.setTotalDette(dossier.getTotalDette());
         dto.setTotalRecouvre(dossier.getTotalRecouvre());
         dto.setDateOuverture(dossier.getDateOuverture());
         

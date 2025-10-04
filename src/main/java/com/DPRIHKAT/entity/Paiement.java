@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class    Paiement {
+public class Paiement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -52,6 +52,10 @@ public class    Paiement {
     @JoinColumn(name = "declaration_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Declaration declaration;
+
+    @ManyToOne
+    @JoinColumn(name = "dossier_recouvrement_id")
+    private DossierRecouvrement dossier;
 
     public Paiement() {
     }
@@ -94,7 +98,7 @@ public class    Paiement {
     }
 
     public Date getDate() {
-        return date;
+        return this.date;
     }
 
     public void setDate(Date date) {
@@ -115,6 +119,10 @@ public class    Paiement {
 
     public void setMode(ModePaiement mode) {
         this.mode = mode;
+    }
+
+    public ModePaiement getModePaiement() {
+        return this.mode;
     }
 
     public StatutPaiement getStatut() {
@@ -171,5 +179,13 @@ public class    Paiement {
      */
     public Declaration getDeclaration() {
         return declaration;
+    }
+
+    public DossierRecouvrement getDossier() {
+        return dossier;
+    }
+
+    public void setDossier(DossierRecouvrement dossier) {
+        this.dossier = dossier;
     }
 }

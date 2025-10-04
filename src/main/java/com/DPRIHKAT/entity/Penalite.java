@@ -118,4 +118,8 @@ public class Penalite {
     public void setPaiement(Paiement paiement) {
         this.paiement = paiement;
     }
+
+    public Date getDatePenalite() {
+        return this.dateApplication;
+    }
 }

@@ -78,4 +78,15 @@ public class VehiculeRepositoryCustomImpl implements VehiculeRepositoryCustom {
                 .setParameter("immatriculation", immatriculation);
         return query.getSingleResult();
     }
+    
+    @Override
+    public int changerProprietaire(UUID vehiculeId, UUID nouveauProprietaireId) {
+        String jpql = "UPDATE Vehicule v SET v.proprietaire.id = :nouveauProprietaireId WHERE v.id = :vehiculeId";
+        
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("nouveauProprietaireId", nouveauProprietaireId);
+        query.setParameter("vehiculeId", vehiculeId);
+        
+        return query.executeUpdate();
+    }
 }

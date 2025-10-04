@@ -1,5 +1,92 @@
 # API de Gestion du Recouvrement
 
+## Structure complète d'un dossier de recouvrement
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "dateOuverture": "2025-09-29T00:00:00Z",
+  "dateCloture": "2025-12-15T00:00:00Z",
+  "statut": "EN_COURS",
+  "totalDette": 1500.0,
+  "totalRecouvre": 500.0,
+  "codeQR": "QR-3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "contribuable": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "nom": "Dupont",
+    "prenom": "Jean",
+    "numeroIdentification": "ID123456",
+    "adresse": "123 Rue Example",
+    "telephone": "+123456789"
+  },
+  "declarations": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "dateDeclaration": "2025-06-15T00:00:00Z",
+      "montant": 750.0,
+      "impot": {
+        "type": "TAXE_FONCIERE",
+        "taux": 0.15
+      },
+      "penalites": [
+        {
+          "montant": 150.0,
+          "motif": "RETARD"
+        }
+      ]
+    }
+  ],
+  "paiements": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "date": "2025-09-20T00:00:00Z",
+      "montant": 500.0,
+      "mode": "VIREMENT"
+    }
+  ],
+  "historique": [
+    {
+      "date": "2025-09-29T00:00:00Z",
+      "action": "DOSSIER_OUVERT",
+      "agent": "Agent Smith"
+    }
+  ]
+}
+```
+
+## Endpoints
+
+### Récupérer un dossier complet
+`GET /api/dossiers-recouvrement/{id}`
+
+**Réponse**:
+- 200: Dossier complet avec tous les détails (structure ci-dessus)
+- 404: Dossier non trouvé
+
+### Rechercher des dossiers
+`GET /api/dossiers-recouvrement/search`
+
+**Paramètres**:
+- `contribuableId` (optionnel)
+- `statut` (optionnel)
+- `dateDebut` (optionnel)
+- `dateFin` (optionnel)
+
+### Exporter un dossier
+`GET /api/dossiers-recouvrement/{id}/export`
+
+**Réponse**:
+- 200: PDF du dossier
+
+## Rôles requis
+- ADMIN: Toutes opérations
+- AGENT_RECOUVREMENT: Opérations spécialisées
+- CONTROLLEUR: Consultation seulement
+
+## Codes statut
+- EN_COURS: Dossier actif
+- CLOTURE: Dossier clos
+- SUSPENDU: Dossier en attente
+
 ## Récupérer tous les dossiers de recouvrement
 
 `GET /api/dossiers-recouvrement`

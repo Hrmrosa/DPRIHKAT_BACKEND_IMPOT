@@ -190,4 +190,14 @@ public class Utilisateur {
     public boolean isContribuable() {
         return this.role == Role.CONTRIBUABLE && this.contribuable != null;
     }
+
+    public boolean hasAdminRole() {
+        return this.role == Role.ADMIN || 
+               this.role == Role.DIRECTEUR || 
+               this.role == Role.INFORMATICIEN;
+    }
+
+    public Bureau getBureau() {
+        return this.agent != null ? this.agent.getBureau() : null;
+    }
 }

@@ -1,4 +1,4 @@
-x²# Déploiement sur un VPS (sans Docker)
+    x²# Déploiement sur un VPS (sans Docker)
 
 Ce guide installe PostgreSQL + PostGIS sur le serveur, configure l'application Spring Boot en service systemd et la démarre.
 

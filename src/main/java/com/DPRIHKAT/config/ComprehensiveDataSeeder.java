@@ -1015,7 +1015,7 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
                 
                 // Créer le dossier de recouvrement
                 DossierRecouvrement dossier = new DossierRecouvrement();
-                dossier.setTotalDu(totalDu);
+                dossier.setTotalDette(totalDu);
                 dossier.setTotalRecouvre(totalRecouvre);
                 dossier.setDateOuverture(dateOuverture);
                 dossier.setContribuable(contribuable);
@@ -1096,7 +1096,7 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
                 
                 // Montant recouvré (entre 0 et 50% du montant dû)
                 double montantRecouvre = statut == StatutPoursuite.CLOTUREE ?
-                        dossier.getTotalDu() * (0.5 + random.nextDouble() * 0.5) : 0.0;
+                        dossier.getTotalDette() * (0.5 + random.nextDouble() * 0.5) : 0.0;
                 
                 // Créer la poursuite
                 Poursuite poursuite = new Poursuite();

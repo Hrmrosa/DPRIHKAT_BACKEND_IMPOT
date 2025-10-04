@@ -83,6 +83,11 @@ public class Contribuable extends Agent {
     @OneToMany(mappedBy = "titulaire", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<ConcessionMinier> concessions = new ArrayList<>();
+    
+    // Véhicules associés à ce contribuable
+    @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Vehicule> vehicules = new ArrayList<>();
 
     public Contribuable() {
         super();
@@ -246,5 +251,17 @@ public class Contribuable extends Agent {
 
     public void setConcessions(List<ConcessionMinier> concessions) {
         this.concessions = concessions;
+    }
+    
+    public List<Vehicule> getVehicules() {
+        return vehicules;
+    }
+
+    public void setVehicules(List<Vehicule> vehicules) {
+        this.vehicules = vehicules;
+    }
+
+    public TypeContribuable getTypeContribuable() {
+        return this.type;
     }
 }

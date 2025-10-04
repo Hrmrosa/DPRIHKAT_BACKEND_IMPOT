@@ -9,7 +9,6 @@ package com.DPRIHKAT.entity;
  * @author amateur
  */
 
-
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,118 +26,112 @@ public class DossierRecouvrement {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private Double totalDu;
-
-    private Double totalRecouvre;
-
     private Date dateOuverture;
-
     private Date dateCloture;
-
+    private String statut;
+    private Double totalDette;
+    private Double totalRecouvre;
     private String codeQR;
 
-    @OneToOne
-    @JoinColumn(name = "contribuable_id")
-    @JsonIdentityReference(alwaysAsId = true)
+    @ManyToOne
     private Contribuable contribuable;
 
-    @OneToMany(mappedBy = "dossierRecouvrement")
-    private List<Relance> relances = new ArrayList<>();
+    @OneToMany(mappedBy = "dossier", cascade = CascadeType.ALL)
+    private List<Declaration> declarations = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dossierRecouvrement")
-    private List<Poursuite> poursuites = new ArrayList<>();
+    @OneToMany(mappedBy = "dossier", cascade = CascadeType.ALL)
+    private List<Paiement> paiements = new ArrayList<>();
 
-    @OneToOne(mappedBy = "dossierRecouvrement")
-    private Apurement apurement;
+    @OneToMany(mappedBy = "dossier", cascade = CascadeType.ALL)
+    private List<HistoriqueDossier> historique = new ArrayList<>();
 
     public DossierRecouvrement() {
     }
 
-    public DossierRecouvrement(Double totalDu, Double totalRecouvre, Date dateOuverture, Date dateCloture) {
-        this.totalDu = totalDu;
-        this.totalRecouvre = totalRecouvre;
+    public DossierRecouvrement(Date dateOuverture, Date dateCloture, String statut, Double totalDette, Double totalRecouvre, String codeQR) {
         this.dateOuverture = dateOuverture;
         this.dateCloture = dateCloture;
-    }
-
-    // Getters et Setters
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public Double getTotalDu() {
-        return totalDu;
-    }
-
-    public void setTotalDu(Double totalDu) {
-        this.totalDu = totalDu;
-    }
-
-    public Double getTotalRecouvre() {
-        return totalRecouvre;
-    }
-
-    public void setTotalRecouvre(Double totalRecouvre) {
+        this.statut = statut;
+        this.totalDette = totalDette;
         this.totalRecouvre = totalRecouvre;
-    }
-
-    public Date getDateOuverture() {
-        return dateOuverture;
-    }
-
-    public void setDateOuverture(Date dateOuverture) {
-        this.dateOuverture = dateOuverture;
-    }
-
-    public Date getDateCloture() {
-        return dateCloture;
-    }
-
-    public void setDateCloture(Date dateCloture) {
-        this.dateCloture = dateCloture;
-    }
-
-    public String getCodeQR() {
-        return codeQR;
-    }
-
-    public void setCodeQR(String codeQR) {
         this.codeQR = codeQR;
     }
 
-    public Contribuable getContribuable() {
-        return contribuable;
+    // Getters et Setters
+    public UUID getId() { 
+        return id; 
     }
-
-    public void setContribuable(Contribuable contribuable) {
-        this.contribuable = contribuable;
+    public void setId(UUID id) { 
+        this.id = id; 
     }
-
-    public List<Relance> getRelances() {
-        return relances;
+    
+    public Date getDateOuverture() { 
+        return dateOuverture; 
     }
-
-    public void setRelances(List<Relance> relances) {
-        this.relances = relances;
+    public void setDateOuverture(Date dateOuverture) { 
+        this.dateOuverture = dateOuverture; 
     }
-
-    public List<Poursuite> getPoursuites() {
-        return poursuites;
+    
+    public Date getDateCloture() { 
+        return dateCloture; 
     }
-
-    public void setPoursuites(List<Poursuite> poursuites) {
-        this.poursuites = poursuites;
+    public void setDateCloture(Date dateCloture) { 
+        this.dateCloture = dateCloture; 
     }
-
-    public Apurement getApurement() {
-        return apurement;
+    
+    public String getStatut() { 
+        return statut; 
     }
-
-    public void setApurement(Apurement apurement) {
-        this.apurement = apurement;
+    public void setStatut(String statut) { 
+        this.statut = statut; 
+    }
+    
+    public Double getTotalDette() { 
+        return totalDette; 
+    }
+    public void setTotalDette(Double totalDette) { 
+        this.totalDette = totalDette; 
+    }
+    
+    public Double getTotalRecouvre() { 
+        return totalRecouvre; 
+    }
+    public void setTotalRecouvre(Double totalRecouvre) { 
+        this.totalRecouvre = totalRecouvre; 
+    }
+    
+    public String getCodeQR() { 
+        return codeQR; 
+    }
+    public void setCodeQR(String codeQR) { 
+        this.codeQR = codeQR; 
+    }
+    
+    public Contribuable getContribuable() { 
+        return contribuable; 
+    }
+    public void setContribuable(Contribuable contribuable) { 
+        this.contribuable = contribuable; 
+    }
+    
+    public List<Declaration> getDeclarations() { 
+        return declarations; 
+    }
+    public void setDeclarations(List<Declaration> declarations) { 
+        this.declarations = declarations; 
+    }
+    
+    public List<Paiement> getPaiements() { 
+        return paiements; 
+    }
+    public void setPaiements(List<Paiement> paiements) { 
+        this.paiements = paiements; 
+    }
+    
+    public List<HistoriqueDossier> getHistorique() { 
+        return historique; 
+    }
+    public void setHistorique(List<HistoriqueDossier> historique) { 
+        this.historique = historique; 
     }
 }

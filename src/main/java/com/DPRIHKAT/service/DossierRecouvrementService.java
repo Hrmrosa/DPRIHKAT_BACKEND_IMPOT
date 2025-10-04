@@ -37,4 +37,20 @@ public class DossierRecouvrementService {
     public void deleteById(UUID id) {
         dossierRecouvrementRepository.deleteById(id);
     }
+
+    public DossierRecouvrement findByIdWithDetails(UUID id) {
+        DossierRecouvrement dossier = dossierRecouvrementRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Dossier non trouvé"));
+        
+        // Force le chargement des relations
+        dossier.getContribuable().getNom();
+        dossier.getDeclarations().forEach(d -> {
+            d.getImpot();
+            d.getPenalites().size();
+        });
+        dossier.getPaiements().size();
+        dossier.getHistorique().size();
+        
+        return dossier;
+    }
 }

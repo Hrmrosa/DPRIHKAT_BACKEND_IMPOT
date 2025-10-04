@@ -48,10 +48,17 @@ public class Vehicule {
     @Column(name = "unite_puissance")
     private String unitePuissance;
     
+    @Column(name = "valeur_locative")
+    private Double valeurLocative;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proprietaire_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Contribuable proprietaire;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contribuable_id")
+    private Contribuable contribuable;
     
     @OneToMany(mappedBy = "vehicule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Plaque> plaques;
@@ -163,12 +170,28 @@ public class Vehicule {
         this.unitePuissance = unitePuissance;
     }
     
+    public Double getValeurLocative() {
+        return valeurLocative;
+    }
+
+    public void setValeurLocative(Double valeurLocative) {
+        this.valeurLocative = valeurLocative;
+    }
+    
     public Contribuable getProprietaire() {
         return proprietaire;
     }
     
     public void setProprietaire(Contribuable proprietaire) {
         this.proprietaire = proprietaire;
+    }
+    
+    public Contribuable getContribuable() {
+        return contribuable;
+    }
+    
+    public void setContribuable(Contribuable contribuable) {
+        this.contribuable = contribuable;
     }
     
     public List<Plaque> getPlaques() {
@@ -193,5 +216,11 @@ public class Vehicule {
     
     public void setVignettes(List<Vignette> vignettes) {
         this.vignettes = vignettes;
+    }
+    
+    public Double getValeur() {
+        // Logique de calcul de la valeur du véhicule
+        // Par exemple, basée sur l'année, la marque et le modèle
+        return this.valeurLocative;
     }
 }

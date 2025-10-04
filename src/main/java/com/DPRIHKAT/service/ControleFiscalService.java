@@ -2,10 +2,17 @@ package com.DPRIHKAT.service;
 
 import com.DPRIHKAT.entity.*;
 import com.DPRIHKAT.entity.enums.Role;
+import com.DPRIHKAT.entity.enums.StatutControle;
+import com.DPRIHKAT.entity.enums.StatutDeclaration;
+import com.DPRIHKAT.entity.enums.TypeControle;
+import com.DPRIHKAT.entity.enums.TypeContribuable;
 import com.DPRIHKAT.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,21 +52,55 @@ public class ControleFiscalService {
     @Autowired
     private ControleFiscalRepository controleFiscalRepository;
 
-    /**
-     * Find declarations with anomalies (unpaid, late, etc.)
-     * Filtered by bureau for non-admin users
-     */
-    public List<Declaration> findAnomalies(UUID userId) {
+    private static final Logger logger = LoggerFactory.getLogger(ControleFiscalService.class);
+
+    public List<Map<String, Object>> findAnomalies(UUID userId) {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        // For admin, directeur, and informaticien, show all unpaid declarations
         List<Declaration> unpaid = declarationRepository.findByPaiementIsNull();
 
         if (utilisateur.getRole() == Role.ADMIN ||
             utilisateur.getRole() == Role.DIRECTEUR ||
             utilisateur.getRole() == Role.INFORMATICIEN) {
-            return unpaid;
+            return unpaid.stream()
+                    .map(declaration -> {
+                        Map<String, Object> anomalyData = new HashMap<>();
+                        anomalyData.put("id", declaration.getId());
+                        anomalyData.put("dateDeclaration", declaration.getDateDeclaration());
+                        anomalyData.put("montant", declaration.getMontant());
+                        anomalyData.put("impot", declaration.getImpot() != null ? Map.of(
+                            "type", declaration.getImpot().getType(),
+                            "taux", declaration.getImpot().getTaux()
+                        ) : null);
+                        anomalyData.put("penalites", declaration.getPenalites().stream()
+                            .map(p -> Map.of("montant", p.getMontant(), "motif", p.getMotif()))
+                            .collect(Collectors.toList()));
+
+                        Contribuable contribuable = declaration.getContribuable();
+                        anomalyData.put("contribuableDetails", Map.of(
+                            "id", contribuable.getId(),
+                            "nomComplet", contribuable.getNom() ,
+                            "adresse", contribuable.getAdressePrincipale(),
+                            "telephone", contribuable.getTelephonePrincipal(),
+                            "email", contribuable.getEmail(),
+                            "typeContribuable", contribuable.getTypeContribuable()
+                        ));
+
+                        if (declaration.getPropriete() != null) {
+                            Propriete propriete = declaration.getPropriete();
+                            anomalyData.put("proprieteDetails", Map.of(
+                                "id", propriete.getId(),
+                                "adresse", propriete.getAdresse(),
+                                "superficie", propriete.getSuperficie(),
+                                "valeurLocative", propriete.getValeurLocative(),
+                                "typePropriete", propriete.getTypePropriete()
+                            ));
+                        }
+
+                        return anomalyData;
+                    })
+                    .collect(Collectors.toList());
         }
 
         Agent agent = utilisateur.getAgent();
@@ -71,24 +112,54 @@ public class ControleFiscalService {
             throw new RuntimeException("Bureau non associé à l'agent");
         }
 
-        // Filter by bureau using the declaration's agentValidateur bureau as proxy
         return unpaid.stream()
                 .filter(d -> d.getAgentValidateur() != null && d.getAgentValidateur().getBureau() != null)
                 .filter(d -> bureau.getId().equals(d.getAgentValidateur().getBureau().getId()))
+                .map(declaration -> {
+                    Map<String, Object> anomalyData = new HashMap<>();
+                    anomalyData.put("id", declaration.getId());
+                    anomalyData.put("dateDeclaration", declaration.getDateDeclaration());
+                    anomalyData.put("montant", declaration.getMontant());
+                    anomalyData.put("impot", declaration.getImpot() != null ? Map.of(
+                        "type", declaration.getImpot().getType(),
+                        "taux", declaration.getImpot().getTaux()
+                    ) : null);
+                    anomalyData.put("penalites", declaration.getPenalites().stream()
+                        .map(p -> Map.of("montant", p.getMontant(), "motif", p.getMotif()))
+                        .collect(Collectors.toList()));
+
+                    Contribuable contribuable = declaration.getContribuable();
+                    anomalyData.put("contribuableDetails", Map.of(
+                        "id", contribuable.getId(),
+                        "nomComplet", contribuable.getNom() ,
+                        "adresse", contribuable.getAdressePrincipale(),
+                        "telephone", contribuable.getTelephonePrincipal(),
+                        "email", contribuable.getEmail(),
+                        "typeContribuable", contribuable.getTypeContribuable()
+                    ));
+
+                    if (declaration.getPropriete() != null) {
+                        Propriete propriete = declaration.getPropriete();
+                        anomalyData.put("proprieteDetails", Map.of(
+                            "id", propriete.getId(),
+                            "adresse", propriete.getAdresse(),
+                            "superficie", propriete.getSuperficie(),
+                            "valeurLocative", propriete.getValeurLocative(),
+                            "typePropriete", propriete.getTypePropriete()
+                        ));
+                    }
+
+                    return anomalyData;
+                })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Generate fiscal report for a period
-     * Filtered by bureau for non-admin users
-     */
     public Map<String, Object> generateFiscalReport(UUID userId, Date startDate, Date endDate) {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
         Map<String, Object> report = new HashMap<>();
 
-        // Base datasets
         List<Declaration> declarations = declarationRepository.findByDateBetween(startDate, endDate);
         List<Paiement> paiements = paiementRepository.findByDateBetween(startDate, endDate);
         List<Penalite> penalites = penaliteRepository.findByDateApplicationBetween(startDate, endDate);
@@ -107,7 +178,6 @@ public class ControleFiscalService {
                     .filter(d -> bureau.getId().equals(d.getAgentValidateur().getBureau().getId()))
                     .collect(Collectors.toList());
 
-            // Filter paiements by declaration bureau using declaration link
             final Set<UUID> declarationIdsInBureau = declarations.stream().map(Declaration::getId).collect(Collectors.toSet());
             final Set<UUID> paymentIdsInBureau = declarations.stream()
                     .map(Declaration::getPaiement)
@@ -118,18 +188,15 @@ public class ControleFiscalService {
                     .filter(p -> paymentIdsInBureau.contains(p.getId()))
                     .collect(Collectors.toList());
 
-            // Filter penalites by bureau using declaration link
             penalites = penalites.stream()
                     .filter(pe -> pe.getDeclaration() != null && declarationIdsInBureau.contains(pe.getDeclaration().getId()))
                     .collect(Collectors.toList());
 
-            // Filter apurements by date and bureau using declaration link
             apurements = apurements.stream()
                     .filter(a -> a.getDateDemande() != null && !a.getDateDemande().before(startDate) && !a.getDateDemande().after(endDate))
                     .filter(a -> a.getDeclaration() != null && declarationIdsInBureau.contains(a.getDeclaration().getId()))
                     .collect(Collectors.toList());
         } else {
-            // For admin-level roles, filter apurements only by date range
             apurements = apurements.stream()
                     .filter(a -> a.getDateDemande() != null && !a.getDateDemande().before(startDate) && !a.getDateDemande().after(endDate))
                     .collect(Collectors.toList());
@@ -146,15 +213,10 @@ public class ControleFiscalService {
         return report;
     }
 
-    /**
-     * Get top contributors by payment amount
-     * Filtered by bureau for non-admin users
-     */
     public List<Map<String, Object>> getTopContributors(UUID userId, int limit) {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        // Build from declarations with payments
         List<Declaration> allDeclWithPayment = declarationRepository.findAll().stream()
                 .filter(d -> d.getPaiement() != null)
                 .collect(Collectors.toList());
@@ -197,10 +259,6 @@ public class ControleFiscalService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get delinquent contributors (with unpaid declarations)
-     * Filtered by bureau for non-admin users
-     */
     public List<Map<String, Object>> getDelinquentContributors(UUID userId) {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
@@ -237,10 +295,6 @@ public class ControleFiscalService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get dashboard statistics
-     * Filtered by bureau for non-admin users
-     */
     public Map<String, Object> getDashboardStats(UUID userId) {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
@@ -254,10 +308,10 @@ public class ControleFiscalService {
             utilisateur.getRole() != Role.DIRECTEUR &&
             utilisateur.getRole() != Role.INFORMATICIEN) {
             Agent agent = utilisateur.getAgent();
-            if (agent == null) throw new RuntimeException("Agent non associé à l'utilisateur");
+            if (agent == null) throw new RuntimeException("Agent non associé");
             Bureau bureau = agent.getBureau();
-            if (bureau == null) throw new RuntimeException("Bureau non associé à l'agent");
-
+            if (bureau == null) throw new RuntimeException("Bureau non associé");
+            
             declarations = declarations.stream()
                     .filter(d -> d.getAgentValidateur() != null && d.getAgentValidateur().getBureau() != null)
                     .filter(d -> bureau.getId().equals(d.getAgentValidateur().getBureau().getId()))
@@ -283,10 +337,10 @@ public class ControleFiscalService {
                 .count();
 
         long pendingDeclarations = declarations.stream()
-                .filter(d -> d.getStatut() == com.DPRIHKAT.entity.enums.StatutDeclaration.EN_ATTENTE)
+                .filter(d -> d.getStatut() == StatutDeclaration.EN_ATTENTE)
                 .count();
         long validatedDeclarations = declarations.stream()
-                .filter(d -> d.getStatut() == com.DPRIHKAT.entity.enums.StatutDeclaration.VALIDEE)
+                .filter(d -> d.getStatut() == StatutDeclaration.VALIDEE)
                 .count();
 
         stats.put("totalDeclarations", totalDeclarations);
@@ -302,7 +356,6 @@ public class ControleFiscalService {
         return controleFiscalRepository.findByDeclarationContribuableBureauId(bureauId);
     }
 
-    // Helper method to map ControleFiscal to ControleFiscalDTO
     private Map<String, Object> mapToDTO(ControleFiscal controle) {
         Map<String, Object> dto = new HashMap<>();
         dto.put("id", controle.getId());
@@ -313,7 +366,6 @@ public class ControleFiscalService {
         dto.put("observations", controle.getObservations());
         dto.put("justificatifs", controle.getJustificatifs());
         
-        // Add declaration info
         if (controle.getDeclaration() != null) {
             Map<String, Object> declarationInfo = new HashMap<>();
             declarationInfo.put("id", controle.getDeclaration().getId());
@@ -322,7 +374,6 @@ public class ControleFiscalService {
             dto.put("declaration", declarationInfo);
         }
         
-        // Add agent initiateur info
         if (controle.getAgentInitiateur() != null) {
             Map<String, Object> agentInfo = new HashMap<>();
             agentInfo.put("id", controle.getAgentInitiateur().getId());
@@ -331,7 +382,6 @@ public class ControleFiscalService {
             dto.put("agentInitiateur", agentInfo);
         }
         
-        // Add agent validateur info
         if (controle.getAgentValidateur() != null) {
             Map<String, Object> agentInfo = new HashMap<>();
             agentInfo.put("id", controle.getAgentValidateur().getId());
@@ -351,11 +401,11 @@ public class ControleFiscalService {
         return controleFiscalRepository.findByDeclarationId(declarationId);
     }
 
-    public List<ControleFiscal> getControlesFiscauxByStatut(com.DPRIHKAT.entity.enums.StatutControle statut) {
+    public List<ControleFiscal> getControlesFiscauxByStatut(StatutControle statut) {
         return controleFiscalRepository.findByStatut(statut);
     }
 
-    public List<ControleFiscal> getControlesFiscauxByType(com.DPRIHKAT.entity.enums.TypeControle type) {
+    public List<ControleFiscal> getControlesFiscauxByType(TypeControle type) {
         return controleFiscalRepository.findByType(type);
     }
 
@@ -363,65 +413,54 @@ public class ControleFiscalService {
         return controleFiscalRepository.findByDateCreationBetween(startDate, endDate);
     }
 
-    // Get all controles fiscaux
     public List<ControleFiscal> findAll() {
         return controleFiscalRepository.findAll();
     }
 
-    // Get controle fiscal by ID
     public ControleFiscal findById(UUID id) {
         return controleFiscalRepository.findById(id).orElse(null);
     }
 
-    // Save controle fiscal
     public ControleFiscal save(ControleFiscal controleFiscal) {
         return controleFiscalRepository.save(controleFiscal);
     }
 
-    // Update controle fiscal
     public ControleFiscal update(UUID id, ControleFiscal controleFiscal) {
         controleFiscal.setId(id);
         return controleFiscalRepository.save(controleFiscal);
     }
 
-    // Delete controle fiscal
     public void deleteById(UUID id) {
         controleFiscalRepository.deleteById(id);
     }
 
-    // Get all controls for a specific agent
     public List<ControleFiscal> getControlesForAgent(UUID agentId) {
         return controleFiscalRepository.findByAgentInitiateurId(agentId);
     }
 
-    // Get all controls for a specific declaration
     public List<ControleFiscal> getControlesForDeclaration(UUID declarationId) {
         return controleFiscalRepository.findByDeclarationId(declarationId);
     }
 
-    // Create a new control
     public ControleFiscal createControle(ControleFiscal controle, UUID agentId) {
         Utilisateur utilisateur = utilisateurRepository.findById(agentId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        controle.setAgentInitiateur(utilisateur.getAgent()); // Utiliser getAgent() pour obtenir l'entité Agent
+        controle.setAgentInitiateur(utilisateur.getAgent()); 
         controle.setDateCreation(new Date());
-        controle.setStatut(com.DPRIHKAT.entity.enums.StatutControle.EN_COURS);
+        controle.setStatut(StatutControle.EN_COURS);
         
         return controleFiscalRepository.save(controle);
     }
 
-    // Get agent initiateur for a control
     public Agent getAgentInitiateur(ControleFiscal controle) {
         return controle.getAgentInitiateur();
     }
 
-    // Get declaration for a control
     public Declaration getDeclaration(ControleFiscal controle) {
         return controle.getDeclaration();
     }
 
-    // Get all controls with filtering options
     public List<ControleFiscal> getAllControlesWithFilters(
             UUID agentId,
             UUID bureauId,
@@ -429,12 +468,9 @@ public class ControleFiscalService {
             Date dateFin,
             String statut) {
         
-        // Implementation would depend on your specific filtering needs
-        // This is a simplified example
         return controleFiscalRepository.findAll();
     }
 
-    // Get statistics for controls
     public Map<String, Object> getControleStatistics(UUID bureauId, UUID divisionId) {
         Map<String, Object> stats = new HashMap<>();
         
@@ -452,29 +488,155 @@ public class ControleFiscalService {
         return stats;
     }
 
-    // Get controls by status
     public List<ControleFiscal> getControlesByStatut(String statut) {
-        // Convert string to enum
         try {
-            com.DPRIHKAT.entity.enums.StatutControle statutEnum = com.DPRIHKAT.entity.enums.StatutControle.valueOf(statut);
+            StatutControle statutEnum = StatutControle.valueOf(statut);
             return controleFiscalRepository.findByStatut(statutEnum);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Statut invalide: " + statut);
         }
     }
 
-    // Get controls by date range
     public List<ControleFiscal> getControlesByDateRange(Date startDate, Date endDate) {
         return controleFiscalRepository.findByDateCreationBetween(startDate, endDate);
     }
 
-    // Get controls by bureau
     public List<ControleFiscal> getControlesByBureau(UUID bureauId) {
         return controleFiscalRepository.findByDeclarationContribuableBureauId(bureauId);
     }
 
-    // Get controls by division
     public List<ControleFiscal> getControlesByDivision(UUID divisionId) {
         return controleFiscalRepository.findByDeclarationContribuableBureauDivisionId(divisionId);
+    }
+
+    public List<Contribuable> findInsolvables(UUID userId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -3);
+        Date threeMonthsAgo = cal.getTime();
+        
+        List<Declaration> unpaidDeclarations = declarationRepository.findByPaiementIsNullAndDateDeclarationBefore(threeMonthsAgo);
+        
+        if (utilisateur.getRole() != Role.ADMIN && 
+            utilisateur.getRole() != Role.DIRECTEUR && 
+            utilisateur.getRole() != Role.INFORMATICIEN) {
+            
+            Agent agent = utilisateur.getAgent();
+            if (agent == null) throw new RuntimeException("Agent non associé");
+            Bureau bureau = agent.getBureau();
+            if (bureau == null) throw new RuntimeException("Bureau non associé");
+            
+            unpaidDeclarations = unpaidDeclarations.stream()
+                .filter(d -> d.getAgentValidateur() != null && d.getAgentValidateur().getBureau() != null)
+                .filter(d -> bureau.getId().equals(d.getAgentValidateur().getBureau().getId()))
+                .collect(Collectors.toList());
+        }
+        
+        Map<Contribuable, Long> contribuableCounts = unpaidDeclarations.stream()
+            .filter(d -> d.getContribuable() != null)
+            .collect(Collectors.groupingBy(Declaration::getContribuable, Collectors.counting()));
+        
+        return contribuableCounts.entrySet().stream()
+            .filter(e -> e.getValue() >= 2)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+    }
+
+    private Map<String, Object> buildResponse(Map<Contribuable, List<Declaration>> contribuableDeclarations, int page, int size) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("data", Map.of(
+            "insolvables", contribuableDeclarations,
+            "currentPage", page,
+            "totalItems", contribuableDeclarations.size(),
+            "totalPages", (int) Math.ceil((double) contribuableDeclarations.size() / size)
+        ));
+        response.put("error", null);
+        response.put("meta", Map.of(
+            "timestamp", Instant.now().toString(),
+            "version", "1.0.0"
+        ));
+
+        logger.info("{} insolvables trouvés", contribuableDeclarations.size());
+        return response;
+    }
+
+    public Map<String, Object> findInsolvablesPaginated(UUID userId, int page, int size) {
+        try {
+            logger.info("Début de la recherche des insolvables pour l'utilisateur: {}", userId);
+            
+            // Vérification des paramètres
+            if (page < 0 || size <= 0) {
+                throw new IllegalArgumentException("Paramètres de pagination invalides");
+            }
+
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MONTH, -3);
+            
+            logger.debug("Recherche des déclarations impayées avant: {}", cal.getTime());
+            List<Declaration> unpaidDeclarations = declarationRepository.findByPaiementIsNullAndDateDeclarationBefore(cal.getTime());
+            logger.debug("{} déclarations impayées trouvées", unpaidDeclarations.size());
+
+            Utilisateur user = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.error("Utilisateur non trouvé: {}", userId);
+                    return new RuntimeException("Utilisateur non trouvé");
+                });
+
+            Map<Contribuable, List<Declaration>> contribuableDeclarations = unpaidDeclarations.stream()
+                .filter(d -> d.getContribuable() != null)
+                .collect(Collectors.groupingBy(Declaration::getContribuable));
+
+            logger.info("{} contribuables avec déclarations impayées trouvés", contribuableDeclarations.size());
+            return buildResponse(contribuableDeclarations, page, size);
+            
+        } catch (Exception e) {
+            logger.error("Erreur critique lors de la recherche des insolvables", e);
+            throw new RuntimeException("Erreur technique lors de la récupération des insolvables", e);
+        }
+    }
+
+    private Double calculerTotalDette(Contribuable contribuable) {
+        return declarationRepository.findByContribuableAndPaiementIsNull(contribuable)
+            .stream()
+            .mapToDouble(Declaration::getMontant)
+            .sum();
+    }
+
+    private String getLastDeclarationDate(List<Declaration> declarations) {
+        return declarations.stream()
+            .map(Declaration::getDateDeclaration)
+            .max(Date::compareTo)
+            .map(Date::toString)
+            .orElse(null);
+    }
+
+    private List<Map<String, Object>> getBiensDetails(List<Declaration> declarations) {
+        return declarations.stream()
+            .map(decl -> {
+                Map<String, Object> bien = new HashMap<>();
+                bien.put("id", decl.getPropriete() != null ? decl.getPropriete().getId() : decl.getVehicule().getId());
+                bien.put("type", decl.getPropriete() != null ? "IMMEUBLE" : "VEHICULE");
+                bien.put("adresse", decl.getPropriete() != null ? decl.getPropriete().getAdresse() : decl.getVehicule().getImmatriculation());
+                bien.put("valeur", decl.getPropriete() != null ? decl.getPropriete().getValeurLocative() : decl.getVehicule().getValeur());
+                
+                bien.put("declarations", List.of(Map.of(
+                    "id", decl.getId(),
+                    "date", decl.getDateDeclaration(),
+                    "montant", decl.getMontant(),
+                    "impot", decl.getImpot() != null ? Map.of(
+                        "type", decl.getImpot().getType(),
+                        "taux", decl.getImpot().getTaux()
+                    ) : null,
+                    "penalites", decl.getPenalites().stream()
+                        .map(p -> Map.of("montant", p.getMontant(), "motif", p.getMotif()))
+                        .collect(Collectors.toList())
+                )));
+                
+                return bien;
+            })
+            .collect(Collectors.toList());
     }
 }

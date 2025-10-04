@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service pour gérer les contribuables
@@ -63,7 +64,7 @@ public class ContribuableService {
      * @return Le contribuable correspondant, s'il existe
      */
     public Contribuable findById(UUID id) {
-        return contribuableRepository.findById(id).orElse(null);
+        return contribuableRepository.findByIdWithAllProperties(id);
     }
 
     /**

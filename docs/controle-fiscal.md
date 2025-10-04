@@ -1,5 +1,91 @@
 # API de Contrôle Fiscal
 
+## Récupérer les contribuables insolvables
+
+`GET /api/controle-fiscal/insolvables`
+
+### Description
+Récupère la liste paginée des contribuables avec au moins 2 déclarations impayées depuis plus de 3 mois.
+
+### Rôles autorisés
+- ADMIN
+- DIRECTEUR
+- INFORMATICIEN
+- CONTROLLEUR
+
+### Paramètres
+- `page` (optionnel, défaut=0) - Numéro de page (0-based)
+- `size` (optionnel, défaut=10) - Taille de la page
+
+### Réponse
+```json
+{
+  "success": true,
+  "data": {
+    "insolvables": [
+      {
+        "id": "UUID",
+        "nomComplet": "string",
+        "nombreDeclarationsImpayees": 2,
+        "totalDette": 0,
+        "dateDerniereDeclaration": "ISO8601",
+        "contribuable": {
+          "id": "UUID",
+          "nom": "string",
+          "adressePrincipale": "string",
+          "telephone": "string",
+          "email": "string"
+        },
+        "biens": [
+          {
+            "id": "UUID",
+            "type": "IMMEUBLE/VEHICULE",
+            "adresse": "string",
+            "valeur": 0,
+            "declarations": [
+              {
+                "id": "UUID",
+                "date": "ISO8601",
+                "montant": 0,
+                "impot": {
+                  "type": "string",
+                  "taux": 0
+                },
+                "paiement": {
+                  "date": "ISO8601",
+                  "montant": 0,
+                  "mode": "string"
+                },
+                "penalites": [
+                  {
+                    "montant": 0,
+                    "motif": "string",
+                    "date": "ISO8601"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "currentPage": 0,
+    "totalItems": 0,
+    "totalPages": 0
+  },
+  "error": null,
+  "meta": {
+    "timestamp": "ISO8601",
+    "version": "1.0.0"
+  }
+}
+```
+
+### Exemple
+```bash
+curl -X GET "http://localhost:8080/api/controle-fiscal/insolvables?page=0&size=5"
+```
+
 ## Récupérer les anomalies
 
 `GET /api/controle-fiscal/anomalies`
@@ -23,33 +109,38 @@ Récupère la liste des déclarations avec anomalies pour le contrôle fiscal.
 {
   "success": true,
   "data": {
+    "totalItems": 48,
+    "totalPages": 5,
+    "currentPage": 0,
     "anomalies": [
       {
-        "id": "UUID",
-        "dateDeclaration": "ISO8601",
-        "montant": 0,
-        "statut": "string",
-        "typeImpot": "string",
-        "exercice": "string",
-        "contribuable": {
-          "id": "UUID",
-          "nom": "string",
-          "adressePrincipale": "string"
+        "id": "94ed98dc-f74b-43ac-940c-dbb5d4e78367",
+        "dateDeclaration": "2025-06-30T07:42:47.355+00:00",
+        "statut": "VALIDEE",
+        "contribuableDetails": {
+          "id": "6a73b298-94bc-46bd-b887-e33dd7de07ba",
+          "nomComplet": "Mutombo Jean",
+          "adresse": "123 Avenue de la République",
+          "telephone": "+243810000000",
+          "email": "jean.mutombo@example.com",
+          "typeContribuable": "PARTICULIER"
         },
-        "propriete": {
-          "id": "UUID",
-          "adresse": "string"
-        }
+        "proprieteDetails": {
+          "id": "45f00dfb-f6c5-4663-8a01-51c7ffc29f1d",
+          "adresse": "456 Boulevard du 30 Juin",
+          "superficie": 150,
+          "valeurLocative": 5000,
+          "typePropriete": "APPARTEMENT"
+        },
+        "taxations": [
+          {
+            "id": "50cfca51-2a8e-41b1-865a-45569141d08e",
+            "montant": 86.61,
+            "typeImpot": "IF"
+          }
+        ]
       }
-    ],
-    "currentPage": 0,
-    "totalItems": 0,
-    "totalPages": 0
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
+    ]
   }
 }
 ```
@@ -188,63 +279,6 @@ Récupère la liste des contributeurs qui ont le plus déclaré.
   "data": null,
   "error": {
     "code": "TOP_CONTRIBUTORS_ERROR|INVALID_USER",
-    "message": "string",
-    "details": "string"
-  },
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
-
-## Récupérer les contributeurs délinquants
-
-`GET /api/controle-fiscal/delinquents`
-
-### Description
-Récupère la liste des contributeurs délinquants (déclarations en retard).
-
-### Rôles autorisés
-- CONTROLLEUR
-- CHEF_DE_BUREAU
-- CHEF_DE_DIVISION
-- DIRECTEUR
-- ADMIN
-
-### Réponse
-```json
-{
-  "success": true,
-  "data": {
-    "delinquents": [
-      {
-        "contribuable": {
-          "id": "UUID",
-          "nom": "string",
-          "telephonePrincipal": "string"
-        },
-        "nombreDeclarationsRetard": 0,
-        "montantImpaye": 0
-      }
-    ],
-    "message": "Contributeurs délinquants récupérés avec succès"
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
-
-### Réponse en cas d'erreur
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DELINQUENTS_ERROR|INVALID_USER",
     "message": "string",
     "details": "string"
   },

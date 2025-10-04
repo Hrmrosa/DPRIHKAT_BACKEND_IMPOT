@@ -75,6 +75,22 @@ public class Declaration {
     @Enumerated(EnumType.STRING)
     private TypeImpot typeImpot;
 
+    @ManyToOne
+    @JoinColumn(name = "impot_id")
+    private Impot impot;
+
+    @OneToMany(mappedBy = "declaration", cascade = CascadeType.ALL)
+    private List<Penalite> penalites = new ArrayList<>();
+
+    // Relation avec le dossier de recouvrement
+    @ManyToOne
+    @JoinColumn(name = "dossier_recouvrement_id")
+    private DossierRecouvrement dossier;
+
+    @ManyToOne
+    @JoinColumn(name = "vehicule_id")
+    private Vehicule vehicule;
+
     public Declaration() {
     }
 
@@ -293,5 +309,41 @@ public class Declaration {
      */
     public Double getMontantDeclaration() {
         return montant;
+    }
+
+    public Impot getImpot() {
+        return impot;
+    }
+
+    public void setImpot(Impot impot) {
+        this.impot = impot;
+    }
+
+    public List<Penalite> getPenalites() {
+        return penalites;
+    }
+
+    public void setPenalites(List<Penalite> penalites) {
+        this.penalites = penalites;
+    }
+
+    public DossierRecouvrement getDossier() {
+        return dossier;
+    }
+
+    public void setDossier(DossierRecouvrement dossier) {
+        this.dossier = dossier;
+    }
+
+    public Vehicule getVehicule() {
+        return vehicule;
+    }
+
+    public void setVehicule(Vehicule vehicule) {
+        this.vehicule = vehicule;
+    }
+
+    public Bureau getBureau() {
+        return this.agentValidateur != null ? this.agentValidateur.getBureau() : null;
     }
 }

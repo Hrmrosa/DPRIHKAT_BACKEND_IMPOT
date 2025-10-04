@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,13 +38,26 @@ public class DossierRecouvrementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'CHEF_DE_BUREAU')")
     public ResponseEntity<?> getDossierById(@PathVariable UUID id) {
         try {
-            DossierRecouvrement dossier = dossierRecouvrementService.findById(id);
+            DossierRecouvrement dossier = dossierRecouvrementService.findByIdWithDetails(id);
             if (dossier == null) {
                 return ResponseEntity
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("DOSSIER_NOT_FOUND", "Dossier non trouvé", "Aucun dossier trouvé avec l'ID fourni"));
             }
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("dossier", dossier)));
+            
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("dossier", Map.of(
+                "id", dossier.getId(),
+                "dateOuverture", dossier.getDateOuverture(),
+                "totalDette", dossier.getTotalDette(),
+                "totalRecouvre", dossier.getTotalRecouvre()
+            ));
+            responseData.put("contribuable", dossier.getContribuable());
+            responseData.put("declarations", dossier.getDeclarations());
+            responseData.put("paiements", dossier.getPaiements());
+            responseData.put("historique", dossier.getHistorique());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(responseData));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
