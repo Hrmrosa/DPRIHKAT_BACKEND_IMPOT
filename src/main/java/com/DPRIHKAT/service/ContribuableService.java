@@ -1,314 +1,69 @@
 package com.DPRIHKAT.service;
 
-import com.DPRIHKAT.entity.Agent;
-import com.DPRIHKAT.entity.Bureau;
 import com.DPRIHKAT.entity.Contribuable;
-import com.DPRIHKAT.entity.Utilisateur;
-import com.DPRIHKAT.entity.enums.Role;
-import com.DPRIHKAT.entity.enums.Sexe;
-import com.DPRIHKAT.repository.AgentRepository;
-import com.DPRIHKAT.repository.BureauRepository;
 import com.DPRIHKAT.repository.ContribuableRepository;
-import com.DPRIHKAT.repository.UtilisateurRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-/**
- * Service pour gérer les contribuables
- * @author amateur
- */
 @Service
 public class ContribuableService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ContribuableService.class);
+    private final ContribuableRepository contribuableRepository;
 
-    @Autowired
-    private ContribuableRepository contribuableRepository;
+    public ContribuableService(ContribuableRepository contribuableRepository) {
+        this.contribuableRepository = contribuableRepository;
+    }
 
-    @Autowired
-    private AgentRepository agentRepository;
-
-    @Autowired
-    private UtilisateurRepository utilisateurRepository;
-
-    @Autowired
-    private BureauRepository bureauRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private EmailService emailService;
-
-    /**
-     * Récupère tous les contribuables
-     * @return Liste de tous les contribuables
-     */
-    public List<Contribuable> findAll() {
+    public List<Contribuable> getAllContribuables() {
         return contribuableRepository.findAll();
     }
 
-    /**
-     * Récupère un contribuable par son ID
-     * @param id L'ID du contribuable
-     * @return Le contribuable correspondant, s'il existe
-     */
-    public Contribuable findById(UUID id) {
-        return contribuableRepository.findByIdWithAllProperties(id);
+    public Contribuable getContribuableById(UUID id) {
+        return contribuableRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contribuable non trouvé"));
     }
 
-    /**
-     * Crée un nouveau contribuable avec un compte utilisateur
-     * @param contribuable Le contribuable à créer
-     * @return Le contribuable créé
-     */
-    @Transactional
     public Contribuable createContribuable(Contribuable contribuable) {
-        // Sauvegarder le contribuable
-        Contribuable savedContribuable = contribuableRepository.save(contribuable);
-        
-        // Créer un agent pour le contribuable
-        Agent agent = createAgentForContribuable(savedContribuable);
-        
-        // Créer un utilisateur pour le contribuable
-        Utilisateur utilisateur = createUtilisateurForContribuable(savedContribuable, agent);
-        
-        // Envoyer les identifiants par email
-        sendCredentialsByEmail(utilisateur, savedContribuable.getEmail());
-        
-        return savedContribuable;
+        return contribuableRepository.save(contribuable);
     }
 
-    /**
-     * Crée un agent pour un contribuable
-     * @param contribuable Le contribuable
-     * @return L'agent créé
-     */
-    private Agent createAgentForContribuable(Contribuable contribuable) {
-        // Récupérer un bureau par défaut pour les contribuables
-        Bureau bureau = bureauRepository.findByNom("Bureau des Contribuables");
+    public Contribuable updateContribuable(UUID id, Contribuable contribuable) {
+        Contribuable existing = getContribuableById(id);
+        // Mettre à jour les champs ici
+        existing.setNom(contribuable.getNom());
+        existing.setSexe(contribuable.getSexe());
+        existing.setMatricule(contribuable.getMatricule());
+        existing.setAdressePrincipale(contribuable.getAdressePrincipale());
+        existing.setAdresseSecondaire(contribuable.getAdresseSecondaire());
+        existing.setTelephonePrincipal(contribuable.getTelephonePrincipal());
+        existing.setTelephoneSecondaire(contribuable.getTelephoneSecondaire());
+        existing.setEmail(contribuable.getEmail());
+        existing.setNationalite(contribuable.getNationalite());
+        existing.setType(contribuable.getType());
+        existing.setIdNat(contribuable.getIdNat());
+        existing.setNRC(contribuable.getNRC());
+        existing.setSigle(contribuable.getSigle());
+        existing.setNumeroIdentificationContribuable(contribuable.getNumeroIdentificationContribuable());
         
-        if (bureau == null) {
-            bureau = new Bureau();
-            bureau.setNom("Bureau des Contribuables");
-            bureau = bureauRepository.save(bureau);
-        }
-        
-        // Créer un agent pour le contribuable
-        Agent agent = new Agent();
-        agent.setNom(contribuable.getNom());
-        agent.setSexe(Sexe.M); // Par défaut, à modifier si nécessaire
-        agent.setMatricule("CONT-" + contribuable.getNumeroIdentificationContribuable());
-        agent.setBureau(bureau);
-        
-        return agentRepository.save(agent);
+        return contribuableRepository.save(existing);
     }
 
-    /**
-     * Crée un utilisateur pour un contribuable
-     * @param contribuable Le contribuable
-     * @param agent L'agent associé au contribuable
-     * @return L'utilisateur créé
-     */
-    private Utilisateur createUtilisateurForContribuable(Contribuable contribuable, Agent agent) {
-        // Générer un nom d'utilisateur et un mot de passe
-        String username = generateUsername();
-        String password = "Tabc@123"; // Mot de passe par défaut
-        
-        // Créer l'utilisateur
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setLogin(username);
-        utilisateur.setMotDePasse(passwordEncoder.encode(password));
-        utilisateur.setRole(Role.CONTRIBUABLE);
-        utilisateur.setPremierConnexion(true);
-        utilisateur.setBloque(false);
-        utilisateur.setContribuable(contribuable);
-        utilisateur.setAgent(agent);
-        
-        // Sauvegarder l'utilisateur
-        Utilisateur savedUtilisateur = utilisateurRepository.save(utilisateur);
-        
-        // Mettre à jour les relations
-        contribuable.setUtilisateur(savedUtilisateur);
-        agent.setUtilisateur(savedUtilisateur);
-        
-        contribuableRepository.save(contribuable);
-        agentRepository.save(agent);
-        
-        return savedUtilisateur;
+    public Map<String, Object> getContribuableDetails(UUID id) {
+        Contribuable contribuable = getContribuableById(id);
+        // Implémenter la récupération des biens et véhicules ici
+        return Map.of(
+            "contribuable", contribuable,
+            "proprietes", List.of(), // À remplacer par la vraie implémentation
+            "vehicules", List.of()   // À remplacer par la vraie implémentation
+        );
     }
 
-    /**
-     * Génère un nom d'utilisateur unique pour un contribuable
-     * @return Le nom d'utilisateur généré
-     */
-    private String generateUsername() {
-        String prefix = "dpri_c";
-        String randomChars = generateRandomChars(4);
-        String username = prefix + randomChars;
-        
-        // Vérifier si le nom d'utilisateur existe déjà
-        while (utilisateurRepository.findByLogin(username).isPresent()) {
-            randomChars = generateRandomChars(4);
-            username = prefix + randomChars;
-        }
-        
-        return username;
-    }
-
-    /**
-     * Génère une chaîne aléatoire de caractères
-     * @param length La longueur de la chaîne
-     * @return La chaîne générée
-     */
-    private String generateRandomChars(int length) {
-        String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        
-        for (int i = 0; i < length; i++) {
-            int index = random.nextInt(chars.length());
-            sb.append(chars.charAt(index));
-        }
-        
-        return sb.toString();
-    }
-
-    /**
-     * Envoie les identifiants par email
-     * @param utilisateur L'utilisateur
-     * @param email L'adresse email du destinataire
-     */
-    private void sendCredentialsByEmail(Utilisateur utilisateur, String email) {
-        if (email == null || email.isEmpty()) {
-            logger.warn("Impossible d'envoyer les identifiants par email : adresse email non spécifiée");
-            return;
-        }
-        
-        String subject = "Vos identifiants de connexion DPRIHKAT";
-        String message = "Bonjour,\n\n"
-                + "Voici vos identifiants de connexion au système DPRIHKAT :\n"
-                + "Nom d'utilisateur : " + utilisateur.getLogin() + "\n"
-                + "Mot de passe : Tabc@123\n\n"
-                + "Veuillez changer votre mot de passe lors de votre première connexion.\n\n"
-                + "Cordialement,\n"
-                + "L'équipe DPRIHKAT";
-        
-        try {
-            emailService.sendEmail(email, subject, message);
-            logger.info("Identifiants envoyés par email à : {}", email);
-        } catch (Exception e) {
-            logger.error("Erreur lors de l'envoi des identifiants par email", e);
-        }
-    }
-
-    /**
-     * Met à jour un contribuable existant
-     * @param id L'ID du contribuable
-     * @param contribuable Les nouvelles informations du contribuable
-     * @return Le contribuable mis à jour, s'il existe
-     */
-    @Transactional
-    public Contribuable update(UUID id, Contribuable contribuableDetails) {
-        logger.info("Mise à jour du contribuable avec ID: {}", id);
-        
-        return contribuableRepository.findById(id)
-                .map(existingContribuable -> {
-                    // Mise à jour des champs spécifiques à Contribuable
-                    existingContribuable.setAdressePrincipale(contribuableDetails.getAdressePrincipale());
-                    existingContribuable.setAdresseSecondaire(contribuableDetails.getAdresseSecondaire());
-                    existingContribuable.setTelephonePrincipal(contribuableDetails.getTelephonePrincipal());
-                    existingContribuable.setTelephoneSecondaire(contribuableDetails.getTelephoneSecondaire());
-                    existingContribuable.setEmail(contribuableDetails.getEmail());
-                    existingContribuable.setNationalite(contribuableDetails.getNationalite());
-                    existingContribuable.setType(contribuableDetails.getType());
-                    existingContribuable.setIdNat(contribuableDetails.getIdNat());
-                    existingContribuable.setNRC(contribuableDetails.getNRC());
-                    existingContribuable.setSigle(contribuableDetails.getSigle());
-                    existingContribuable.setNumeroIdentificationContribuable(contribuableDetails.getNumeroIdentificationContribuable());
-                    
-                    // Mise à jour des champs hérités de Agent
-                    existingContribuable.setNom(contribuableDetails.getNom());
-                    existingContribuable.setSexe(contribuableDetails.getSexe());
-                    existingContribuable.setMatricule(contribuableDetails.getMatricule());
-                    
-                    // Ne pas écraser les relations existantes
-                    // (utilisateur, propriétés, déclarations, etc.)
-                    
-                    logger.info("Contribuable mis à jour avec succès: {}", existingContribuable.getId());
-                    return contribuableRepository.save(existingContribuable);
-                })
-                .orElseGet(() -> {
-                    logger.warn("Contribuable avec ID {} non trouvé", id);
-                    return null;
-                });
-    }
-
-    /**
-     * Désactive un contribuable par son ID (suppression logique)
-     * @param id L'ID du contribuable
-     * @return Le contribuable désactivé, ou null si non trouvé
-     */
-    @Transactional
     public Contribuable deactivateContribuable(UUID id) {
-        logger.info("Désactivation du contribuable avec ID: {}", id);
-        
-        return contribuableRepository.findById(id)
-                .map(contribuable -> {
-                    // Désactivation du contribuable (suppression logique)
-                    contribuable.setActif(false);
-                    logger.info("Contribuable désactivé avec succès: {}", id);
-                    return contribuableRepository.save(contribuable);
-                })
-                .orElse(null);
-    }
-
-    /**
-     * Active un contribuable par son ID (opération inverse de la désactivation)
-     * @param id L'ID du contribuable
-     * @return Le contribuable activé, ou null si non trouvé
-     */
-    @Transactional
-    public Contribuable activateContribuable(UUID id) {
-        logger.info("Activation du contribuable avec ID: {}", id);
-        
-        return contribuableRepository.findById(id)
-                .map(contribuable -> {
-                    // Activation du contribuable
-                    contribuable.setActif(true);
-                    logger.info("Contribuable activé avec succès: {}", id);
-                    return contribuableRepository.save(contribuable);
-                })
-                .orElse(null);
-    }
-
-    /**
-     * Supprime un contribuable par son ID
-     * @param id L'ID du contribuable
-     * @deprecated Utiliser deactivateContribuable à la place pour éviter les problèmes de contraintes de clés étrangères
-     */
-    @Deprecated
-    public void deleteById(UUID id) {
-        logger.warn("Méthode deleteById appelée, utiliser deactivateContribuable à la place");
-        deactivateContribuable(id);
-    }
-
-    /**
-     * Sauvegarde un contribuable
-     * @param contribuable Le contribuable à sauvegarder
-     * @return Le contribuable sauvegardé
-     */
-    public Contribuable save(Contribuable contribuable) {
+        Contribuable contribuable = getContribuableById(id);
+        contribuable.setActif(false);
         return contribuableRepository.save(contribuable);
     }
 }

@@ -448,6 +448,12 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
             utilisateur.setActif(true);
             utilisateur.setAgent(agent);
             
+            // Définir les champs obligatoires
+            utilisateur.setNomComplet(agent.getNom());
+            utilisateur.setMatricule("MAT" + String.format("%04d", i + 1));
+            utilisateur.setSexe(i % 2 == 0 ? Sexe.M : Sexe.F);
+            utilisateur.setGrade("Grade " + (i % 5 + 1));
+            
             utilisateurs.add(utilisateur);
             agent.setUtilisateur(utilisateur);
         }
@@ -465,6 +471,12 @@ public class ComprehensiveDataSeeder implements CommandLineRunner {
             utilisateur.setBloque(false);
             utilisateur.setActif(true);
             utilisateur.setContribuable(contribuable);
+            
+            // Définir les champs obligatoires
+            utilisateur.setNomComplet(contribuable.getNom());
+            utilisateur.setMatricule("CONT" + String.format("%04d", utilisateurs.size() + 1));
+            utilisateur.setSexe(Sexe.M); // Valeur par défaut
+            utilisateur.setGrade("N/A"); // Valeur par défaut pour les contribuables
             contribuable.setUtilisateur(utilisateur);
             
             utilisateurs.add(utilisateur);

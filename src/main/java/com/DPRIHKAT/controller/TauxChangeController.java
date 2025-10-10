@@ -58,6 +58,54 @@ public class TauxChangeController {
                             e.getMessage()));
         }
     }
+    
+    /**
+     * Récupère l'historique complet des taux de change (actifs et inactifs)
+     * @return Liste de tous les taux de change triés par date effective décroissante
+     */
+    @GetMapping("/historique")
+    @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN', 'DIRECTEUR')")
+    public ResponseEntity<?> getAllTauxChanges() {
+        try {
+            logger.info("Récupération de l'historique complet des taux de change");
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "tauxChanges", tauxChangeService.getAllTauxChanges()
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération de l'historique des taux de change", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAUX_CHANGE_HISTORY_FETCH_ERROR", 
+                            "Erreur lors de la récupération de l'historique des taux de change", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère l'historique des taux de change pour une paire de devises
+     * @param deviseSource La devise source
+     * @param deviseDestination La devise destination
+     * @return Liste des taux de change pour la paire de devises triés par date effective décroissante
+     */
+    @GetMapping("/historique/devises")
+    @PreAuthorize("hasAnyRole('CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'ADMIN', 'DIRECTEUR')")
+    public ResponseEntity<?> getTauxChangesByDevises(
+            @RequestParam Devise deviseSource,
+            @RequestParam Devise deviseDestination) {
+        try {
+            logger.info("Récupération de l'historique des taux de change de {} vers {}", deviseSource, deviseDestination);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "tauxChanges", tauxChangeService.getTauxChangesByDevises(deviseSource, deviseDestination)
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération de l'historique des taux de change par devises", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("TAUX_CHANGE_HISTORY_DEVISES_FETCH_ERROR", 
+                            "Erreur lors de la récupération de l'historique des taux de change par devises", 
+                            e.getMessage()));
+        }
+    }
 
     /**
      * Récupère le taux de change actif le plus récent pour une paire de devises

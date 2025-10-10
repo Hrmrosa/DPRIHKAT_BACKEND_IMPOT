@@ -1,5 +1,35 @@
 # API de Gestion des Utilisateurs
 
+## Champs de l'utilisateur
+
+### Champs obligatoires
+- `nomComplet` (string) : Nom complet de l'utilisateur
+- `sexe` (enum) : Sexe de l'utilisateur (M ou F)
+- `grade` (string) : Grade de l'utilisateur
+- `matricule` (string) : Matricule unique de l'utilisateur
+- `login` (string) : Identifiant de connexion
+- `motDePasse` (string) : Mot de passe (non renvoyé dans les réponses)
+- `role` (enum) : Rôle de l'utilisateur (voir énumération ci-dessous)
+
+### Champs optionnels
+- `email` (string) : Adresse email de l'utilisateur
+- `adresse` (string) : Adresse physique
+- `telephone` (string) : Numéro de téléphone
+
+## Énumérations
+
+### Rôles (Role)
+- `ADMIN` : Administrateur système
+- `DIRECTEUR` : Directeur
+- `CHEF_DE_BUREAU` : Chef de bureau
+- `TAXATEUR` : Agent taxateur
+- `APUREUR` : Agent d'apurement
+- `CONTRIBUABLE` : Utilisateur contribuable
+
+### Sexe (Sexe)
+- `M` : Masculin
+- `F` : Féminin
+
 ## Récupérer tous les utilisateurs
 
 `GET /api/users`

@@ -1,34 +1,40 @@
 package com.DPRIHKAT.entity;
 
+import com.DPRIHKAT.entity.enums.Role;
+import com.DPRIHKAT.entity.enums.Sexe;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import java.util.Random;
-import java.util.UUID;
-import com.DPRIHKAT.entity.enums.Role;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
-/**
- * Entité représentant un utilisateur du système
- * Un utilisateur peut être associé à un agent ou un contribuable
- * 
- * @author amateur
- */
+import java.util.UUID;
+
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Utilisateur {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @NotBlank(message = "Le nom complet est obligatoire")
+    private String nomComplet;
+    
+    @NotNull(message = "Le sexe est obligatoire")
+    @Enumerated(EnumType.STRING)
+    private Sexe sexe;
+    
+    @NotBlank(message = "Le grade est obligatoire")
+    private String grade;
+    
+    @NotBlank(message = "Le matricule est obligatoire")
+    private String matricule;
+    
+    @Email(message = "L'email doit être valide")
+    private String email;
+
+    @NotBlank(message = "Le login est obligatoire")
     private String login;
 
     @JsonIgnore
@@ -38,10 +44,12 @@ public class Utilisateur {
     private Role role;
 
     private boolean premierConnexion;
-
     private boolean bloque;
-    
-    private boolean actif = true; // Champ pour la suppression logique
+    private boolean actif = true;
+
+    // Champs optionnels
+    private String adresse;
+    private String telephone;
 
     @OneToOne
     @JoinColumn(name = "agent_id", nullable = true)
@@ -51,142 +59,56 @@ public class Utilisateur {
     @JoinColumn(name = "contribuable_id", nullable = true)
     private Contribuable contribuable;
 
-    public Utilisateur() {
-    }
-
-    public Utilisateur(String login, String motDePasse, Role role) {
-        this.login = login;
-        this.motDePasse = motDePasse;
-        this.role = role;
-        this.premierConnexion = true;
-        this.bloque = false;
-        this.actif = true;
-    }
-
-    // Méthodes
-    public void premierConnexion() {
-        // TODO: Forcer changement mot de passe
-        this.premierConnexion = false;
-    }
-
-    public void bloquerCompte() {
-        this.bloque = true;
-    }
+    // Getters/Setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     
-    /**
-     * Génère un login pour un contribuable (dpri_c + 4 caractères aléatoires)
-     * @return le login généré
-     */
-    public static String genererLoginContribuable() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder("dpri_c");
-        Random random = new Random();
-        for (int i = 0; i < 4; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
+    public String getNomComplet() { return nomComplet; }
+    public void setNomComplet(String nomComplet) { this.nomComplet = nomComplet; }
     
-    /**
-     * Génère un mot de passe par défaut pour un contribuable (Tabc@123)
-     * @return le mot de passe par défaut
-     */
-    public static String genererMotDePasseContribuable() {
-        return "Tabc@123";
-    }
+    public Sexe getSexe() { return sexe; }
+    public void setSexe(Sexe sexe) { this.sexe = sexe; }
     
-    /**
-     * Crée un utilisateur pour un contribuable avec un login et mot de passe générés automatiquement
-     * @param contribuable le contribuable pour lequel créer un utilisateur
-     * @return l'utilisateur créé
-     */
-    public static Utilisateur creerUtilisateurContribuable(Contribuable contribuable) {
-        String login = genererLoginContribuable();
-        String motDePasse = genererMotDePasseContribuable();
-        
-        Utilisateur utilisateur = new Utilisateur(login, motDePasse, Role.CONTRIBUABLE);
-        utilisateur.setContribuable(contribuable); // Le contribuable est un agent
-        
-        return utilisateur;
-    }
-
-    // Getters et Setters
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public String getMotDePasse() {
-        return motDePasse;
-    }
-
-    public void setMotDePasse(String motDePasse) {
-        this.motDePasse = motDePasse;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public boolean isPremierConnexion() {
-        return premierConnexion;
-    }
-
-    public void setPremierConnexion(boolean premierConnexion) {
-        this.premierConnexion = premierConnexion;
-    }
-
-    public boolean isBloque() {
-        return bloque;
-    }
-
-    public void setBloque(boolean bloque) {
-        this.bloque = bloque;
-    }
+    public String getGrade() { return grade; }
+    public void setGrade(String grade) { this.grade = grade; }
     
-    public boolean isActif() {
-        return actif;
-    }
-
-    public void setActif(boolean actif) {
-        this.actif = actif;
-    }
-
-    public Agent getAgent() {
-        return agent;
-    }
-
-    public void setAgent(Agent agent) {
-        this.agent = agent;
-    }
-
-    public Contribuable getContribuable() {
-        return contribuable;
-    }
-
-    public void setContribuable(Contribuable contribuable) {
-        this.contribuable = contribuable;
-    }
+    public String getMatricule() { return matricule; }
+    public void setMatricule(String matricule) { this.matricule = matricule; }
     
-    /**
-     * Vérifie si l'utilisateur est un contribuable
-     * @return true si l'utilisateur est un contribuable, false sinon
-     */
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getLogin() { return login; }
+    public void setLogin(String login) { this.login = login; }
+    
+    public String getMotDePasse() { return motDePasse; }
+    public void setMotDePasse(String motDePasse) { this.motDePasse = motDePasse; }
+    
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+    
+    public boolean isPremierConnexion() { return premierConnexion; }
+    public void setPremierConnexion(boolean premierConnexion) { this.premierConnexion = premierConnexion; }
+    
+    public boolean isBloque() { return bloque; }
+    public void setBloque(boolean bloque) { this.bloque = bloque; }
+    
+    public boolean isActif() { return actif; }
+    public void setActif(boolean actif) { this.actif = actif; }
+    
+    public String getAdresse() { return adresse; }
+    public void setAdresse(String adresse) { this.adresse = adresse; }
+    
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String telephone) { this.telephone = telephone; }
+    
+    public Agent getAgent() { return agent; }
+    public void setAgent(Agent agent) { this.agent = agent; }
+    
+    public Contribuable getContribuable() { return contribuable; }
+    public void setContribuable(Contribuable contribuable) { this.contribuable = contribuable; }
+
+    // Méthodes métier
     public boolean isContribuable() {
         return this.role == Role.CONTRIBUABLE && this.contribuable != null;
     }

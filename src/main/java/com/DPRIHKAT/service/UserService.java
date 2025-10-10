@@ -2,6 +2,7 @@ package com.DPRIHKAT.service;
 
 import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.enums.Role;
+import com.DPRIHKAT.entity.enums.Sexe;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,8 +26,31 @@ public class UserService {
         return utilisateurRepository.findById(id);
     }
 
-    public Utilisateur saveUser(Utilisateur utilisateur) {
+    public Utilisateur createUser(Utilisateur utilisateur) {
+        // Validation des champs obligatoires pour les utilisateurs internes
+        if (!utilisateur.getRole().equals(Role.CONTRIBUABLE)) {
+            if (utilisateur.getNomComplet() == null || utilisateur.getSexe() == null || 
+                utilisateur.getGrade() == null || utilisateur.getMatricule() == null ) {
+                throw new IllegalArgumentException("Tous les champs (nomComplet, sexe, grade, matricule, adresse, telephone) sont obligatoires pour les utilisateurs internes");
+            }
+        }
         return utilisateurRepository.save(utilisateur);
+    }
+
+    public Utilisateur updateUser(UUID id, Utilisateur utilisateurDetails) {
+        Utilisateur existingUser = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
+        
+        // Mise à jour des champs
+        existingUser.setNomComplet(utilisateurDetails.getNomComplet());
+        existingUser.setSexe(utilisateurDetails.getSexe());
+        existingUser.setGrade(utilisateurDetails.getGrade());
+        existingUser.setMatricule(utilisateurDetails.getMatricule());
+        existingUser.setEmail(utilisateurDetails.getEmail());
+        existingUser.setLogin(utilisateurDetails.getLogin());
+        existingUser.setRole(utilisateurDetails.getRole());
+        
+        return utilisateurRepository.save(existingUser);
     }
 
     public void deleteUser(UUID id) {

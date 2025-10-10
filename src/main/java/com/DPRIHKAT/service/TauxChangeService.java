@@ -116,4 +116,22 @@ public class TauxChangeService {
         tauxChange.setActif(false);
         tauxChangeRepository.save(tauxChange);
     }
+    
+    /**
+     * Récupère l'historique complet des taux de change (actifs et inactifs)
+     * @return Liste de tous les taux de change triés par date effective décroissante
+     */
+    public List<TauxChange> getAllTauxChanges() {
+        return tauxChangeRepository.findAllTauxChangesOrderByDateDesc();
+    }
+    
+    /**
+     * Récupère l'historique des taux de change pour une paire de devises
+     * @param deviseSource La devise source
+     * @param deviseDestination La devise destination
+     * @return Liste des taux de change pour la paire de devises triés par date effective décroissante
+     */
+    public List<TauxChange> getTauxChangesByDevises(Devise deviseSource, Devise deviseDestination) {
+        return tauxChangeRepository.findAllTauxChangesByDevises(deviseSource, deviseDestination);
+    }
 }
