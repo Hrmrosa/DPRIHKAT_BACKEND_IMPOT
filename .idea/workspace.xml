@@ -4,69 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 101025">
+    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 151025">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/collecte.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/collecte.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/dashboard.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/dashboard.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/recouvrement.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/recouvrement.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/CollecteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/CollecteController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ContribuableController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/ContribuableController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/VehiculeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/controller/VehiculeController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Contribuable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Contribuable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/DossierRecouvrement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/DossierRecouvrement.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Paiement.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Penalite.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Penalite.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Taxation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Taxation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/StatutPaiement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/StatutPaiement.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/TypeContribuable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/enums/TypeContribuable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DeclarationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DeclarationRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DossierRecouvrementRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/DossierRecouvrementRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/PaiementRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/PaiementRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/PoursuiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/PoursuiteRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/RelanceRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/RelanceRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/RelanceRepositoryCustom.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/RelanceRepositoryCustom.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/RelanceRepositoryCustomImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/RelanceRepositoryCustomImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/TauxChangeRepository.java.new" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/TauxChangeRepository.java.temp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/VehiculeRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/repository/VehiculeRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ContribuableService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/DashboardService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ProprieteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ProprieteService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/VehiculeEntityService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/VehiculeEntityService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SecurityConfig$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SecurityConfig$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SecurityConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SecurityConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/CollecteController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/CollecteController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ContribuableController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/ContribuableController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/DashboardController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/DashboardController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/VehiculeController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/controller/VehiculeController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/DossierRecouvrement.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/DossierRecouvrement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Paiement.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Paiement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Penalite.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Penalite.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Taxation.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/StatutPaiement.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/StatutPaiement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/TypeContribuable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/enums/TypeContribuable.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DeclarationRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DeclarationRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DossierRecouvrementRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/DossierRecouvrementRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/PaiementRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/PaiementRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/PoursuiteRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/PoursuiteRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/RelanceRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/RelanceRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/RelanceRepositoryCustom.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/RelanceRepositoryCustom.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/RelanceRepositoryCustomImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/RelanceRepositoryCustomImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/VehiculeRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/repository/VehiculeRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ContribuableService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ContribuableService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DashboardService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/DashboardService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ProprieteService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ProprieteService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VehiculeEntityService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/VehiculeEntityService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar.original" beforeDir="false" afterPath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar.original" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ContribuableService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/ContribuableService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/seed/1-utilisateurs.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/db/seed/1-utilisateurs.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/seed/2-contribuables.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/db/seed/2-contribuables.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -243,7 +185,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760090449039</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="commit 151025">
+      <option name="closed" value="true" />
+      <created>1760521845986</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1760521845986</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -267,6 +217,7 @@
     <MESSAGE value="commit 260925" />
     <MESSAGE value="commit 041025" />
     <MESSAGE value="commit 101025" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit 101025" />
+    <MESSAGE value="commit 151025" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit 151025" />
   </component>
 </project>
