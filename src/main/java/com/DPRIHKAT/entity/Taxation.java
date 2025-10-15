@@ -488,4 +488,11 @@ public class Taxation {
     public void setConcessionMinier(ConcessionMinier concessionMinier) {
         this.concessionMinier = concessionMinier;
     }
+    /**
+     * Alias pour getDateTaxation pour compatibilité avec le service CollecteService
+     * @return La date de calcul de la taxation
+     */
+    public Date getDateCalcul() {
+        return this.dateTaxation;
+    }
 }

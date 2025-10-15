@@ -44,4 +44,6 @@ public interface DeclarationRepository extends JpaRepository<Declaration, UUID>,
     List<Declaration> findByPaiementIsNullAndDateDeclarationBefore(Date date);
     
     List<Declaration> findByContribuableAndPaiementIsNull(Contribuable contribuable);
+    
+    List<Declaration> findByContribuableIdAndDateDeclarationBetween(UUID contribuableId, Date dateDebut, Date dateFin);
 }

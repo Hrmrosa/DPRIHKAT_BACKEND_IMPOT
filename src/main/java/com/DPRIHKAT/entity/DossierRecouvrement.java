@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.DPRIHKAT.entity;
-
-/**
- *
- * @author amateur
- */
 
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -41,6 +32,9 @@ public class DossierRecouvrement {
 
     @OneToMany(mappedBy = "dossier", cascade = CascadeType.ALL)
     private List<Paiement> paiements = new ArrayList<>();
+
+    @OneToMany(mappedBy = "dossierRecouvrement", cascade = CascadeType.ALL)
+    private List<DocumentRecouvrement> documentsRecouvrement = new ArrayList<>();
 
     @OneToMany(mappedBy = "dossier", cascade = CascadeType.ALL)
     private List<HistoriqueDossier> historique = new ArrayList<>();
@@ -133,5 +127,22 @@ public class DossierRecouvrement {
     }
     public void setHistorique(List<HistoriqueDossier> historique) { 
         this.historique = historique; 
+    }
+    
+    public List<DocumentRecouvrement> getDocumentsRecouvrement() {
+        return documentsRecouvrement;
+    }
+    
+    public void setDocumentsRecouvrement(List<DocumentRecouvrement> documentsRecouvrement) {
+        this.documentsRecouvrement = documentsRecouvrement;
+    }
+    
+    /**
+     * Ajoute un document de recouvrement au dossier
+     * @param document Document à ajouter
+     */
+    public void ajouterDocumentRecouvrement(DocumentRecouvrement document) {
+        document.setDossierRecouvrement(this);
+        this.documentsRecouvrement.add(document);
     }
 }

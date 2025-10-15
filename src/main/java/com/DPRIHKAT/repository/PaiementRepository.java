@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Repository
 public interface PaiementRepository extends JpaRepository<Paiement, UUID>, PaiementRepositoryCustom {
-    @Query("SELECT p FROM Paiement p WHERE p.taxation.declaration.id = :declarationId")
+    @Query("SELECT p FROM Paiement p JOIN Declaration d ON d.paiement.id = p.id WHERE d.id = :declarationId")
     Paiement findByDeclarationId(@Param("declarationId") UUID declarationId);
     
     List<Paiement> findByStatut(StatutPaiement statut);

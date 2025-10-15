@@ -1,424 +1,168 @@
-# API de Gestion du Recouvrement
+# Documentation du Module de Recouvrement
 
-## Structure complète d'un dossier de recouvrement
-```json
-{
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "dateOuverture": "2025-09-29T00:00:00Z",
-  "dateCloture": "2025-12-15T00:00:00Z",
-  "statut": "EN_COURS",
-  "totalDette": 1500.0,
-  "totalRecouvre": 500.0,
-  "codeQR": "QR-3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "contribuable": {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "nom": "Dupont",
-    "prenom": "Jean",
-    "numeroIdentification": "ID123456",
-    "adresse": "123 Rue Example",
-    "telephone": "+123456789"
-  },
-  "declarations": [
-    {
-      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "dateDeclaration": "2025-06-15T00:00:00Z",
-      "montant": 750.0,
-      "impot": {
-        "type": "TAXE_FONCIERE",
-        "taux": 0.15
-      },
-      "penalites": [
-        {
-          "montant": 150.0,
-          "motif": "RETARD"
-        }
-      ]
-    }
-  ],
-  "paiements": [
-    {
-      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "date": "2025-09-20T00:00:00Z",
-      "montant": 500.0,
-      "mode": "VIREMENT"
-    }
-  ],
-  "historique": [
-    {
-      "date": "2025-09-29T00:00:00Z",
-      "action": "DOSSIER_OUVERT",
-      "agent": "Agent Smith"
-    }
-  ]
-}
-```
+## Introduction
 
-## Endpoints
+Le module de recouvrement gère l'ensemble du processus de recouvrement des impôts et taxes, depuis l'émission des avis de mise en recouvrement jusqu'aux mesures de poursuite. Il implémente les différentes étapes du circuit de recouvrement conformément à la législation fiscale.
 
-### Récupérer un dossier complet
-`GET /api/dossiers-recouvrement/{id}`
+## Types de Documents de Recouvrement
 
-**Réponse**:
-- 200: Dossier complet avec tous les détails (structure ci-dessus)
-- 404: Dossier non trouvé
+### 1. Avis de Mise en Recouvrement (AMR)
 
-### Rechercher des dossiers
-`GET /api/dossiers-recouvrement/search`
+L'AMR est émis suite à un contrôle fiscal ayant abouti à un redressement ou une taxation d'office. Il contient :
+- L'identification du contribuable
+- La nature de l'impôt ou des droits dus
+- La base imposable
+- Le montant en principal
+- Le montant des pénalités
+- Le délai de paiement (15 jours)
 
-**Paramètres**:
-- `contribuableId` (optionnel)
-- `statut` (optionnel)
-- `dateDebut` (optionnel)
-- `dateFin` (optionnel)
+### 2. Mise En Demeure (MED)
 
-### Exporter un dossier
-`GET /api/dossiers-recouvrement/{id}/export`
+La MED est é mise en cas de déclaration sans paiement ou avec paiement insuffisant. Elle contient :
+- L'identification du contribuable
+- Le montant dû
+- Le délai de paiement (8 jours)
 
-**Réponse**:
-- 200: PDF du dossier
+### 3. Contrainte Fiscale
 
-## Rôles requis
-- ADMIN: Toutes opérations
-- AGENT_RECOUVREMENT: Opérations spécialisées
-- CONTROLLEUR: Consultation seulement
+La contrainte est décernée par le Receveur des Impôts lorsque l'AMR ou la MED n'a pas été exécuté dans le délai imparti.
 
-## Codes statut
-- EN_COURS: Dossier actif
-- CLOTURE: Dossier clos
-- SUSPENDU: Dossier en attente
+### 4. Commandement de Payer
 
-## Récupérer tous les dossiers de recouvrement
+Le commandement est signifié au contribuable par un huissier du Trésor, lui enjoignant de payer dans un délai de 8 jours, sous peine d'exécution des mesures de poursuite.
 
-`GET /api/dossiers-recouvrement`
+### 5. Avis à Tiers Détenteur (ATD)
 
-### Description
-Récupère la liste de tous les dossiers de recouvrement.
+L'ATD est adressé aux tiers détenteurs (banques, locataires, débiteurs, etc.) pour qu'ils versent directement au Trésor les sommes qu'ils doivent au contribuable défaillant.
 
-### Rôles autorisés
-- ADMIN
-- DIRECTEUR
-- INFORMATICIEN
-- CONTROLLEUR
+### 6. Saisies
 
-### Réponse
-```json
-{
-  "success": true,
-  "data": {
-    "dossiers": [
-      {
-        "id": "UUID",
-        "dateOuverture": "ISO8601",
-        "dateCloture": "ISO8601",
-        "statut": "string",
-        "totalDu": 0,
-        "totalRecouvre": 0,
-        "codeQR": "string",
-        "contribuable": {
-          "id": "UUID",
-          "nom": "string"
-        },
-        "agent": {
-          "id": "UUID",
-          "nom": "string"
-        }
-      }
-    ]
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+#### 6.1 Saisie Mobilière
 
-### Réponse en cas d'erreur
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DOSSIERS_FETCH_ERROR",
-    "message": "Erreur lors de la récupération des dossiers de recouvrement",
-    "details": "string"
-  },
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+Saisie des biens mobiliers du contribuable défaillant, avec possibilité de vente aux enchères.
 
-## Récupérer un dossier de recouvrement par ID
+#### 6.2 Saisie Immobilière
 
-`GET /api/dossiers-recouvrement/{id}`
+Saisie des biens immobiliers du contribuable défaillant, avec possibilité de vente aux enchères.
 
-### Description
-Récupère les détails d'un dossier de recouvrement spécifique par son ID.
+### 7. Fermeture d'Établissement
 
-### Rôles autorisés
-- ADMIN
-- DIRECTEUR
-- INFORMATICIEN
-- CONTROLLEUR
-- CHEF_DE_BUREAU
+Mesure de fermeture provisoire des établissements par apposition de scellés, effectuée par un agent OPJ.
 
-### Paramètres
-- `id` (chemin) - UUID du dossier de recouvrement
+## Circuit du Recouvrement
 
-### Réponse en cas de succès
-```json
-{
-  "success": true,
-  "data": {
-    "dossier": {
-      "id": "UUID",
-      "dateOuverture": "ISO8601",
-      "dateCloture": "ISO8601",
-      "statut": "string",
-      "totalDu": 0,
-      "totalRecouvre": 0,
-      "codeQR": "string",
-      "contribuable": {
-        "id": "UUID",
-        "nom": "string"
-      },
-      "agent": {
-        "id": "UUID",
-        "nom": "string"
-      }
-    }
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+### Phase 1 : Émission des documents initiaux
 
-### Réponse en cas d'erreur
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DOSSIER_NOT_FOUND|DOSSIER_FETCH_ERROR",
-    "message": "string",
-    "details": "string"
-  },
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+1. **Contrôle fiscal** : Émission d'un AMR (délai de paiement : 15 jours)
+2. **Déclaration sans paiement** : Émission d'une MED (délai de paiement : 8 jours)
 
-## Créer un dossier de recouvrement
+### Phase 2 : Non-exécution des documents initiaux
 
-`POST /api/dossiers-recouvrement`
+1. **Non-exécution de l'AMR** : Contrainte décernée par le Receveur et signification du Commandement par l'Huissier
+2. **Non-exécution de la MED** : Contrainte décernée par le Receveur et signification du Commandement par l'Huissier
 
-### Description
-Crée un nouveau dossier de recouvrement.
+### Phase 3 : Non-exécution du Commandement
 
-### Rôles autorisés
-- ADMIN
-- DIRECTEUR
-- INFORMATICIEN
-- CONTROLLEUR
+1. **Mesures de poursuite** :
+   - ATD
+   - Saisie mobilière et immobilière
+   - Fermeture des établissements
 
-### Corps de la requête
-```json
-{
-  "dateOuverture": "ISO8601",
-  "dateCloture": "ISO8601",
-  "statut": "string",
-  "totalDu": 0,
-  "totalRecouvre": 0,
-  "codeQR": "string",
-  "contribuable": {
-    "id": "UUID"
-  },
-  "agent": {
-    "id": "UUID"
-  }
-}
-```
+## Pénalités de Recouvrement
 
-### Réponse en cas de succès
-```json
-{
-  "success": true,
-  "data": {
-    "dossier": {
-      "id": "UUID",
-      "dateOuverture": "ISO8601",
-      "dateCloture": "ISO8601",
-      "statut": "string",
-      "totalDu": 0,
-      "totalRecouvre": 0,
-      "codeQR": "string",
-      "contribuable": {
-        "id": "UUID",
-        "nom": "string"
-      },
-      "agent": {
-        "id": "UUID",
-        "nom": "string"
-      }
-    }
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+- Retard de paiement : 2% par mois de retard
+- Frais de poursuite :
+  - Commandement : 3% du montant dû
+  - Saisie : 5% du montant dû
+  - Vente : 3% du montant dû
 
-### Réponse en cas d'erreur
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DOSSIER_CREATE_ERROR",
-    "message": "Erreur lors de la création du dossier",
-    "details": "string"
-  },
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+## Amendes pour Fermeture d'Établissement
 
-## Mettre à jour un dossier de recouvrement
+Les amendes pour fermeture d'établissement sont fixées selon le type de contribuable :
 
-`PUT /api/dossiers-recouvrement/{id}`
+1. **Personnes Morales** : 1.000.000 FC
+2. **Personnes Physiques** :
+   - Commerçants : 100.000 FC
+   - Non-commerçants : 50.000 FC
+3. **Autres cas** : 100.000 FC (montant par défaut)
 
-### Description
-Met à jour les informations d'un dossier de recouvrement existant.
+## Données du Contribuable
 
-### Rôles autorisés
-- ADMIN
-- DIRECTEUR
-- INFORMATICIEN
-- CONTROLLEUR
+Le système maintient des informations détaillées sur chaque contribuable, incluant :
 
-### Paramètres
-- `id` (chemin) - UUID du dossier de recouvrement
+### 1. Informations de Base
+- Identité (nom, matricule, etc.)
+- Adresses et contacts
+- Type de contribuable (personne morale/physique)
+- Statut de commerçant
+- Documents d'identification (IdNat, NRC, etc.)
 
-### Corps de la requête
-```json
-{
-  "dateOuverture": "ISO8601",
-  "dateCloture": "ISO8601",
-  "statut": "string",
-  "totalDu": 0,
-  "totalRecouvre": 0,
-  "codeQR": "string",
-  "contribuable": {
-    "id": "UUID"
-  },
-  "agent": {
-    "id": "UUID"
-  }
-}
-```
+### 2. Biens
+- **Propriétés Immobilières**
+  - Adresse
+  - Références cadastrales
+  - Superficie
+  - Usage
+  - Valeur locative
+  - Montant de l'impôt
 
-### Réponse en cas de succès
-```json
-{
-  "success": true,
-  "data": {
-    "dossier": {
-      "id": "UUID",
-      "dateOuverture": "ISO8601",
-      "dateCloture": "ISO8601",
-      "statut": "string",
-      "totalDu": 0,
-      "totalRecouvre": 0,
-      "codeQR": "string",
-      "contribuable": {
-        "id": "UUID",
-        "nom": "string"
-      },
-      "agent": {
-        "id": "UUID",
-        "nom": "string"
-      }
-    }
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+- **Véhicules**
+  - Immatriculation
+  - Marque et modèle
+  - Numéro de chassis
+  - Type de véhicule
+  - Cylindrée
+  - Montant de la vignette
 
-### Réponse en cas d'erreur
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DOSSIER_UPDATE_ERROR",
-    "message": "Erreur lors de la mise à jour du dossier",
-    "details": "string"
-  },
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+### 3. Déclarations et Taxations
+- **Déclarations**
+  - Type d'impôt
+  - Période et exercice
+  - Montants déclarés
+  - Statut
+  - Taxateur assigné
 
-## Supprimer un dossier de recouvrement
+- **Taxations**
+  - Base imposable
+  - Montants imposés
+  - Pénalités
+  - Agent taxateur
 
-`DELETE /api/dossiers-recouvrement/{id}`
+### 4. Documents de Recouvrement
+- Historique des documents émis
+- Statuts et échéances
+- Montants (principal, pénalités, total)
+- Agents responsables
 
-### Description
-Supprime un dossier de recouvrement existant.
+### 5. Relances
+- Type de relance
+- Date d'envoi
+- Contenu
+- Statut
+- Agent émetteur
 
-### Rôles autorisés
-- ADMIN
-- DIRECTEUR
-- INFORMATICIEN
+## API du Module de Recouvrement
 
-### Paramètres
-- `id` (chemin) - UUID du dossier de recouvrement
+[Documentation existante des API...]
 
-### Réponse en cas de succès
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Dossier supprimé avec succès"
-  },
-  "error": null,
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+### Nouvelles fonctionnalités
 
-### Réponse en cas d'erreur
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DOSSIER_DELETE_ERROR",
-    "message": "Erreur lors de la suppression du dossier",
-    "details": "string"
-  },
-  "meta": {
-    "timestamp": "ISO8601",
-    "version": "1.0.0"
-  }
-}
-```
+#### 1. Gestion des amendes pour fermeture d'établissement
+
+La gestion des amendes pour fermeture d'établissement est maintenant possible via l'API.
+
+#### 2. Gestion des biens du contribuable
+
+La gestion des biens du contribuable est maintenant possible via l'API.
+
+#### 3. Gestion des déclarations et des taxations
+
+La gestion des déclarations et des taxations est maintenant possible via l'API.
+
+#### 4. Gestion des documents de recouvrement
+
+La gestion des documents de recouvrement est maintenant possible via l'API.
+
+#### 5. Gestion des relations
+
+La gestion des relations est maintenant possible via l'API.

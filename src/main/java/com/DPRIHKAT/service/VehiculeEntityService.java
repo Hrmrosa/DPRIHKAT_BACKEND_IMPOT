@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -102,7 +103,53 @@ public class VehiculeEntityService {
      * @param id ID du véhicule
      * @return Véhicule ou null si non trouvé
      */
-    public Vehicule getVehiculeById(UUID id) {
+    public Vehicule findById(UUID id) {
+        logger.info("Recherche du véhicule avec ID: {}", id);
         return vehiculeRepository.findById(id).orElse(null);
+    }
+    
+    /**
+     * Récupère tous les véhicules
+     * 
+     * @return Liste de tous les véhicules
+     */
+    public List<Vehicule> findAll() {
+        logger.info("Récupération de tous les véhicules");
+        return vehiculeRepository.findAll();
+    }
+    
+    /**
+     * Récupère tous les véhicules d'un contribuable
+     * 
+     * @param contribuableId ID du contribuable
+     * @return Liste des véhicules du contribuable
+     */
+    public List<Vehicule> findByContribuableId(UUID contribuableId) {
+        logger.info("Récupération des véhicules du contribuable avec ID: {}", contribuableId);
+        
+        // Récupérer les véhicules où le contribuable est propriétaire
+        List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaireId(contribuableId);
+        logger.debug("Nombre de véhicules où le contribuable est propriétaire: {}", vehiculesProprietaire.size());
+        
+        // Récupérer les véhicules où le contribuable est enregistré comme contribuable
+        List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuableId(contribuableId);
+        logger.debug("Nombre de véhicules où le contribuable est enregistré comme contribuable: {}", vehiculesContribuable.size());
+        
+        // Fusionner les deux listes (sans doublons)
+        vehiculesProprietaire.removeAll(vehiculesContribuable);
+        vehiculesProprietaire.addAll(vehiculesContribuable);
+        
+        return vehiculesProprietaire;
+    }
+    
+    /**
+     * Récupère tous les véhicules d'un propriétaire
+     * 
+     * @param proprietaireId ID du propriétaire
+     * @return Liste des véhicules du propriétaire
+     */
+    public List<Vehicule> findByProprietaireId(UUID proprietaireId) {
+        logger.info("Récupération des véhicules du propriétaire avec ID: {}", proprietaireId);
+        return vehiculeRepository.findByProprietaireId(proprietaireId);
     }
 }

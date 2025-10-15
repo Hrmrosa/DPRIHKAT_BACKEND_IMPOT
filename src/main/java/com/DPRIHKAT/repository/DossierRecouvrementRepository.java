@@ -23,4 +23,12 @@ public interface DossierRecouvrementRepository extends JpaRepository<DossierReco
             @Param("statut") String statut,
             @Param("dateDebut") Date dateDebut,
             @Param("dateFin") Date dateFin);
+            
+    /**
+     * Récupère tous les dossiers de recouvrement d'un contribuable
+     * 
+     * @param contribuableId ID du contribuable
+     * @return Liste des dossiers de recouvrement du contribuable
+     */
+    List<DossierRecouvrement> findByContribuableId(UUID contribuableId);
 }

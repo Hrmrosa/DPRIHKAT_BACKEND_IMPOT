@@ -31,15 +31,10 @@ import java.util.UUID;
 public class Contribuable extends Agent {
 
     private String adressePrincipale;
-
     private String adresseSecondaire;
-
     private String telephonePrincipal;
-
     private String telephoneSecondaire;
-
     private String email;
-
     private String nationalite;
 
     @Enumerated(EnumType.STRING)
@@ -51,40 +46,21 @@ public class Contribuable extends Agent {
     private String NRC;
 
     private String sigle;
-
     private String numeroIdentificationContribuable;
-    
-    private boolean actif = true; // Champ pour la suppression logique
-    
+    private boolean actif = true;
     private String codeQR;
-
-    // Désactivé temporairement pour résoudre l'erreur ArrayIndexOutOfBoundsException
-    /*
-    @OneToMany(mappedBy = "proprietaire", fetch = FetchType.LAZY)
-    private List<Propriete> proprietes = new ArrayList<>();
-
-    @OneToOne(mappedBy = "contribuable", fetch = FetchType.LAZY)
-    private DossierRecouvrement dossierRecouvrement;
-
-    @OneToOne(mappedBy = "agent", fetch = FetchType.LAZY)
-    private Utilisateur utilisateur;
     
-    // Déclarations faites par ce contribuable
-    @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
-    private List<Declaration> declarations = new ArrayList<>();
-    */
-    
-    // Taxations associées à ce contribuable
+    @Column(name = "commercant")
+    private boolean commercant = false;
+
     @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Taxation> taxations = new ArrayList<>();
     
-    // Concessions minières de ce contribuable
     @OneToMany(mappedBy = "titulaire", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<ConcessionMinier> concessions = new ArrayList<>();
     
-    // Véhicules associés à ce contribuable
     @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Vehicule> vehicules = new ArrayList<>();
@@ -93,7 +69,10 @@ public class Contribuable extends Agent {
         super();
     }
 
-    public Contribuable(String nom, String adressePrincipale, String adresseSecondaire, String telephonePrincipal, String telephoneSecondaire, String email, String nationalite, TypeContribuable type, String idNat, String NRC, String sigle, String numeroIdentificationContribuable) {
+    public Contribuable(String nom, String adressePrincipale, String adresseSecondaire, 
+                       String telephonePrincipal, String telephoneSecondaire, String email, 
+                       String nationalite, TypeContribuable type, String idNat, String NRC, 
+                       String sigle, String numeroIdentificationContribuable) {
         super(nom, Sexe.M, "CONTRIB-" + numeroIdentificationContribuable, null);
         this.adressePrincipale = adressePrincipale;
         this.adresseSecondaire = adresseSecondaire;
@@ -107,6 +86,7 @@ public class Contribuable extends Agent {
         this.sigle = sigle;
         this.numeroIdentificationContribuable = numeroIdentificationContribuable;
         this.actif = true;
+        this.commercant = (NRC != null && !NRC.trim().isEmpty());
     }
 
     public void declarerImpôtEnLigne() {
@@ -119,7 +99,23 @@ public class Contribuable extends Agent {
         if (utilisateur == null || !List.of(Role.CONTRIBUABLE).contains(utilisateur.getRole())) {
             throw new IllegalStateException("Seuls les contribuables avec le rôle CONTRIBUTOR peuvent déclarer en ligne.");
         }
-        // Logique de déclaration en ligne
+    }
+
+    /**
+     * Vérifie si le contribuable est un commerçant
+     * @return true si le contribuable est un commerçant, false sinon
+     */
+    public boolean isCommercant() {
+        return commercant;
+    }
+
+    public void setCommercant(boolean commercant) {
+        this.commercant = commercant;
+        // Si on définit le contribuable comme commerçant et qu'il n'a pas de NRC,
+        // on génère un NRC temporaire
+        if (commercant && (this.NRC == null || this.NRC.trim().isEmpty())) {
+            this.NRC = "TEMP-" + UUID.randomUUID().toString().substring(0, 8);
+        }
     }
 
     // Getters et Setters
@@ -193,6 +189,8 @@ public class Contribuable extends Agent {
 
     public void setNRC(String NRC) {
         this.NRC = NRC;
+        // Mettre à jour le statut de commerçant si on définit un NRC valide
+        this.commercant = (NRC != null && !NRC.trim().isEmpty());
     }
 
     public String getSigle() {

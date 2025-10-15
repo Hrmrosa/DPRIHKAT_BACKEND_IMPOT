@@ -12,6 +12,8 @@ import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.TaxationRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.repository.VehiculeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -140,11 +142,41 @@ public class DashboardService {
      */
     public Map<String, Object> getContribuableDashboardData() {
         Map<String, Object> dashboardData = new HashMap<>();
-        
+
         // TODO: Implémenter les données spécifiques pour les contribuables
+
+        return dashboardData;
+    }
+    /**
+     * Méthode générique pour récupérer toutes les données du dashboard
+     * Cette méthode est utilisée par le service de notification en temps réel
+     */
+    public Map<String, Object> getDashboardData() {
+        Map<String, Object> dashboardData = new HashMap<>();
+        
+        // Statistiques générales
+        dashboardData.put("statistiques", getStatistiquesGenerales());
+        
+        // Données pour les graphiques
+        dashboardData.put("graphiques", getGraphiquesData());
+        
+        // Taxations récentes
+        dashboardData.put("taxations_recentes", getTaxationsRecentes(10));
+        
+        // Paiements récents
+        dashboardData.put("paiements_recents", getPaiementsRecents(10));
+        
+        // Derniers utilisateurs
+        dashboardData.put("derniers_utilisateurs", getDerniersUtilisateurs(10));
+        
+        // Derniers logs de connexion
+        dashboardData.put("logs_connexion", getLogsConnexion(10));
         
         return dashboardData;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
+
 
     /**
      * Récupère les statistiques générales du système

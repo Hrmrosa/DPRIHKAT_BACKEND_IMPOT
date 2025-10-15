@@ -122,4 +122,12 @@ public class Penalite {
     public Date getDatePenalite() {
         return this.dateApplication;
     }
+    
+    /**
+     * Alias pour getDateApplication, utilisé dans certains services
+     * @return La date d'application de la pénalité
+     */
+    public Date getDate() {
+        return this.dateApplication;
+    }
 }

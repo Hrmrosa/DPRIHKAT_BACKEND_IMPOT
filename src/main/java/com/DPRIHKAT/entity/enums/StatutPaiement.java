@@ -9,5 +9,5 @@ package com.DPRIHKAT.entity.enums;
  * @author amateur
  */
 public enum StatutPaiement {
-    EN_ATTENTE, VALIDE, ECHOUÉ
+    EN_ATTENTE, VALIDE, ECHOUÉ,COMPLETE,PARTIEL
 }

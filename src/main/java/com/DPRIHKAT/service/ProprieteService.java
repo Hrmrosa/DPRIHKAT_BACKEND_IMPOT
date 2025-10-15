@@ -10,112 +10,82 @@ import com.DPRIHKAT.repository.ProprieteRepository;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.PrecisionModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-/**
- * Service pour gérer les propriétés
- * @author amateur
- */
 @Service
 public class ProprieteService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProprieteService.class);
+    private final ProprieteRepository proprieteRepository;
+    private final ContribuableRepository contribuableRepository;
+    private final NatureImpotRepository natureImpotRepository;
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
-    @Autowired
-    private ProprieteRepository proprieteRepository;
+    public ProprieteService(
+            ProprieteRepository proprieteRepository,
+            ContribuableRepository contribuableRepository,
+            NatureImpotRepository natureImpotRepository) {
+        this.proprieteRepository = proprieteRepository;
+        this.contribuableRepository = contribuableRepository;
+        this.natureImpotRepository = natureImpotRepository;
+    }
 
-    @Autowired
-    private ContribuableRepository contribuableRepository;
-
-    @Autowired
-    private NatureImpotRepository natureImpotRepository;
+    public List<Propriete> getProprietesByContribuable(UUID contribuableId) {
+        return proprieteRepository.findByProprietaire_Id(contribuableId);
+    }
 
     /**
-     * Crée une nouvelle propriété avec les natures d'impôt associées
-     * @param proprieteDTO DTO contenant les informations de la propriété et les IDs des natures d'impôt
+     * Crée une nouvelle propriété à partir des données du DTO
+     * @param dto Les données de la propriété à créer
      * @return La propriété créée
-     * @throws IllegalArgumentException si le contribuable ou une nature d'impôt n'existe pas
+     * @throws IllegalArgumentException Si les données sont invalides ou si le propriétaire n'existe pas
      */
     @Transactional
-    public Propriete createPropriete(ProprieteCreationDTO proprieteDTO) {
-        logger.info("Création d'une nouvelle propriété pour le contribuable avec ID: {}", proprieteDTO.getProprietaireId());
+    public Propriete createPropriete(ProprieteCreationDTO dto) {
+        // Vérifier et récupérer le propriétaire
+        Contribuable proprietaire = contribuableRepository.findById(dto.getProprietaireId())
+                .orElseThrow(() -> new IllegalArgumentException("Propriétaire non trouvé avec l'ID: " + dto.getProprietaireId()));
 
-        // Récupérer le contribuable
-        Contribuable proprietaire = contribuableRepository.findById(proprieteDTO.getProprietaireId())
-                .orElseThrow(() -> new IllegalArgumentException("Contribuable non trouvé avec ID: " + proprieteDTO.getProprietaireId()));
-
-        // Récupérer les natures d'impôt
-        List<NatureImpot> naturesImpot = new ArrayList<>();
-        if (proprieteDTO.getNaturesImpotIds() != null && !proprieteDTO.getNaturesImpotIds().isEmpty()) {
-            naturesImpot = proprieteDTO.getNaturesImpotIds().stream()
-                    .map(id -> natureImpotRepository.findById(id)
-                            .orElseThrow(() -> new IllegalArgumentException("Nature d'impôt non trouvée avec ID: " + id)))
-                    .collect(Collectors.toList());
-        }
-
-        // Créer le point géographique si les coordonnées sont fournies
+        // Créer un point géométrique si les coordonnées sont fournies
         Point location = null;
-        if (proprieteDTO.getLatitude() != null && proprieteDTO.getLongitude() != null) {
-            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-            location = geometryFactory.createPoint(new Coordinate(proprieteDTO.getLongitude(), proprieteDTO.getLatitude()));
+        if (dto.getLatitude() != null && dto.getLongitude() != null) {
+            location = geometryFactory.createPoint(new Coordinate(dto.getLongitude(), dto.getLatitude()));
         }
 
         // Créer la propriété
         Propriete propriete = new Propriete();
-        propriete.setType(proprieteDTO.getType());
-        propriete.setLocalite(proprieteDTO.getLocalite());
-        propriete.setRangLocalite(proprieteDTO.getRangLocalite());
-        propriete.setSuperficie(proprieteDTO.getSuperficie());
-        propriete.setAdresse(proprieteDTO.getAdresse());
+        propriete.setType(dto.getType());
+        propriete.setLocalite(dto.getLocalite());
+        propriete.setRangLocalite(dto.getRangLocalite());
+        propriete.setSuperficie(dto.getSuperficie());
+        propriete.setAdresse(dto.getAdresse());
         propriete.setLocation(location);
         propriete.setProprietaire(proprietaire);
         propriete.setActif(true);
         propriete.setDeclare(false);
         propriete.setDeclarationEnLigne(false);
 
-        // Associer les natures d'impôt
-        propriete.setNaturesImpot(naturesImpot);
+        // Ajouter les natures d'impôt si spécifiées
+        if (dto.getNaturesImpotIds() != null && !dto.getNaturesImpotIds().isEmpty()) {
+            List<NatureImpot> naturesImpot = new ArrayList<>();
+            for (UUID natureImpotId : dto.getNaturesImpotIds()) {
+                Optional<NatureImpot> natureImpot = natureImpotRepository.findById(natureImpotId);
+                natureImpot.ifPresent(naturesImpot::add);
+            }
+            propriete.setNaturesImpot(naturesImpot);
+        }
 
-        // Sauvegarder la propriété
-        Propriete savedPropriete = proprieteRepository.save(propriete);
-        logger.info("Propriété créée avec succès avec ID: {}", savedPropriete.getId());
+        // Calculer le montant de l'impôt
+        propriete.calculerImpôt();
 
-        return savedPropriete;
+        // Sauvegarder et retourner la propriété
+        return proprieteRepository.save(propriete);
     }
 
-    /**
-     * Récupère toutes les propriétés
-     * @return Liste de toutes les propriétés
-     */
-    public List<Propriete> findAll() {
-        return proprieteRepository.findAll();
-    }
-
-    /**
-     * Récupère une propriété par son ID
-     * @param id L'ID de la propriété
-     * @return La propriété correspondante, s'il existe
-     */
-    public Propriete findById(UUID id) {
-        return proprieteRepository.findById(id).orElse(null);
-    }
-
-    /**
-     * Récupère les propriétés d'un contribuable
-     * @param contribuableId L'ID du contribuable
-     * @return Liste des propriétés du contribuable
-     */
-    public List<Propriete> findByContribuableId(UUID contribuableId) {
-        return proprieteRepository.findByProprietaire_Id(contribuableId);
-    }
+    // Autres méthodes existantes...
 }

@@ -1,6 +1,7 @@
 package com.DPRIHKAT.repository;
 
 import com.DPRIHKAT.dto.RelanceDetailDTO;
+import com.DPRIHKAT.entity.Relance;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -40,4 +41,11 @@ public interface RelanceRepositoryCustom {
      * @return Nombre de relances correspondant aux critères
      */
     long countByStatutAndDateEnvoiBetween(String statut, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * Récupère les relances associées à un dossier de recouvrement
+     * @param dossierRecouvrementId ID du dossier de recouvrement
+     * @return Liste des relances associées au dossier de recouvrement
+     */
+    List<Relance> findByDossierRecouvrementId(UUID dossierRecouvrementId);
 }

@@ -126,6 +126,7 @@ public class VehiculeController {
      * Recharge les données des véhicules depuis le fichier voiture.json
      */
     @PostMapping("/reload")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> reloadVehicules() {
         try {
             logger.info("Rechargement des données des véhicules");
@@ -218,6 +219,94 @@ public class VehiculeController {
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("VEHICULE_UPDATE_ERROR", 
                             "Erreur lors de la mise à jour de la classification du véhicule", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère tous les véhicules d'un contribuable
+     * 
+     * @param contribuableId ID du contribuable
+     * @return Liste des véhicules du contribuable
+     */
+    @GetMapping("/contribuable/{contribuableId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'TAXATEUR', 'CONTRIBUABLE')")
+    public ResponseEntity<?> getVehiculesByContribuable(@PathVariable UUID contribuableId) {
+        try {
+            logger.info("Récupération des véhicules du contribuable avec ID: {}", contribuableId);
+            
+            List<Vehicule> vehicules = vehiculeEntityService.findByContribuableId(contribuableId);
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "vehicules", vehicules
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des véhicules du contribuable {}", contribuableId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("VEHICULES_FETCH_ERROR", 
+                            "Erreur lors de la récupération des véhicules du contribuable", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère un véhicule par son ID
+     * 
+     * @param id ID du véhicule
+     * @return Détails du véhicule
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'TAXATEUR', 'CONTRIBUABLE', 'AGENT_DE_PLAQUES')")
+    public ResponseEntity<?> getVehiculeById(@PathVariable UUID id) {
+        try {
+            logger.info("Récupération du véhicule avec ID: {}", id);
+            
+            Vehicule vehicule = vehiculeEntityService.findById(id);
+            
+            if (vehicule == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("VEHICULE_NOT_FOUND", 
+                                "Véhicule non trouvé", 
+                                "Aucun véhicule trouvé avec l'ID: " + id));
+            }
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "vehicule", vehicule
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération du véhicule {}", id, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("VEHICULE_FETCH_ERROR", 
+                            "Erreur lors de la récupération du véhicule", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupère tous les véhicules
+     * 
+     * @return Liste de tous les véhicules
+     */
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'TAXATEUR')")
+    public ResponseEntity<?> getAllVehicules() {
+        try {
+            logger.info("Récupération de tous les véhicules");
+            
+            List<Vehicule> vehicules = vehiculeEntityService.findAll();
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "vehicules", vehicules
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération de tous les véhicules", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("VEHICULES_FETCH_ERROR", 
+                            "Erreur lors de la récupération de tous les véhicules", 
                             e.getMessage()));
         }
     }

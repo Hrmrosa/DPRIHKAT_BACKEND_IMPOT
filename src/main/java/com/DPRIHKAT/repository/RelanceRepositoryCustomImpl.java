@@ -189,4 +189,11 @@ public class RelanceRepositoryCustomImpl implements RelanceRepositoryCustom {
                 .setParameter("endDate", endDate);
         return query.getSingleResult();
     }
+    @Override
+    public List<Relance> findByDossierRecouvrementId(UUID dossierRecouvrementId) {
+        String jpql = "SELECT r FROM Relance r WHERE r.dossierRecouvrement.id = :dossierRecouvrementId";
+        return entityManager.createQuery(jpql, Relance.class)
+                .setParameter("dossierRecouvrementId", dossierRecouvrementId)
+                .getResultList();
+    }
 }
