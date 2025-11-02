@@ -12,7 +12,7 @@ Les documents de recouvrement sont des actes administratifs émis dans le cadre 
 ```
 /api/documents-recouvrement
 ```
-
+ 
 ## Endpoints
 
 ### 1. Lister les documents de recouvrement

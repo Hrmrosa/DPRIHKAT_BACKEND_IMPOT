@@ -22,7 +22,7 @@ Lors de la soumission d'une demande de plaque, **2 notes de taxation sont automa
 - ✅ Plus besoin de validation manuelle pour générer les notes
 - ✅ Processus accéléré
 - ✅ Réduction des erreurs humaines
-
+ 
 ### 2. DTOs Enrichis
 
 #### NoteTaxationDTO

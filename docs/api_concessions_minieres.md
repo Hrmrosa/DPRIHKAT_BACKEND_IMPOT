@@ -10,7 +10,7 @@ Gestion des concessions minières, des permis d'exploitation et des redevances a
 ```
 
 ## Endpoints
-
+ 
 ### 1. Créer une concession
 - **URL**: `/api/concessions`
 - **Méthode**: `POST`

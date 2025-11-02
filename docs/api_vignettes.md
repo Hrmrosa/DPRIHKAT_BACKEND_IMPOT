@@ -11,7 +11,7 @@ Les vignettes sont des taxes annuelles obligatoires pour tous les véhicules cir
 ### Base URL
 ```
 /api/vignettes
-```
+``` 
 
 ---
 

@@ -22,7 +22,7 @@ API pour la gestion des plaques d'immatriculation des véhicules. Permet de :
   },
   "statut": "DISPONIBLE"
 }
-```
+``` 
 
 ## Structure complète de la plaque
 ```json

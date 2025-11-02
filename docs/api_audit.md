@@ -2,7 +2,7 @@
 
 Cette documentation détaille les endpoints disponibles pour l'audit et les logs système dans l'API DPRIHKAT.
 
----
+--- 
 
 ## Vue d'ensemble
 

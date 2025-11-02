@@ -15,7 +15,7 @@
 11. [Fonctionnalités Avancées](#fonctionnalités-avancées)
 12. [Exemples d'Utilisation](#exemples-dutilisation)
 13. [Conclusion](#conclusion)
-
+ 
 ## Introduction
 
 Le tableau de bord DPRIHKAT est une interface centralisée qui fournit une vue d'ensemble du système d'imposition. Il est conçu pour offrir des statistiques, des graphiques et des informations pertinentes adaptées aux différents rôles d'utilisateurs dans le système. Le dashboard utilise des technologies modernes pour fournir des mises à jour en temps réel, permettant aux utilisateurs de visualiser les changements sans avoir à rafraîchir leur page.

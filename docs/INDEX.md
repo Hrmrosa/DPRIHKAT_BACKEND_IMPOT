@@ -13,7 +13,7 @@ Bienvenue dans la documentation complète de l'API DPRIHKAT (Direction Provincia
 ### 👥 Gestion des Contribuables
 - **[Contribuables](api_contribuables.md)** - CRUD contribuables, recherche, détection doublons
 - **[Détails Contribuables](contribuables.md)** - Documentation détaillée complète
-
+ 
 ### 🏠 Gestion des Biens Immobiliers
 - **[Propriétés](api_proprietes.md)** - Gestion des biens immobiliers et impôt foncier (IF)
 - **[Propriétés Détaillées](proprietes.md)** - Documentation complète des propriétés

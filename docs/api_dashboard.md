@@ -12,7 +12,7 @@ Le dashboard fournit des statistiques et indicateurs clés sur les activités de
 ```
 /api/dashboard
 ```
-
+ 
 ---
 
 ## Endpoints

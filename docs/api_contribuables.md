@@ -10,7 +10,7 @@ Les contribuables sont des entités qui représentent les personnes physiques ou
 
 ### Base URL
 ```
-/api/contribuables
+/api/contribuables 
 ```
 
 ---

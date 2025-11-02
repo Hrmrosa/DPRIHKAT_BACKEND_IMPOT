@@ -553,7 +553,7 @@ Les taxations sont créées avec:
   "typeImpot": "PLAQUE",
   "statut": "EN_ATTENTE",
   "contribuable": {
-    "id": "uuid",
+    "id": "uuid", 
     "nom": "KABONGO Jean",
     "adressePrincipale": "Lubumbashi, Katanga",
     "telephonePrincipal": "+243 XXX XXX XXX",

@@ -16,7 +16,7 @@ Les taux de change permettent de gérer les conversions entre devises (principal
 ---
 
 ## Endpoints
-
+ 
 ### 1. Récupérer tous les taux de change actifs
 
 Récupère uniquement les taux de change actuellement actifs.

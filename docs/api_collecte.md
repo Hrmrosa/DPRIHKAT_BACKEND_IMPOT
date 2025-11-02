@@ -12,7 +12,7 @@ La collecte permet de récupérer et d'enrichir les données des propriétés av
 ```
 /api/collectes
 ```
-
+ 
 ---
 
 ## Endpoints

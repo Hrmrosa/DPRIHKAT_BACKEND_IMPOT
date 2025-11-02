@@ -9,7 +9,7 @@ L'API Taxations permet de gérer tous les types d'impôts dans le système DPRIH
 **Authentification:** Bearer Token (JWT)
 
 **Date de dernière mise à jour:** 1er Novembre 2025
-
+ 
 ---
 
 ## Types d'Impôts Supportés

@@ -20,7 +20,7 @@ Les propriétés représentent les biens immobiliers appartenant aux contribuabl
 ### 1. Récupérer toutes les propriétés (paginé)
 
 Récupère la liste paginée de toutes les propriétés enregistrées.
-
+ 
 - **URL**: `/api/proprietes`
 - **Méthode**: `GET`
 - **Rôles autorisés**: `TAXATEUR`, `RECEVEUR_DES_IMPOTS`, `CHEF_DE_BUREAU`, `CHEF_DE_DIVISION`, `DIRECTEUR`, `ADMIN`, `INFORMATICIEN`

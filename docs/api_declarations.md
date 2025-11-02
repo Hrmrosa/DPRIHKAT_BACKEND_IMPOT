@@ -12,7 +12,7 @@ Les déclarations permettent aux contribuables de déclarer leurs biens (propri�
 ```
 /api/declarations
 ```
-
+ 
 ---
 
 ## Endpoints

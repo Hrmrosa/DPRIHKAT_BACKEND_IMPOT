@@ -14,7 +14,7 @@ Les divisions sont les entités administratives de premier niveau de la DPRIHKAT
 ```
 
 ---
-
+ 
 ## Endpoints
 
 ### 1. Récupérer toutes les divisions (paginé)

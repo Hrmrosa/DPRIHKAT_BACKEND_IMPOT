@@ -5,7 +5,7 @@ Cette documentation détaille les endpoints disponibles pour la gestion des bure
 ---
 
 ## Vue d'ensemble
-
+ 
 Les bureaux sont des entités administratives rattachées aux divisions de la DPRIHKAT.
 
 ### Base URL

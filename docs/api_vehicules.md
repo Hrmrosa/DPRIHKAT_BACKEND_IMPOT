@@ -11,7 +11,7 @@ Les véhicules représentent les biens mobiliers appartenant aux contribuables e
 ### Base URL
 ```
 /api/vehicules
-```
+``` 
 
 ---
 

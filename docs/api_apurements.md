@@ -2,7 +2,7 @@
 
 Cette documentation détaille les endpoints disponibles pour la gestion des apurements dans l'API DPRIHKAT.
 
----
+--- 
 
 ## Vue d'ensemble
 

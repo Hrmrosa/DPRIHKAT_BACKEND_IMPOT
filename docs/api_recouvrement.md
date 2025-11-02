@@ -18,7 +18,7 @@ Le recouvrement permet de gérer les dossiers de recouvrement pour les contribua
 ## Endpoints
 
 ### 1. Rechercher des dossiers de recouvrement
-
+ 
 Recherche des dossiers selon différents critères.
 
 - **URL**: `/api/dossiers-recouvrement/search`

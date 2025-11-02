@@ -14,7 +14,7 @@ Ce document décrit le processus complet d'attribution des plaques d'immatricula
 - **Fréquence :** Unique (sauf changement, perte, vol)
 - **Entité :** `DemandePlaque` → `Plaque`
 - **Résultat :** Attribution d'un numéro de plaque physique
-
+ 
 ### 🎫 Vignette (IRV - Impôt sur les Revenus Véhicules)
 - **Nature :** Impôt annuel sur les véhicules
 - **Objet :** Taxe de circulation annuelle

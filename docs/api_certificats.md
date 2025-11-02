@@ -7,7 +7,7 @@ Cette documentation détaille les endpoints disponibles pour la gestion des cert
 ## Vue d'ensemble
 
 Les certificats fiscaux attestent que le contribuable est en règle avec ses obligations fiscales.
-
+ 
 ### Base URL
 ```
 /api/certificats

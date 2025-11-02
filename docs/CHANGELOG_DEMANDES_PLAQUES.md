@@ -236,7 +236,7 @@ taxation.setMontant(10.0); // Montant fixe pour la vignette moto/tricycle
 4. **Intégration paiement mobile** - Permettre le paiement direct via mobile money
 
 5. **Statistiques** - Dashboard avec statistiques sur les demandes par statut
-
+ 
 ## Support
 
 Pour toute question ou problème, contacter l'équipe de développement DPRIHKAT.

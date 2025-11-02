@@ -13,7 +13,7 @@ Les paiements permettent aux contribuables de régler leurs taxations.
 /api/paiements
 ```
 
----
+--- 
 
 ## Endpoints
 

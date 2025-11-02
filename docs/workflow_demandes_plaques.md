@@ -15,7 +15,7 @@ Les demandes de plaques passent par les statuts suivants :
 5. **APUREE** - La demande a été apurée et vérifiée
 6. **LIVREE** - La plaque a été livrée au contribuable
 7. **REJETEE** - La demande a été rejetée
-
+ 
 ## Workflow Détaillé
 
 ### 1. Soumission de la Demande
