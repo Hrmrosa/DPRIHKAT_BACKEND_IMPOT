@@ -24,7 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return UserDetailsImpl.build(utilisateur);
     }
-    
+
     @Transactional
     public UserDetails loadUserById(UUID id) throws UsernameNotFoundException {
         Utilisateur utilisateur = utilisateurRepository.findById(id)

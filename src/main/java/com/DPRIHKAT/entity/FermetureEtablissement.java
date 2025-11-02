@@ -34,30 +34,6 @@ public class FermetureEtablissement extends DocumentRecouvrement {
         this.setType(TypeDocumentRecouvrement.FERMETURE_ETABLISSEMENT);
     }
 
-    /**
-     * Détermine le montant de l'amende en fonction du type de contribuable
-     * @param contribuable Le contribuable concerné
-     * @return Le montant de l'amende
-     */
-    private Double determinerMontantAmende(Contribuable contribuable) {
-        if (contribuable == null) {
-            return 100000.0; // Montant par défaut
-        }
-
-        switch (contribuable.getType()) {
-            case PERSONNE_MORALE:
-                return 1000000.0; // 1.000.000 FC
-            case PERSONNE_PHYSIQUE:
-                if (contribuable.isCommercant()) {
-                    return 100000.0; // 100.000 FC pour les personnes physiques commerçantes
-                } else {
-                    return 50000.0; // 50.000 FC pour les personnes physiques non commerçantes
-                }
-            default:
-                return 100000.0; // Montant par défaut
-        }
-    }
-
     public FermetureEtablissement(StatutDocumentRecouvrement statut, Date dateGeneration, 
                                  String reference, Double montantPrincipal, Double montantPenalites,
                                  DossierRecouvrement dossierRecouvrement, Contribuable contribuable, 
@@ -70,8 +46,23 @@ public class FermetureEtablissement extends DocumentRecouvrement {
         this.adresseEtablissement = adresseEtablissement;
         this.motifFermeture = motifFermeture;
         
-        // Définir le montant de l'amende
-        this.montantAmende = determinerMontantAmende(contribuable);
+        // Définir le montant de l'amende en fonction du type de contribuable
+        if (contribuable != null) {
+            switch (contribuable.getType()) {
+                case PERSONNE_MORALE:
+                    this.montantAmende = 1000000.0; // 1.000.000 FC
+                    break;
+                case PERSONNE_PHYSIQUE:
+                    if (contribuable.isCommercant()) {
+                        this.montantAmende = 100000.0; // 100.000 FC
+                    } else {
+                        this.montantAmende = 50000.0; // 50.000 FC
+                    }
+                    break;
+                default:
+                    this.montantAmende = 100000.0; // Valeur par défaut
+            }
+        }
     }
 
     // Getters et Setters

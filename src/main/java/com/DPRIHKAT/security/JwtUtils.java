@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 @Component
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-    
+
     // Pattern pour vérifier la structure de base d'un JWT (3 segments séparés par des points)
     private static final Pattern JWT_PATTERN = Pattern.compile("^[A-Za-z0-9\\-_\\.]+\\.[A-Za-z0-9\\-_\\.]+\\.[A-Za-z0-9\\-_\\.]+$");
 
@@ -67,20 +67,20 @@ public class JwtUtils {
             logger.error("JWT token is empty");
             return false;
         }
-        
+
         try {
             // Vérifier si le token a la structure de base d'un JWT (3 segments séparés par des points)
             if (!JWT_PATTERN.matcher(authToken).matches()) {
                 logger.error("JWT token structure is invalid");
                 return false;
             }
-            
+
             // Vérifier si le token contient des caractères non valides pour base64url
             if (authToken.contains(" ") || authToken.contains("\t") || authToken.contains("\n") || authToken.contains("\r")) {
                 logger.error("JWT token contains invalid characters");
                 return false;
             }
-            
+
             Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
             return true;
         } catch (DecodingException e) {

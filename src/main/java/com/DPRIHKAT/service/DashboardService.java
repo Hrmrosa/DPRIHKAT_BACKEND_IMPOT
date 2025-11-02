@@ -8,6 +8,7 @@ import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.Vehicule;
 import com.DPRIHKAT.repository.ContribuableRepository;
 import com.DPRIHKAT.repository.PaiementRepository;
+import com.DPRIHKAT.repository.PlaqueRepository;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.TaxationRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
@@ -40,6 +41,7 @@ public class DashboardService {
     private final ContribuableRepository contribuableRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final VehiculeRepository vehiculeRepository;
+    private final PlaqueRepository plaqueRepository;
     private final LogService logService;
 
     public DashboardService(
@@ -49,6 +51,7 @@ public class DashboardService {
             ContribuableRepository contribuableRepository,
             UtilisateurRepository utilisateurRepository,
             VehiculeRepository vehiculeRepository,
+            PlaqueRepository plaqueRepository,
             LogService logService) {
         this.taxationRepository = taxationRepository;
         this.paiementRepository = paiementRepository;
@@ -56,6 +59,7 @@ public class DashboardService {
         this.contribuableRepository = contribuableRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.vehiculeRepository = vehiculeRepository;
+        this.plaqueRepository = plaqueRepository;
         this.logService = logService;
     }
 
@@ -147,6 +151,64 @@ public class DashboardService {
 
         return dashboardData;
     }
+
+    /**
+     * Récupère les statistiques publiques pour le site web (sans authentification)
+     * Données générales pour affichage public
+     */
+    public Map<String, Object> getPublicStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        // Nombre total de contribuables
+        long totalContribuables = contribuableRepository.count();
+        stats.put("total_contribuables", totalContribuables);
+        
+        // Répartition des contribuables par type
+        stats.put("contribuables_par_type", getContribuablesParType());
+        
+        // Nombre total de propriétés
+        long totalProprietes = proprieteRepository.count();
+        stats.put("total_proprietes", totalProprietes);
+        
+        // Répartition des propriétés par type
+        stats.put("proprietes_par_type", getProprieteParType());
+        
+        // Nombre total de véhicules
+        long totalVehicules = vehiculeRepository.count();
+        stats.put("total_vehicules", totalVehicules);
+        
+        // Nombre total de plaques
+        long totalPlaques = plaqueRepository.count();
+        stats.put("total_plaques", totalPlaques);
+        
+        // Nombre de plaques disponibles
+        long plaquesDisponibles = plaqueRepository.findByDisponibleTrue().size();
+        stats.put("plaques_disponibles", plaquesDisponibles);
+        
+        // Nombre de plaques attribuées
+        long plaquesAttribuees = plaqueRepository.findByDisponibleFalse().size();
+        stats.put("plaques_attribuees", plaquesAttribuees);
+        
+        // Montant total des taxations
+        BigDecimal montantTotalTaxations = taxationRepository.findAll().stream()
+                .map(taxation -> BigDecimal.valueOf(taxation.getMontant() != null ? taxation.getMontant() : 0.0))
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+        stats.put("montant_total_taxations", montantTotalTaxations);
+        
+        // Montant total des paiements
+        BigDecimal montantTotalPaiements = paiementRepository.findAll().stream()
+                .map(paiement -> BigDecimal.valueOf(paiement.getMontant() != null ? paiement.getMontant() : 0.0))
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+        stats.put("montant_total_paiements", montantTotalPaiements);
+        
+        // Taux de recouvrement (paiements / taxations)
+        BigDecimal tauxRecouvrement = montantTotalTaxations.compareTo(BigDecimal.ZERO) > 0
+                ? montantTotalPaiements.divide(montantTotalTaxations, 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal("100"))
+                : BigDecimal.ZERO;
+        stats.put("taux_recouvrement", tauxRecouvrement);
+        
+        return stats;
+    }
     /**
      * Méthode générique pour récupérer toutes les données du dashboard
      * Cette méthode est utilisée par le service de notification en temps réel
@@ -195,6 +257,18 @@ public class DashboardService {
         // Nombre total de véhicules
         long totalVehicules = vehiculeRepository.count();
         stats.put("total_vehicules", totalVehicules);
+        
+        // Nombre total de plaques
+        long totalPlaques = plaqueRepository.count();
+        stats.put("total_plaques", totalPlaques);
+        
+        // Nombre de plaques disponibles
+        long plaquesDisponibles = plaqueRepository.findByDisponibleTrue().size();
+        stats.put("plaques_disponibles", plaquesDisponibles);
+        
+        // Nombre de plaques attribuées
+        long plaquesAttribuees = plaqueRepository.findByDisponibleFalse().size();
+        stats.put("plaques_attribuees", plaquesAttribuees);
         
         // Nombre total d'utilisateurs
         long totalUtilisateurs = utilisateurRepository.count();

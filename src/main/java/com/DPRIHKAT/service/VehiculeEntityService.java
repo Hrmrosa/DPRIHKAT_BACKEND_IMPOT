@@ -128,11 +128,11 @@ public class VehiculeEntityService {
         logger.info("Récupération des véhicules du contribuable avec ID: {}", contribuableId);
         
         // Récupérer les véhicules où le contribuable est propriétaire
-        List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaireId(contribuableId);
+        List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaire_Id(contribuableId);
         logger.debug("Nombre de véhicules où le contribuable est propriétaire: {}", vehiculesProprietaire.size());
         
         // Récupérer les véhicules où le contribuable est enregistré comme contribuable
-        List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuableId(contribuableId);
+        List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuable_Id(contribuableId);
         logger.debug("Nombre de véhicules où le contribuable est enregistré comme contribuable: {}", vehiculesContribuable.size());
         
         // Fusionner les deux listes (sans doublons)
@@ -150,6 +150,6 @@ public class VehiculeEntityService {
      */
     public List<Vehicule> findByProprietaireId(UUID proprietaireId) {
         logger.info("Récupération des véhicules du propriétaire avec ID: {}", proprietaireId);
-        return vehiculeRepository.findByProprietaireId(proprietaireId);
+        return vehiculeRepository.findByProprietaire_Id(proprietaireId);
     }
 }

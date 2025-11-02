@@ -20,11 +20,17 @@ import java.util.UUID;
 /**
  * Entité représentant un contribuable
  * Un contribuable est également un agent dans le système
- * 
+ *
  * @author amateur
  */
 @Entity
-@Table(name = "contribuable")
+@Table(name = "contribuable",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"telephonePrincipal"}, name = "uk_contribuable_telephone"),
+                @UniqueConstraint(columnNames = {"email"}, name = "uk_contribuable_email"),
+                @UniqueConstraint(columnNames = {"numeroIdentificationContribuable"}, name = "uk_contribuable_numero")
+        }
+)
 @PrimaryKeyJoinColumn(name = "agent_id")
 @DiscriminatorValue("CONTRIBUABLE")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
@@ -49,18 +55,18 @@ public class Contribuable extends Agent {
     private String numeroIdentificationContribuable;
     private boolean actif = true;
     private String codeQR;
-    
+
     @Column(name = "commercant")
     private boolean commercant = false;
 
     @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Taxation> taxations = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "titulaire", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<ConcessionMinier> concessions = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Vehicule> vehicules = new ArrayList<>();
@@ -69,10 +75,10 @@ public class Contribuable extends Agent {
         super();
     }
 
-    public Contribuable(String nom, String adressePrincipale, String adresseSecondaire, 
-                       String telephonePrincipal, String telephoneSecondaire, String email, 
-                       String nationalite, TypeContribuable type, String idNat, String NRC, 
-                       String sigle, String numeroIdentificationContribuable) {
+    public Contribuable(String nom, String adressePrincipale, String adresseSecondaire,
+                        String telephonePrincipal, String telephoneSecondaire, String email,
+                        String nationalite, TypeContribuable type, String idNat, String NRC,
+                        String sigle, String numeroIdentificationContribuable) {
         super(nom, Sexe.M, "CONTRIB-" + numeroIdentificationContribuable, null);
         this.adressePrincipale = adressePrincipale;
         this.adresseSecondaire = adresseSecondaire;
@@ -234,7 +240,7 @@ public class Contribuable extends Agent {
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
     }
-    
+
     public List<Taxation> getTaxations() {
         return taxations;
     }
@@ -242,7 +248,7 @@ public class Contribuable extends Agent {
     public void setTaxations(List<Taxation> taxations) {
         this.taxations = taxations;
     }
-    
+
     public List<ConcessionMinier> getConcessions() {
         return concessions;
     }
@@ -250,7 +256,7 @@ public class Contribuable extends Agent {
     public void setConcessions(List<ConcessionMinier> concessions) {
         this.concessions = concessions;
     }
-    
+
     public List<Vehicule> getVehicules() {
         return vehicules;
     }

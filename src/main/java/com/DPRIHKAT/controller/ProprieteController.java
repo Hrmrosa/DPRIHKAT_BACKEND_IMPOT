@@ -1,9 +1,13 @@
 package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.dto.ProprieteCreationDTO;
+import com.DPRIHKAT.entity.NatureImpot;
 import com.DPRIHKAT.entity.Propriete;
+import com.DPRIHKAT.entity.ProprieteImpot;
 import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.enums.TypeImpot;
+import com.DPRIHKAT.repository.NatureImpotRepository;
+import com.DPRIHKAT.repository.ProprieteImpotRepository;
 import com.DPRIHKAT.repository.ProprieteRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.service.ProprieteService;
@@ -46,6 +50,12 @@ public class ProprieteController {
 
     @Autowired
     private ProprieteService proprieteService;
+
+    @Autowired
+    private ProprieteImpotRepository proprieteImpotRepository;
+
+    @Autowired
+    private NatureImpotRepository natureImpotRepository;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_CHEF_DE_BUREAU', 'ROLE_CHEF_DE_DIVISION', 'ROLE_DIRECTEUR', 'ROLE_ADMIN', 'ROLE_INFORMATICIEN')")
@@ -469,6 +479,135 @@ public class ProprieteController {
             return ResponseEntity
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("PROPRIETE_CREATE_ERROR", "Erreur lors de la création de la propriété", e.getMessage()));
+        }
+    }
+
+    /**
+     * Associe une nature d'impôt à une propriété
+     * 
+     * @param proprieteId L'ID de la propriété
+     * @param natureImpotId L'ID de la nature d'impôt
+     * @param tauxImposition Le taux d'imposition (optionnel)
+     * @return Le ProprieteImpot créé
+     */
+    @PostMapping("/{proprieteId}/impots/{natureImpotId}")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_CHEF_DE_BUREAU', 'ROLE_ADMIN')")
+    public ResponseEntity<?> associerImpotAPropriete(
+            @PathVariable UUID proprieteId,
+            @PathVariable UUID natureImpotId,
+            @RequestParam(required = false) Double tauxImposition) {
+        try {
+            logger.info("Association d'un impôt à une propriété - Propriété: {}, Nature Impôt: {}", proprieteId, natureImpotId);
+            
+            // Vérifier si la propriété existe
+            Propriete propriete = proprieteRepository.findById(proprieteId)
+                    .orElseThrow(() -> new Exception("Propriété non trouvée avec l'ID: " + proprieteId));
+            
+            // Vérifier si la nature d'impôt existe
+            NatureImpot natureImpot = natureImpotRepository.findById(natureImpotId)
+                    .orElseThrow(() -> new Exception("Nature d'impôt non trouvée avec l'ID: " + natureImpotId));
+            
+            // Vérifier si l'association existe déjà
+            ProprieteImpot existant = proprieteImpotRepository.findByProprieteAndNatureImpot(propriete, natureImpot);
+            if (existant != null) {
+                if (existant.isActif()) {
+                    return ResponseEntity
+                            .badRequest()
+                            .body(ResponseUtil.createErrorResponse("ASSOCIATION_EXISTS", 
+                                    "Cette nature d'impôt est déjà associée à cette propriété", 
+                                    "ProprieteImpot ID: " + existant.getId()));
+                } else {
+                    // Réactiver l'association existante
+                    existant.setActif(true);
+                    if (tauxImposition != null) {
+                        existant.setTauxImposition(tauxImposition);
+                    }
+                    ProprieteImpot saved = proprieteImpotRepository.save(existant);
+                    logger.info("ProprieteImpot réactivé: {}", saved.getId());
+                    
+                    return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                            "message", "Nature d'impôt réassociée à la propriété avec succès",
+                            "proprieteImpot", Map.of(
+                                    "id", saved.getId(),
+                                    "actif", saved.isActif(),
+                                    "tauxImposition", saved.getTauxImposition(),
+                                    "natureImpot", Map.of(
+                                            "id", natureImpot.getId(),
+                                            "code", natureImpot.getCode(),
+                                            "nom", natureImpot.getNom()
+                                    )
+                            )
+                    )));
+                }
+            }
+            
+            // Créer la nouvelle association
+            ProprieteImpot proprieteImpot = new ProprieteImpot();
+            proprieteImpot.setPropriete(propriete);
+            proprieteImpot.setNatureImpot(natureImpot);
+            proprieteImpot.setTauxImposition(tauxImposition != null ? tauxImposition : 0.0);
+            proprieteImpot.setActif(true);
+            
+            ProprieteImpot saved = proprieteImpotRepository.save(proprieteImpot);
+            logger.info("ProprieteImpot créé avec succès: {}", saved.getId());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "message", "Nature d'impôt associée à la propriété avec succès",
+                    "proprieteImpot", Map.of(
+                            "id", saved.getId(),
+                            "actif", saved.isActif(),
+                            "tauxImposition", saved.getTauxImposition(),
+                            "natureImpot", Map.of(
+                                    "id", natureImpot.getId(),
+                                    "code", natureImpot.getCode(),
+                                    "nom", natureImpot.getNom()
+                            )
+                    )
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de l'association de l'impôt à la propriété", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("ASSOCIATION_ERROR", 
+                            "Erreur lors de l'association de l'impôt à la propriété", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
+     * Récupère toutes les natures d'impôt disponibles
+     * 
+     * @return Liste des natures d'impôt
+     */
+    @GetMapping("/natures-impots")
+    @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_CHEF_DE_BUREAU', 'ROLE_ADMIN', 'ROLE_CONTRIBUABLE')")
+    public ResponseEntity<?> getNaturesImpots() {
+        try {
+            List<NatureImpot> naturesImpots = natureImpotRepository.findAll();
+            
+            List<Map<String, Object>> naturesDTO = naturesImpots.stream()
+                    .filter(NatureImpot::isActif)
+                    .map(ni -> {
+                        Map<String, Object> dto = new HashMap<>();
+                        dto.put("id", ni.getId());
+                        dto.put("code", ni.getCode());
+                        dto.put("nom", ni.getNom());
+                        dto.put("description", ni.getDescription() != null ? ni.getDescription() : "");
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "message", "Natures d'impôt récupérées avec succès",
+                    "naturesImpots", naturesDTO
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des natures d'impôt", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("NATURES_IMPOTS_FETCH_ERROR", 
+                            "Erreur lors de la récupération des natures d'impôt", 
+                            e.getMessage()));
         }
     }
 }

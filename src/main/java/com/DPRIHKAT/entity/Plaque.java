@@ -12,11 +12,13 @@ import com.DPRIHKAT.entity.enums.StatutPlaque;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.UUID;
 
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Plaque {
 
     @Id
@@ -51,6 +53,15 @@ public class Plaque {
     @JoinColumn(name = "demande_id")
     @JsonIdentityReference(alwaysAsId = true)
     private DemandePlaque demande;
+
+    @Transient
+    private UUID vehiculeId;
+
+    @Transient
+    private UUID proprieteId;
+
+    @Transient
+    private UUID demandeId;
 
     public Plaque() {
     }
@@ -141,5 +152,29 @@ public class Plaque {
     
     public void setDemande(DemandePlaque demande) {
         this.demande = demande;
+    }
+
+    public UUID getVehiculeId() {
+        return vehiculeId;
+    }
+
+    public void setVehiculeId(UUID vehiculeId) {
+        this.vehiculeId = vehiculeId;
+    }
+
+    public UUID getProprieteId() {
+        return proprieteId;
+    }
+
+    public void setProprieteId(UUID proprieteId) {
+        this.proprieteId = proprieteId;
+    }
+
+    public UUID getDemandeId() {
+        return demandeId;
+    }
+
+    public void setDemandeId(UUID demandeId) {
+        this.demandeId = demandeId;
     }
 }

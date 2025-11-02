@@ -5,6 +5,7 @@ import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.Vehicule;
 import com.DPRIHKAT.entity.Contribuable;
 import com.DPRIHKAT.entity.enums.StatutPlaque;
+import com.DPRIHKAT.entity.enums.StatutVehicule;
 import com.DPRIHKAT.repository.PlaqueRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.repository.VehiculeRepository;
@@ -182,7 +183,7 @@ public class PlaqueService {
      * Get plaques by vehicle
      */
     public List<Plaque> getPlaquesByVehicle(UUID vehiculeId) {
-        return plaqueRepository.findByVehiculeId(vehiculeId);
+        return plaqueRepository.findByVehicule_Id(vehiculeId);
     }
     
     /**
@@ -382,5 +383,69 @@ public class PlaqueService {
                 .badRequest()
                 .body(ResponseUtil.createErrorResponse("VEHICULE_FETCH_ERROR", "Erreur de récupération", e.getMessage()));
         }
+    }
+    
+    /**
+     * Marquer une plaque comme livrée
+     * 
+     * @param plaqueId ID de la plaque
+     * @return La plaque mise à jour
+     */
+    @Transactional
+    public Plaque livrerPlaque(UUID plaqueId) {
+        logger.info("Livraison de la plaque {}", plaqueId);
+        
+        Plaque plaque = plaqueRepository.findById(plaqueId)
+                .orElseThrow(() -> new RuntimeException("Plaque non trouvée avec ID: " + plaqueId));
+        
+        if (plaque.getStatut() != StatutPlaque.ATTRIBUEE) {
+            throw new RuntimeException("Cette plaque ne peut pas être livrée car elle n'est pas en statut ATTRIBUEE");
+        }
+        
+        // Mettre à jour le statut de la plaque
+        plaque.setStatut(StatutPlaque.LIVREE);
+        plaque = plaqueRepository.save(plaque);
+        
+        // Mettre à jour le statut du véhicule
+        if (plaque.getVehicule() != null) {
+            Vehicule vehicule = plaque.getVehicule();
+            vehicule.setStatut(StatutVehicule.ACTIF);
+            vehiculeRepository.save(vehicule);
+        }
+        
+        logger.info("Plaque {} marquée comme livrée avec succès", plaqueId);
+        return plaque;
+    }
+    
+    /**
+     * Libérer une plaque (la remettre en stock)
+     * 
+     * @param plaqueId ID de la plaque
+     * @return La plaque mise à jour
+     */
+    @Transactional
+    public Plaque libererPlaque(UUID plaqueId) {
+        logger.info("Libération de la plaque {}", plaqueId);
+        
+        Plaque plaque = plaqueRepository.findById(plaqueId)
+                .orElseThrow(() -> new RuntimeException("Plaque non trouvée avec ID: " + plaqueId));
+        
+        // Détacher la plaque du véhicule
+        if (plaque.getVehicule() != null) {
+            Vehicule vehicule = plaque.getVehicule();
+            vehicule.setNumeroPlaque(null);
+            vehicule.setStatut(StatutVehicule.ENREGISTRE);
+            vehiculeRepository.save(vehicule);
+        }
+        
+        // Remettre la plaque en stock
+        plaque.setVehicule(null);
+        plaque.setStatut(StatutPlaque.STOCK);
+        plaque.setDisponible(true);
+        plaque.setDemande(null);
+        plaque = plaqueRepository.save(plaque);
+        
+        logger.info("Plaque {} libérée avec succès", plaqueId);
+        return plaque;
     }
 }

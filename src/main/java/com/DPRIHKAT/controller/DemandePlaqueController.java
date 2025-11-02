@@ -37,6 +37,95 @@ public class DemandePlaqueController {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
     
+    @Autowired
+    private com.DPRIHKAT.service.VehiculeEntityService vehiculeEntityService;
+    
+    @Autowired
+    private com.DPRIHKAT.repository.VehiculeRepository vehiculeRepository;
+    
+    /**
+     * Créer un véhicule et soumettre une demande de plaque en une seule opération
+     * 
+     * @param marque Marque du véhicule
+     * @param modele Modèle du véhicule
+     * @param annee Année du véhicule
+     * @param numeroChassis Numéro de châssis
+     * @param genre Genre du véhicule (MOTO, TRICYCLE, etc.)
+     * @param categorie Catégorie du véhicule
+     * @param puissanceFiscale Puissance fiscale
+     * @param facture Facture d'achat du véhicule
+     * @param authentication Informations d'authentification
+     * @return La demande créée avec le véhicule
+     */
+    @PostMapping("/creer-vehicule-et-demander")
+    @PreAuthorize("hasAnyRole('ROLE_CONTRIBUABLE', 'ROLE_AGENT_DE_PLAQUES', 'ROLE_TAXATEUR', 'ROLE_ADMIN')")
+    public ResponseEntity<?> creerVehiculeEtDemanderPlaque(
+            @RequestParam String marque,
+            @RequestParam String modele,
+            @RequestParam Integer annee,
+            @RequestParam String numeroChassis,
+            @RequestParam String genre,
+            @RequestParam(required = false) String categorie,
+            @RequestParam(required = false) Double puissanceFiscale,
+            @RequestParam(required = false) String couleur,
+            @RequestParam(required = false) Integer nombrePlaces,
+            @RequestParam UUID contribuableId,
+            @RequestParam("facture") MultipartFile facture,
+            Authentication authentication) {
+        try {
+            logger.info("Création d'un véhicule et soumission d'une demande de plaque pour le contribuable {}", contribuableId);
+            
+            // Vérifier si un véhicule avec ce numéro de châssis existe déjà
+            if (vehiculeRepository.findByNumeroChassis(numeroChassis).isPresent()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("VEHICULE_CHASSIS_EXISTS", 
+                                "Un véhicule avec ce numéro de châssis existe déjà", 
+                                "Numéro de châssis: " + numeroChassis));
+            }
+            
+            // Créer le véhicule d'abord
+            com.DPRIHKAT.entity.Vehicule vehicule = new com.DPRIHKAT.entity.Vehicule();
+            vehicule.setMarque(marque);
+            vehicule.setModele(modele);
+            vehicule.setAnnee(annee);
+            vehicule.setNumeroChassis(numeroChassis);
+            vehicule.setGenre(genre);
+            vehicule.setCategorie(categorie);
+            vehicule.setPuissanceFiscale(puissanceFiscale);
+            vehicule.setProprietaireId(contribuableId);
+            vehicule.setContribuableId(contribuableId);
+            vehicule.setStatut(com.DPRIHKAT.entity.enums.StatutVehicule.ENREGISTRE);
+            
+            // Générer une immatriculation temporaire unique basée sur UUID
+            // Sera remplacée par le vrai numéro de plaque après attribution
+            vehicule.setImmatriculation("TEMP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            
+            vehicule = vehiculeEntityService.createVehicule(vehicule);
+            logger.info("Véhicule créé avec succès: {}", vehicule.getId());
+            
+            // Soumettre la demande de plaque (crée automatiquement les 2 notes de taxation)
+            com.DPRIHKAT.dto.DemandePlaqueResponseDTO response = demandePlaqueService.soumettreDemande(
+                    contribuableId,
+                    vehicule.getId(),
+                    facture);
+            
+            logger.info("Demande de plaque soumise avec succès: {}", response.getDemandeId());
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "vehicule", vehicule,
+                    "demande", response,
+                    "message", "Véhicule créé et demande de plaque soumise avec succès. Notes de taxation générées."
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la création du véhicule et de la demande de plaque", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("VEHICULE_DEMANDE_CREATION_ERROR", 
+                            "Erreur lors de la création du véhicule et de la demande de plaque", 
+                            e.getMessage()));
+        }
+    }
+    
     /**
      * Soumettre une demande de plaque (par un contribuable)
      * 
@@ -68,15 +157,15 @@ public class DemandePlaqueController {
                                 "Seuls les contribuables peuvent soumettre des demandes"));
             }
             
-            DemandePlaque demande = demandePlaqueService.soumettreDemande(
+            com.DPRIHKAT.dto.DemandePlaqueResponseDTO response = demandePlaqueService.soumettreDemande(
                     utilisateur.getContribuable().getId(),
                     vehiculeId,
                     facture);
             
-            logger.info("Demande de plaque soumise avec succès: {}", demande.getId());
+            logger.info("Demande de plaque soumise avec succès: {}", response.getDemandeId());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "demande", demande,
-                    "message", "Demande soumise avec succès"
+                    "demande", response,
+                    "message", "Demande soumise avec succès. Notes de taxation générées."
             )));
         } catch (Exception e) {
             logger.error("Erreur lors de la soumission de la demande", e);
@@ -84,6 +173,84 @@ public class DemandePlaqueController {
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("DEMANDE_SUBMISSION_ERROR", 
                             "Erreur lors de la soumission de la demande", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupérer les demandes par statut
+     * 
+     * @param statut Statut des demandes (SOUMISE, VALIDEE, TAXEE, PAYEE, APUREE, LIVREE, REJETEE)
+     * @return Liste des demandes avec ce statut
+     */
+    @GetMapping("/statut/{statut}")
+    @PreAuthorize("hasAnyRole('ROLE_AGENT_DE_PLAQUES', 'ROLE_TAXATEUR', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getDemandesByStatut(@PathVariable String statut) {
+        try {
+            logger.info("Récupération des demandes avec le statut {} et détails complets", statut);
+            
+            com.DPRIHKAT.entity.enums.StatutDemande statutEnum = com.DPRIHKAT.entity.enums.StatutDemande.valueOf(statut.toUpperCase());
+            List<com.DPRIHKAT.dto.DemandePlaqueResponseDTO> demandes = demandePlaqueService.getDemandesAvecDetailsByStatut(statutEnum);
+            
+            logger.info("{} demandes trouvées avec le statut {} et détails", demandes.size(), statut);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "demandes", demandes,
+                    "count", demandes.size(),
+                    "statut", statut
+            )));
+        } catch (IllegalArgumentException e) {
+            logger.error("Statut invalide: {}", statut, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("INVALID_STATUT", 
+                            "Statut invalide", 
+                            "Les statuts valides sont: SOUMISE, VALIDEE, TAXEE, PAYEE, APUREE, LIVREE, REJETEE"));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des demandes par statut", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("DEMANDES_RETRIEVAL_ERROR", 
+                            "Erreur lors de la récupération des demandes", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Récupérer les demandes d'un contribuable par statut
+     * 
+     * @param contribuableId ID du contribuable
+     * @param statut Statut des demandes
+     * @return Liste des demandes
+     */
+    @GetMapping("/contribuable/{contribuableId}/statut/{statut}")
+    @PreAuthorize("hasAnyRole('ROLE_CONTRIBUABLE', 'ROLE_AGENT_DE_PLAQUES', 'ROLE_TAXATEUR', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getDemandesByContribuableAndStatut(
+            @PathVariable UUID contribuableId,
+            @PathVariable String statut) {
+        try {
+            logger.info("Récupération des demandes du contribuable {} avec le statut {}", contribuableId, statut);
+            
+            com.DPRIHKAT.entity.enums.StatutDemande statutEnum = com.DPRIHKAT.entity.enums.StatutDemande.valueOf(statut.toUpperCase());
+            List<DemandePlaque> demandes = demandePlaqueService.getDemandesByContribuableAndStatut(contribuableId, statutEnum);
+            
+            logger.info("{} demandes trouvées", demandes.size());
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "demandes", demandes,
+                    "count", demandes.size()
+            )));
+        } catch (IllegalArgumentException e) {
+            logger.error("Statut invalide: {}", statut, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("INVALID_STATUT", 
+                            "Statut invalide", 
+                            "Les statuts valides sont: SOUMISE, VALIDEE, TAXEE, PAYEE, APUREE, LIVREE, REJETEE"));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des demandes", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("DEMANDES_RETRIEVAL_ERROR", 
+                            "Erreur lors de la récupération des demandes", 
                             e.getMessage()));
         }
     }
@@ -268,35 +435,26 @@ public class DemandePlaqueController {
     }
     
     /**
-     * Récupérer toutes les demandes
+     * Récupérer toutes les demandes avec détails complets (notes de taxation et plaques)
      * 
-     * @param statut Statut des demandes (optionnel)
      * @return Liste des demandes
      */
     @GetMapping("")
     @PreAuthorize("hasAnyRole('ROLE_TAXATEUR', 'ROLE_RECEVEUR_DES_IMPOTS', 'ROLE_AGENT_DE_PLAQUES', 'ROLE_ADMIN')")
-    public ResponseEntity<?> getAllDemandes(
-            @RequestParam(required = false) StatutDemande statut) {
+    public ResponseEntity<?> getAllDemandes() {
         try {
-            logger.info("Récupération de toutes les demandes de plaque");
-            
-            List<DemandePlaque> demandes;
-            if (statut != null) {
-                logger.info("Filtrage par statut: {}", statut);
-                demandes = demandePlaqueService.getDemandesByStatut(statut);
-            } else {
-                demandes = demandePlaqueService.getAllDemandes();
-            }
-            
-            logger.info("{} demandes de plaque récupérées", demandes.size());
+            logger.info("Récupération de toutes les demandes de plaque avec détails complets");
+            List<com.DPRIHKAT.dto.DemandePlaqueResponseDTO> demandes = demandePlaqueService.getToutesLesDemandesAvecDetails();
+            logger.info("{} demandes trouvées avec détails", demandes.size());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "demandes", demandes
+                    "demandes", demandes,
+                    "count", demandes.size()
             )));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des demandes", e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("DEMANDES_FETCH_ERROR", 
+                    .body(ResponseUtil.createErrorResponse("DEMANDES_RETRIEVAL_ERROR", 
                             "Erreur lors de la récupération des demandes", 
                             e.getMessage()));
         }
@@ -328,11 +486,12 @@ public class DemandePlaqueController {
                                 "Seuls les contribuables peuvent voir leurs demandes"));
             }
             
-            List<DemandePlaque> demandes = demandePlaqueService.getDemandesByContribuable(utilisateur.getContribuable().getId());
+            List<com.DPRIHKAT.dto.DemandePlaqueResponseDTO> demandes = demandePlaqueService.getDemandesAvecDetailsByContribuable(utilisateur.getContribuable().getId());
             
-            logger.info("{} demandes de plaque récupérées pour le contribuable {}", demandes.size(), utilisateur.getContribuable().getId());
+            logger.info("{} demandes de plaque récupérées avec détails pour le contribuable {}", demandes.size(), utilisateur.getContribuable().getId());
             return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "demandes", demandes
+                    "demandes", demandes,
+                    "count", demandes.size()
             )));
         } catch (Exception e) {
             logger.error("Erreur lors de la récupération des demandes", e);
@@ -382,6 +541,84 @@ public class DemandePlaqueController {
                     .badRequest()
                     .body(ResponseUtil.createErrorResponse("DEMANDES_FETCH_ERROR", 
                             "Erreur lors de la récupération des demandes", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Attribuer un numéro de plaque à une demande
+     * 
+     * @param id ID de la demande
+     * @param numeroPlaque Numéro de plaque à attribuer
+     * @param authentication Informations d'authentification
+     * @return La demande avec la plaque attribuée
+     */
+    @PutMapping("/{id}/attribuer")
+    @PreAuthorize("hasAnyRole('ROLE_AGENT_DE_PLAQUES', 'ROLE_ADMIN')")
+    public ResponseEntity<?> attribuerPlaque(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> payload,
+            Authentication authentication) {
+        try {
+            String numeroPlaque = payload.get("numeroPlaque");
+            logger.info("Attribution du numéro de plaque {} à la demande {}", numeroPlaque, id);
+            
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+            
+            DemandePlaque demande = demandePlaqueService.attribuerPlaque(id, numeroPlaque, utilisateur.getId());
+            
+            logger.info("Plaque {} attribuée avec succès à la demande {}", numeroPlaque, id);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "demande", demande,
+                    "message", "Plaque attribuée avec succès"
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de l'attribution de la plaque", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_ATTRIBUTION_ERROR", 
+                            "Erreur lors de l'attribution de la plaque", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Attribuer une plaque depuis le stock à une demande
+     * 
+     * @param id ID de la demande
+     * @param plaqueId ID de la plaque en stock
+     * @param authentication Informations d'authentification
+     * @return La demande avec la plaque attribuée
+     */
+    @PutMapping("/{id}/attribuer-stock")
+    @PreAuthorize("hasAnyRole('ROLE_AGENT_DE_PLAQUES', 'ROLE_ADMIN')")
+    public ResponseEntity<?> attribuerPlaqueDepuisStock(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> payload,
+            Authentication authentication) {
+        try {
+            UUID plaqueId = UUID.fromString(payload.get("plaqueId"));
+            logger.info("Attribution de la plaque {} depuis le stock à la demande {}", plaqueId, id);
+            
+            String login = authentication.getName();
+            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+            
+            DemandePlaque demande = demandePlaqueService.attribuerPlaqueDepuisStock(id, plaqueId, utilisateur.getId());
+            
+            logger.info("Plaque {} attribuée avec succès depuis le stock à la demande {}", plaqueId, id);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "demande", demande,
+                    "message", "Plaque attribuée avec succès depuis le stock"
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de l'attribution de la plaque depuis le stock", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_STOCK_ATTRIBUTION_ERROR", 
+                            "Erreur lors de l'attribution de la plaque depuis le stock", 
                             e.getMessage()));
         }
     }

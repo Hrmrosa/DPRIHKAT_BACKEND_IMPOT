@@ -72,8 +72,8 @@ public class ContribuableDetailsController {
                 .collect(Collectors.toList());
             
             // Récupérer les véhicules
-            List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaireId(id);
-            List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuableId(id);
+            List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaire_Id(id);
+            List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuable_Id(id);
             
             // Fusionner les deux listes sans doublons
             Set<Vehicule> allVehicules = new HashSet<>();

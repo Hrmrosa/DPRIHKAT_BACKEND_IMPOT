@@ -20,23 +20,20 @@ public interface DemandePlaqueRepository extends JpaRepository<DemandePlaque, UU
      * Trouve toutes les demandes de plaque pour un contribuable donné
      * 
      * @param contribuableId ID du contribuable
-     * @return Liste des demandes de plaque
      */
-    List<DemandePlaque> findByContribuableId(UUID contribuableId);
+    List<DemandePlaque> findByContribuable_Id(UUID contribuableId);
     
     /**
      * Trouve toutes les demandes de plaque pour un véhicule donné
-     * 
      * @param vehiculeId ID du véhicule
      * @return Liste des demandes de plaque
      */
-    List<DemandePlaque> findByVehiculeId(UUID vehiculeId);
+    List<DemandePlaque> findByVehicule_Id(UUID vehiculeId);
     
     /**
      * Trouve toutes les demandes de plaque avec un statut donné
      * 
      * @param statut Statut de la demande
-     * @return Liste des demandes de plaque
      */
     List<DemandePlaque> findByStatut(StatutDemande statut);
     
@@ -47,7 +44,7 @@ public interface DemandePlaqueRepository extends JpaRepository<DemandePlaque, UU
      * @param statut Statut de la demande
      * @return Liste des demandes de plaque
      */
-    List<DemandePlaque> findByContribuableIdAndStatut(UUID contribuableId, StatutDemande statut);
+    List<DemandePlaque> findByContribuable_IdAndStatut(UUID contribuableId, StatutDemande statut);
     
     /**
      * Trouve toutes les demandes de plaque validées par un utilisateur donné
@@ -55,5 +52,5 @@ public interface DemandePlaqueRepository extends JpaRepository<DemandePlaque, UU
      * @param validateurId ID du validateur
      * @return Liste des demandes de plaque
      */
-    List<DemandePlaque> findByValidateurId(UUID validateurId);
+    List<DemandePlaque> findByValidateur_Id(UUID validateurId);
 }

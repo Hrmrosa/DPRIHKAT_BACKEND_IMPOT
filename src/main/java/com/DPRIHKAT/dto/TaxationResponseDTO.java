@@ -39,6 +39,12 @@ public class TaxationResponseDTO {
     // Détails de la déclaration
     private DeclarationDTO declaration;
     
+    // Détails du véhicule (pour les taxations de plaques/vignettes)
+    private VehiculeDTO vehicule;
+    
+    // Détails de l'agent taxateur
+    private AgentDTO agent;
+    
     // Getters et Setters
     public UUID getId() {
         return id;
@@ -232,6 +238,22 @@ public class TaxationResponseDTO {
         this.declaration = declaration;
     }
     
+    public VehiculeDTO getVehicule() {
+        return vehicule;
+    }
+    
+    public void setVehicule(VehiculeDTO vehicule) {
+        this.vehicule = vehicule;
+    }
+    
+    public AgentDTO getAgent() {
+        return agent;
+    }
+    
+    public void setAgent(AgentDTO agent) {
+        this.agent = agent;
+    }
+    
     // Classes DTO internes
     public static class ContribuableDTO {
         private UUID id;
@@ -359,6 +381,95 @@ public class TaxationResponseDTO {
         
         public void setStatut(String statut) {
             this.statut = statut;
+        }
+    }
+    
+    public static class VehiculeDTO {
+        private UUID id;
+        private String marque;
+        private String modele;
+        private String numeroChassis;
+        private String immatriculation;
+        private String genre;
+        
+        // Getters et Setters
+        public UUID getId() {
+            return id;
+        }
+        
+        public void setId(UUID id) {
+            this.id = id;
+        }
+        
+        public String getMarque() {
+            return marque;
+        }
+        
+        public void setMarque(String marque) {
+            this.marque = marque;
+        }
+        
+        public String getModele() {
+            return modele;
+        }
+        
+        public void setModele(String modele) {
+            this.modele = modele;
+        }
+        
+        public String getNumeroChassis() {
+            return numeroChassis;
+        }
+        
+        public void setNumeroChassis(String numeroChassis) {
+            this.numeroChassis = numeroChassis;
+        }
+        
+        public String getImmatriculation() {
+            return immatriculation;
+        }
+        
+        public void setImmatriculation(String immatriculation) {
+            this.immatriculation = immatriculation;
+        }
+        
+        public String getGenre() {
+            return genre;
+        }
+        
+        public void setGenre(String genre) {
+            this.genre = genre;
+        }
+    }
+    
+    public static class AgentDTO {
+        private UUID id;
+        private String nom;
+        private String matricule;
+        
+        // Getters et Setters
+        public UUID getId() {
+            return id;
+        }
+        
+        public void setId(UUID id) {
+            this.id = id;
+        }
+        
+        public String getNom() {
+            return nom;
+        }
+        
+        public void setNom(String nom) {
+            this.nom = nom;
+        }
+        
+        public String getMatricule() {
+            return matricule;
+        }
+        
+        public void setMatricule(String matricule) {
+            this.matricule = matricule;
         }
     }
 }

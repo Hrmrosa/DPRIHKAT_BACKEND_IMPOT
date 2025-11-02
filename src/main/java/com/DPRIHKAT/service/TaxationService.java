@@ -133,14 +133,15 @@ public class TaxationService {
      * @param agentTaxateurId L'ID de l'agent taxateur
      * @return La taxation générée
      */
-    public Taxation generateTaxationForProperty(UUID proprieteId, UUID natureImpotId, String exercice, UUID agentTaxateurId) throws Exception {
+    public Taxation generateTaxationForProperty(UUID proprieteId, UUID proprieteImpotId, String exercice, UUID agentTaxateurId) throws Exception {
         // Vérifier si la propriété existe
         Propriete propriete = proprieteRepository.findById(proprieteId)
                 .orElseThrow(() -> new Exception("Propriété non trouvée avec l'ID: " + proprieteId));
         
         // Vérifier si le lien propriété-impôt existe
-        ProprieteImpot proprieteImpot = proprieteImpotRepository.findById(natureImpotId)
-                .orElseThrow(() -> new Exception("Nature d'impôt non trouvée avec l'ID: " + natureImpotId));
+        ProprieteImpot proprieteImpot = proprieteImpotRepository.findById(proprieteImpotId)
+                .orElseThrow(() -> new Exception("ProprieteImpot non trouvé avec l'ID: " + proprieteImpotId + 
+                    ". Assurez-vous d'envoyer l'ID du ProprieteImpot, pas l'ID de la Propriété."));
         
         // Vérifier si une taxation existe déjà pour cette propriété, cette nature d'impôt et cet exercice
         List<Taxation> existingTaxations = taxationRepository.findByProprieteAndTypeImpotAndExerciceAndActifTrue(
@@ -166,14 +167,20 @@ public class TaxationService {
         taxation.setPropriete(propriete);
         taxation.setProprieteImpot(proprieteImpot);
         taxation.setAgent(agentTaxateur);
+        // Définir le contribuable direct (propriétaire de la propriété)
+        taxation.setContribuableDirect(propriete.getProprietaire());
+        taxation.setNatureImpot(proprieteImpot.getNatureImpot());
+        // NE PAS définir la déclaration pour les taxations de propriétés
+        taxation.setDeclaration(null);
         
         // Calculer le montant de la taxation
         double montant = calculateTaxAmount(propriete, proprieteImpot);
         taxation.setMontant(montant);
         
-        // Définir la date d'échéance (par défaut, fin de l'année fiscale)
+        // Définir la date d'échéance (72 heures après la taxation)
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Integer.parseInt(exercice), Calendar.DECEMBER, 31);
+        calendar.setTime(taxation.getDateTaxation());
+        calendar.add(Calendar.HOUR_OF_DAY, 72); // Ajouter 72 heures (3 jours)
         taxation.setDateEcheance(calendar.getTime());
         
         // Sauvegarder la taxation pour obtenir son ID
@@ -199,7 +206,7 @@ public class TaxationService {
      */
     private double calculateTaxAmount(Propriete propriete, ProprieteImpot proprieteImpot) throws IOException {
         // Si un taux d'imposition est défini dans le lien propriété-impôt, l'utiliser
-        if (proprieteImpot.getTauxImposition() != null) {
+        if (proprieteImpot.getTauxImposition() != null && proprieteImpot.getTauxImposition() > 0) {
             // Selon le type de propriété, appliquer le taux différemment
             switch (propriete.getType()) {
                 case VI:
@@ -228,19 +235,38 @@ public class TaxationService {
      * @return Le montant de la taxation
      */
     public double calculateTaxForProperty(Propriete propriete) throws IOException {
+        // Vérifications préalables
+        if (propriete.getProprietaire() == null) {
+            throw new RuntimeException("La propriété n'a pas de propriétaire défini");
+        }
+        
+        if (propriete.getRangLocalite() == null) {
+            throw new RuntimeException("La propriété n'a pas de rang de localité défini");
+        }
+        
+        if (propriete.getSuperficie() == null || propriete.getSuperficie() <= 0) {
+            throw new RuntimeException("La propriété n'a pas de superficie valide");
+        }
+        
         // Charger les taux depuis le fichier JSON
         ClassPathResource resource = new ClassPathResource("taux_if.json");
         InputStream inputStream = resource.getInputStream();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(inputStream);
 
-        String propertyType = propriete.getType().name().toLowerCase();
+        // Mapper les codes de l'enum vers les clés du JSON
+        String propertyTypeCode = propriete.getType().name();
+        String propertyType = mapPropertyTypeToJsonKey(propertyTypeCode);
+        
         String rang = "rang" + propriete.getRangLocalite();
-        String contribuableType = propriete.getProprietaire().getType().name().toLowerCase();
+        
+        // Mapper le type de contribuable (PERSONNE_PHYSIQUE -> physique, PERSONNE_MORALE -> morale)
+        String contribuableTypeEnum = propriete.getProprietaire().getType().name();
+        String contribuableType = contribuableTypeEnum.contains("PHYSIQUE") ? "physique" : "morale";
 
         JsonNode rateNode = rootNode.path(propertyType).path(rang).path(contribuableType);
         if (rateNode.isMissingNode()) {
-            throw new RuntimeException("Taux IF non trouvé pour le type de propriété: " + propertyType + ", rang: " + rang + ", contribuable: " + contribuableType);
+            throw new RuntimeException("Taux IF non trouvé pour le type de propriété: " + propertyTypeCode + " (" + propertyType + "), rang: " + rang + ", contribuable: " + contribuableTypeEnum + " (" + contribuableType + ")");
         }
 
         double rate = rateNode.asDouble();
@@ -255,6 +281,29 @@ public class TaxationService {
         }
         
         return 0.0;
+    }
+    
+    /**
+     * Mappe les codes de TypePropriete vers les clés du fichier JSON taux_if.json
+     */
+    private String mapPropertyTypeToJsonKey(String propertyTypeCode) {
+        switch (propertyTypeCode) {
+            case "VI": // Villa
+                return "villas";
+            case "AP": // Appartement
+                return "appartements";
+            case "AT": // Atelier
+            case "CH": // Chantier
+            case "TE": // Terrain
+            case "DEPOT":
+            case "ENTREPOT":
+            case "HANGAR":
+            case "CITERNE":
+            case "ANTENNE":
+                return "commercial";
+            default:
+                return "domestic";
+        }
     }
 
     /**

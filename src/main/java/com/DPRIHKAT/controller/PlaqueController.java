@@ -406,4 +406,52 @@ public class PlaqueController {
     public ResponseEntity<?> getVehiculeByPlaque(@PathVariable UUID plaqueId) {
         return plaqueService.getVehiculeByPlaque(plaqueId);
     }
+    
+    /**
+     * Marquer une plaque comme livrée
+     * 
+     * @param id L'ID de la plaque
+     * @return La plaque mise à jour
+     */
+    @PutMapping("/{id}/livrer")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'ADMIN')")
+    public ResponseEntity<?> livrerPlaque(@PathVariable UUID id) {
+        try {
+            Plaque plaque = plaqueService.livrerPlaque(id);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "plaque", plaque,
+                    "message", "Plaque marquée comme livrée avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_LIVRAISON_ERROR", 
+                            "Erreur lors de la livraison de la plaque", 
+                            e.getMessage()));
+        }
+    }
+    
+    /**
+     * Libérer une plaque (la remettre en stock)
+     * 
+     * @param id L'ID de la plaque
+     * @return La plaque mise à jour
+     */
+    @PutMapping("/{id}/liberer")
+    @PreAuthorize("hasAnyRole('AGENT_DE_PLAQUES', 'ADMIN')")
+    public ResponseEntity<?> libererPlaque(@PathVariable UUID id) {
+        try {
+            Plaque plaque = plaqueService.libererPlaque(id);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "plaque", plaque,
+                    "message", "Plaque libérée avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PLAQUE_LIBERATION_ERROR", 
+                            "Erreur lors de la libération de la plaque", 
+                            e.getMessage()));
+        }
+    }
 }

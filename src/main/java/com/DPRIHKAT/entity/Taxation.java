@@ -16,7 +16,7 @@ import java.util.UUID;
  * Entité représentant la taxation d'un bien déclaré
  * La taxation est le fait de taxer un bien déjà déclaré ou enregistré au nom d'un contribuable
  * et assujetti ou lié à un type d'impôt
- * 
+ *
  * @author amateur
  */
 @Entity
@@ -32,7 +32,7 @@ public class Taxation {
     private Double montant;
 
     private String exercice;
-    
+
     @Enumerated(EnumType.STRING)
     private Devise devise = Devise.USD; // Par défaut en USD
 
@@ -43,27 +43,27 @@ public class Taxation {
     private TypeImpot typeImpot;
 
     private boolean exoneration; // Gestion des exonérations
-    
+
     private String motifExoneration; // Motif de l'exonération
-    
+
     private Date dateEcheance; // Date d'échéance de la taxation
-    
+
     private String numeroTaxation; // Numéro de taxation au format t_0001_typeimpot_codeBureauTaxateur_annee
-    
+
     private String codeQR; // Code QR pour l'impression
-    
+
     private String nomBanque; // Nom de la banque
-    
+
     private String numeroCompte; // Numéro de compte bancaire
-    
+
     private String intituleCompte; // Intitulé du compte bancaire
-    
+
     private String motifAnnulation; // Motif d'annulation de la taxation
-    
+
     private boolean actif = true; // Gestion de la suppression logique
-    
+
     // Déclaration associée à cette taxation
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {})
     @JoinColumn(name = "declaration_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Declaration declaration;
@@ -96,11 +96,17 @@ public class Taxation {
     @JsonIdentityReference(alwaysAsId = true)
     private ProprieteImpot proprieteImpot;
 
-    // Contribuable associé à cette taxation
+    // Contribuable associé à cette taxation (via déclaration)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contribuable_id")
     @JsonIdentityReference(alwaysAsId = true)
     private Contribuable contribuable;
+    
+    // Contribuable direct (pour les taxations sans déclaration comme les plaques/vignettes)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contribuable_direct_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private Contribuable contribuableDirect;
 
     // Propriete associée à cette taxation
     @ManyToOne(fetch = FetchType.LAZY)
@@ -109,7 +115,8 @@ public class Taxation {
     private Propriete propriete;
 
     // Demande de plaque associée à cette taxation
-    @OneToOne(mappedBy = "taxation")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "demande_plaque_id")
     @JsonIdentityReference(alwaysAsId = true)
     private DemandePlaque demande;
 
@@ -117,7 +124,7 @@ public class Taxation {
     @OneToOne(mappedBy = "taxation")
     @JsonIdentityReference(alwaysAsId = true)
     private Vignette vignette;
-    
+
     // Concession minière associée à cette taxation
     @OneToOne(mappedBy = "taxation")
     @JsonIdentityReference(alwaysAsId = true)
@@ -126,9 +133,9 @@ public class Taxation {
     public Taxation() {
     }
 
-    public Taxation(Date dateTaxation, Double montant, String exercice, StatutTaxation statut, 
-                   TypeImpot typeImpot, boolean exoneration, Declaration declaration, 
-                   NatureImpot natureImpot, Agent agent) {
+    public Taxation(Date dateTaxation, Double montant, String exercice, StatutTaxation statut,
+                    TypeImpot typeImpot, boolean exoneration, Declaration declaration,
+                    NatureImpot natureImpot, Agent agent) {
         this.dateTaxation = dateTaxation;
         this.montant = montant;
         this.exercice = exercice;
@@ -149,9 +156,9 @@ public class Taxation {
         if (declaration == null || declaration.getPropriete() == null) {
             throw new IllegalStateException("La taxation doit être associée à une déclaration avec un bien valide.");
         }
-        
+
         Propriete bien = declaration.getPropriete();
-        
+
         // Logique de calcul du montant en fonction du type d'impôt et des caractéristiques du bien
         // Cette méthode pourrait être enrichie avec des règles de calcul plus complexes
         switch (typeImpot) {
@@ -173,7 +180,7 @@ public class Taxation {
                 // Montant par défaut
                 this.montant = 100.0;
         }
-        
+
         // Appliquer l'exonération si nécessaire
         if (exoneration) {
             this.montant = 0.0;
@@ -256,6 +263,20 @@ public class Taxation {
             this.declaration = new Declaration();
         }
         this.declaration.setContribuable(contribuable);
+    }
+
+    /**
+     * Récupère le Contribuable direct (pour taxations sans déclaration)
+     */
+    public Contribuable getContribuableDirect() {
+        return contribuableDirect;
+    }
+
+    /**
+     * Définit le Contribuable direct (pour taxations sans déclaration)
+     */
+    public void setContribuableDirect(Contribuable contribuableDirect) {
+        this.contribuableDirect = contribuableDirect;
     }
 
     /**
@@ -417,14 +438,6 @@ public class Taxation {
         this.apurements = apurements;
     }
 
-    public Contribuable getContribuableDirect() {
-        return contribuable;
-    }
-
-    public void setContribuableDirect(Contribuable contribuable) {
-        this.contribuable = contribuable;
-    }
-
     public Propriete getProprieteDirect() {
         return propriete;
     }
@@ -480,7 +493,7 @@ public class Taxation {
     public void setVignette(Vignette vignette) {
         this.vignette = vignette;
     }
-    
+
     public ConcessionMinier getConcessionMinier() {
         return concessionMinier;
     }

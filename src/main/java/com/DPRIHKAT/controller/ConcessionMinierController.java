@@ -1,8 +1,10 @@
 package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.entity.ConcessionMinier;
+import com.DPRIHKAT.entity.Contribuable;
 import com.DPRIHKAT.entity.Taxation;
 import com.DPRIHKAT.entity.Utilisateur;
+import com.DPRIHKAT.entity.enums.TypeConcession;
 import com.DPRIHKAT.repository.ConcessionMinierRepository;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.service.TaxationService;
@@ -63,8 +65,136 @@ public class ConcessionMinierController {
         }
     }
 
+    @PostMapping
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN', 'VERIFICATEUR', 'CONTROLLEUR', 'AGENT_COLLECTE', 'AGENT_CONTROLE', 'AGENT_RECOUVREMENT', 'APUREUR')")
+    public ResponseEntity<?> createConcession(@RequestBody Map<String, Object> payload, Authentication authentication) {
+        try {
+            // Log pour debug
+            System.out.println("🔐 Utilisateur connecté: " + authentication.getName());
+            System.out.println("🔐 Authorities: " + authentication.getAuthorities());
+            System.out.println("📦 Payload reçu: " + payload);
+            
+            ConcessionMinier concession = new ConcessionMinier();
+            
+            // Mapper les champs simples
+            if (payload.containsKey("numeroPermis")) {
+                concession.setNumeroPermis((String) payload.get("numeroPermis"));
+            }
+            if (payload.containsKey("typeConcession")) {
+                concession.setTypeConcession(TypeConcession.valueOf((String) payload.get("typeConcession")));
+            }
+            if (payload.containsKey("superficie")) {
+                concession.setSuperficie(((Number) payload.get("superficie")).doubleValue());
+            }
+            if (payload.containsKey("localisation")) {
+                concession.setLocalisation((String) payload.get("localisation"));
+            }
+            if (payload.containsKey("tauxRedevance")) {
+                concession.setTauxRedevance(((Number) payload.get("tauxRedevance")).doubleValue());
+            }
+            if (payload.containsKey("minerais")) {
+                concession.setMinerais((List<String>) payload.get("minerais"));
+            }
+            
+            // Gérer les dates
+            if (payload.containsKey("dateDebut")) {
+                String dateStr = (String) payload.get("dateDebut");
+                concession.setDateDebut(java.sql.Date.valueOf(dateStr));
+            }
+            if (payload.containsKey("dateFin")) {
+                String dateStr = (String) payload.get("dateFin");
+                concession.setDateFin(java.sql.Date.valueOf(dateStr));
+            }
+            
+            // Gérer le titulaire
+            if (payload.containsKey("titulaire")) {
+                Object titulaireObj = payload.get("titulaire");
+                UUID titulaireId = null;
+                
+                if (titulaireObj instanceof String) {
+                    titulaireId = UUID.fromString((String) titulaireObj);
+                } else if (titulaireObj instanceof Map) {
+                    Map<String, Object> titulaireMap = (Map<String, Object>) titulaireObj;
+                    if (titulaireMap.containsKey("id")) {
+                        titulaireId = UUID.fromString((String) titulaireMap.get("id"));
+                    }
+                }
+                
+                if (titulaireId != null) {
+                    Contribuable titulaire = concessionMinierRepository.findById(titulaireId)
+                            .map(c -> c.getTitulaire())
+                            .orElse(null);
+                    
+                    if (titulaire == null) {
+                        // Chercher directement le contribuable
+                        titulaire = utilisateurRepository.findById(titulaireId)
+                                .map(u -> u.getContribuable())
+                                .orElse(null);
+                    }
+                    
+                    concession.setTitulaire(titulaire);
+                }
+            }
+            
+            ConcessionMinier savedConcession = concessionMinierRepository.save(concession);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "concession", savedConcession,
+                    "message", "Concession créée avec succès"
+            )));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("CONCESSION_CREATE_ERROR", "Erreur lors de la création de la concession", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN', 'INFORMATICIEN')")
+    public ResponseEntity<?> updateConcession(@PathVariable UUID id, @RequestBody ConcessionMinier concession) {
+        try {
+            ConcessionMinier existingConcession = concessionMinierRepository.findById(id).orElse(null);
+            if (existingConcession == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("CONCESSION_NOT_FOUND", "Concession non trouvée", "Aucune concession avec l'ID fourni"));
+            }
+            concession.setId(id);
+            ConcessionMinier updatedConcession = concessionMinierRepository.save(concession);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "concession", updatedConcession,
+                    "message", "Concession mise à jour avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("CONCESSION_UPDATE_ERROR", "Erreur lors de la mise à jour de la concession", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CHEF_DE_DIVISION', 'DIRECTEUR', 'ADMIN')")
+    public ResponseEntity<?> deleteConcession(@PathVariable UUID id) {
+        try {
+            ConcessionMinier concession = concessionMinierRepository.findById(id).orElse(null);
+            if (concession == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(ResponseUtil.createErrorResponse("CONCESSION_NOT_FOUND", "Concession non trouvée", "Aucune concession avec l'ID fourni"));
+            }
+            concessionMinierRepository.delete(concession);
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "message", "Concession supprimée avec succès"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("CONCESSION_DELETE_ERROR", "Erreur lors de la suppression de la concession", e.getMessage()));
+        }
+    }
+
     @GetMapping("/mine")
-    @PreAuthorize("hasRole('CONTRIBUABLE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CONTRIBUABLE', 'ADMIN')")
     public ResponseEntity<?> getMyConcessions(Authentication authentication) {
         try {
             String login = authentication.getName();

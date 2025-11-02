@@ -197,4 +197,36 @@ public class    EmailService {
         
         sendEmail(to, subject, text);
     }
+    
+    /**
+     * Envoie une notification d'attribution de plaque
+     * 
+     * @param demande La demande de plaque avec plaque attribuée
+     */
+    public void envoyerNotificationAttribution(DemandePlaque demande) {
+        if (demande.getContribuable() == null || demande.getContribuable().getEmail() == null) {
+            logger.warn("Impossible d'envoyer la notification d'attribution : contribuable ou email manquant");
+            return;
+        }
+        
+        String to = demande.getContribuable().getEmail();
+        String subject = "Plaque d'immatriculation attribuée - Notification";
+        String text = String.format(
+            "Bonjour %s,\n\n" +
+            "Une plaque d'immatriculation a été attribuée à votre véhicule %s %s.\n\n" +
+            "Détails de la plaque :\n" +
+            "- Numéro de plaque : %s\n" +
+            "- Numéro de série : %s\n\n" +
+            "Votre plaque est en cours de préparation. Vous serez notifié(e) lorsqu'elle sera prête à être récupérée.\n\n" +
+            "Cordialement,\n" +
+            "Direction des Recettes Provinciales de l'Intérieur de la Province du Haut-Katanga",
+            demande.getContribuable().getNom(),
+            demande.getVehicule().getMarque(),
+            demande.getVehicule().getModele(),
+            demande.getPlaque() != null ? demande.getPlaque().getNumplaque() : "Non disponible",
+            demande.getPlaque() != null ? demande.getPlaque().getNumeroSerie() : "Non disponible"
+        );
+        
+        sendEmail(to, subject, text);
+    }
 }

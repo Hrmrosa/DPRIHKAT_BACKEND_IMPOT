@@ -1,11 +1,9 @@
 package com.DPRIHKAT.controller;
 
-import com.DPRIHKAT.entity.Agent;
 import com.DPRIHKAT.entity.TauxChange;
 import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.enums.Devise;
 import com.DPRIHKAT.repository.UtilisateurRepository;
-import com.DPRIHKAT.security.UserDetailsImpl;
 import com.DPRIHKAT.service.TauxChangeService;
 import com.DPRIHKAT.util.ResponseUtil;
 import org.slf4j.Logger;

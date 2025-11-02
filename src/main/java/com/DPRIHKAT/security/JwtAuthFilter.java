@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
-    
+
     // Pattern pour ne garder que les caractères valides en base64url
     private static final Pattern BASE64URL_PATTERN = Pattern.compile("[^A-Za-z0-9\\-_\\.]");
 
@@ -63,24 +63,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
             String token = headerAuth.substring(7);
-            
+
             // Nettoyer le token en supprimant tous les caractères non valides pour base64url
             token = token.trim();
-            
+
             // Si le token est vide après nettoyage, retourner null
             if (token.isEmpty()) {
                 return null;
             }
-            
+
             // Supprimer tous les caractères non valides pour base64url
             token = BASE64URL_PATTERN.matcher(token).replaceAll("");
-            
+
             // Vérifier si le token est toujours valide après nettoyage
             if (token.isEmpty() || !token.contains(".")) {
                 logger.warn("JWT token structure invalid after cleaning");
                 return null;
             }
-            
+
             return token;
         }
 

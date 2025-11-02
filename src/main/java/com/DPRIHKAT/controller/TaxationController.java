@@ -347,6 +347,58 @@ public class TaxationController {
     }
 
     /**
+     * Récupère les impôts (ProprieteImpot) d'une propriété
+     * @param proprieteId L'ID de la propriété
+     * @return Liste des ProprieteImpot de la propriété
+     */
+    @GetMapping("/propriete-impots/{proprieteId}")
+    @PreAuthorize("hasAnyRole('TAXATEUR', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'CONTRIBUABLE', 'ADMIN')")
+    public ResponseEntity<?> getProprieteImpots(@PathVariable UUID proprieteId) {
+        try {
+            // Vérifier si la propriété existe
+            Propriete propriete = proprieteRepository.findById(proprieteId)
+                    .orElseThrow(() -> new Exception("Propriété non trouvée avec l'ID: " + proprieteId));
+            
+            // Récupérer tous les ProprieteImpot de cette propriété
+            List<ProprieteImpot> proprieteImpots = proprieteImpotRepository.findByPropriete(propriete);
+            
+            // Convertir en DTO
+            List<Map<String, Object>> impotsDTO = proprieteImpots.stream()
+                    .filter(ProprieteImpot::isActif)
+                    .map(pi -> {
+                        Map<String, Object> dto = new HashMap<>();
+                        dto.put("id", pi.getId());
+                        dto.put("actif", pi.isActif());
+                        dto.put("tauxImposition", pi.getTauxImposition());
+                        
+                        if (pi.getNatureImpot() != null) {
+                            Map<String, Object> natureImpotDTO = new HashMap<>();
+                            natureImpotDTO.put("id", pi.getNatureImpot().getId());
+                            natureImpotDTO.put("code", pi.getNatureImpot().getCode());
+                            natureImpotDTO.put("nom", pi.getNatureImpot().getNom());
+                            natureImpotDTO.put("description", pi.getNatureImpot().getDescription());
+                            dto.put("natureImpot", natureImpotDTO);
+                        }
+                        
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
+                    "message", "ProprieteImpots récupérés avec succès",
+                    "proprieteImpots", impotsDTO
+            )));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des ProprieteImpots pour la propriété avec l'ID: {}", proprieteId, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("PROPRIETE_IMPOT_FETCH_ERROR", 
+                            "Erreur lors de la récupération des ProprieteImpots", 
+                            e.getMessage()));
+        }
+    }
+
+    /**
      * Met à jour le statut d'une taxation
      * @param id L'ID de la taxation
      * @param statut Le nouveau statut
@@ -565,15 +617,41 @@ public class TaxationController {
             dto.setPropriete(proprieteDTO);
         }
         
-        // Informations sur le contribuable
-        if (taxation.getContribuable() != null) {
+        // Informations sur le contribuable (via déclaration ou direct)
+        com.DPRIHKAT.entity.Contribuable contribuable = taxation.getContribuableDirect() != null 
+            ? taxation.getContribuableDirect() 
+            : taxation.getContribuable();
+            
+        if (contribuable != null) {
             TaxationResponseDTO.ContribuableDTO contribuableDTO = new TaxationResponseDTO.ContribuableDTO();
-            contribuableDTO.setId(taxation.getContribuable().getId());
-            contribuableDTO.setNom(taxation.getContribuable().getNom());
-            contribuableDTO.setAdressePrincipale(taxation.getContribuable().getAdressePrincipale());
-            contribuableDTO.setTelephonePrincipal(taxation.getContribuable().getTelephonePrincipal());
-            contribuableDTO.setEmail(taxation.getContribuable().getEmail());
+            contribuableDTO.setId(contribuable.getId());
+            contribuableDTO.setNom(contribuable.getNom());
+            contribuableDTO.setAdressePrincipale(contribuable.getAdressePrincipale());
+            contribuableDTO.setTelephonePrincipal(contribuable.getTelephonePrincipal());
+            contribuableDTO.setEmail(contribuable.getEmail());
             dto.setContribuable(contribuableDTO);
+        }
+        
+        // Informations sur le véhicule (pour les taxations de plaques/vignettes)
+        if (taxation.getDemande() != null && taxation.getDemande().getVehicule() != null) {
+            TaxationResponseDTO.VehiculeDTO vehiculeDTO = new TaxationResponseDTO.VehiculeDTO();
+            com.DPRIHKAT.entity.Vehicule vehicule = taxation.getDemande().getVehicule();
+            vehiculeDTO.setId(vehicule.getId());
+            vehiculeDTO.setMarque(vehicule.getMarque());
+            vehiculeDTO.setModele(vehicule.getModele());
+            vehiculeDTO.setNumeroChassis(vehicule.getNumeroChassis());
+            vehiculeDTO.setImmatriculation(vehicule.getImmatriculation());
+            vehiculeDTO.setGenre(vehicule.getGenre());
+            dto.setVehicule(vehiculeDTO);
+        }
+        
+        // Informations sur l'agent taxateur
+        if (taxation.getAgent() != null) {
+            TaxationResponseDTO.AgentDTO agentDTO = new TaxationResponseDTO.AgentDTO();
+            agentDTO.setId(taxation.getAgent().getId());
+            agentDTO.setNom(taxation.getAgent().getNom());
+            agentDTO.setMatricule(taxation.getAgent().getMatricule());
+            dto.setAgent(agentDTO);
         }
         
         return dto;

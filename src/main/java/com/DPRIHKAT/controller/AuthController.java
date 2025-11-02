@@ -118,7 +118,7 @@ public class AuthController {
             userInfo.put("premierConnexion", utilisateur.isPremierConnexion());
             userInfo.put("bloque", utilisateur.isBloque());
             userInfo.put("isContribuable", utilisateur.isContribuable());
-            
+
             if (utilisateur.getContribuable() != null) {
                 Map<String, Object> contribuableInfo = new HashMap<>();
                 contribuableInfo.put("id", utilisateur.getContribuable().getId());
@@ -128,7 +128,7 @@ public class AuthController {
             } else {
                 userInfo.put("contribuable", null);
             }
-            
+
             if (utilisateur.getAgent() != null) {
                 Map<String, Object> agentInfo = new HashMap<>();
                 agentInfo.put("id", utilisateur.getAgent().getId());
@@ -192,13 +192,13 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@Valid @RequestBody Map<String, String> request) {
         try {
             String userId = request.get("userId");
-            
+
             if (userId == null || userId.isEmpty()) {
                 return ResponseEntity
                         .badRequest()
                         .body(ResponseUtil.createErrorResponse("INVALID_REQUEST", "Requête invalide", "L'identifiant de l'utilisateur est requis"));
             }
-            
+
             // Trouver l'utilisateur par son ID
             Utilisateur utilisateur = utilisateurRepository.findById(UUID.fromString(userId))
                     .orElse(null);

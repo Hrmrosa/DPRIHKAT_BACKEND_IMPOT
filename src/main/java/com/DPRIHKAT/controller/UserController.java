@@ -1,11 +1,10 @@
 package com.DPRIHKAT.controller;
 
-import com.DPRIHKAT.dto.MessageResponse;
 import com.DPRIHKAT.entity.Utilisateur;
 import com.DPRIHKAT.entity.enums.Role;
 import com.DPRIHKAT.repository.UtilisateurRepository;
-import com.DPRIHKAT.util.ResponseUtil;
 import com.DPRIHKAT.util.LetsCrypt;
+import com.DPRIHKAT.util.ResponseUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

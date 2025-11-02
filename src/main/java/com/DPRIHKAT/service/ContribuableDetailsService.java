@@ -66,8 +66,8 @@ public class ContribuableDetailsService {
      */
     public List<Map<String, Object>> getVehiculesByContribuable(UUID contribuableId) {
         // Récupérer les véhicules (à la fois comme propriétaire et comme contribuable)
-        List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaireId(contribuableId);
-        List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuableId(contribuableId);
+        List<Vehicule> vehiculesProprietaire = vehiculeRepository.findByProprietaire_Id(contribuableId);
+        List<Vehicule> vehiculesContribuable = vehiculeRepository.findByContribuable_Id(contribuableId);
         
         // Fusionner les deux listes sans doublons
         Set<Vehicule> allVehicules = new HashSet<>();

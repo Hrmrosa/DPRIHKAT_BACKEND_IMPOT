@@ -1,24 +1,20 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.DPRIHKAT.entity.enums;
 
-/**
- *
- * @author amateur
- */
 public enum Role {
-    TAXATEUR,
-    CHEF_DE_BUREAU,
-    CHEF_DE_DIVISION,
-    DIRECTEUR,
-    CHEF_DE_CELLULES,
-    VERIFICATEUR,
-    CONTROLLEUR,
-    APUREUR,
-    RECEVEUR_DES_IMPOTS,
-    ADMIN,
-    INFORMATICIEN,
-    CONTRIBUABLE
+    ADMIN,                  // Administrateur système
+    RECEVEUR_DES_IMPOTS,   // Receveur des impôts
+    TAXATEUR,              // Agent taxateur
+    VERIFICATEUR,          // Agent vérificateur
+    CONTROLLEUR,           // Contrôleur fiscal
+    OPJ,                   // Officier de Police Judiciaire
+    HUISSIER,             // Huissier de justice
+    CONTRIBUABLE,          // Contribuable
+    AGENT_COLLECTE,        // Agent de collecte
+    AGENT_CONTROLE,        // Agent de contrôle
+    AGENT_RECOUVREMENT,    // Agent de recouvrement
+    CHEF_DE_BUREAU,        // Chef de bureau
+    CHEF_DE_DIVISION,      // Chef de division
+    DIRECTEUR,             // Directeur
+    APUREUR  ,
+    INFORMATICIEN// Agent d'apurement
 }

@@ -133,7 +133,7 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID>, Taxat
      * @param propriete la propriété
      * @return la liste des taxations pour cette propriété
      */
-    @Query("SELECT t FROM Taxation t WHERE t.declaration.propriete = :propriete AND t.actif = true")
+    @Query("SELECT t FROM Taxation t WHERE t.propriete = :propriete AND t.actif = true")
     List<Taxation> findByProprieteAndActifTrue(@Param("propriete") com.DPRIHKAT.entity.Propriete propriete);
     
     /**
@@ -142,7 +142,7 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID>, Taxat
      * @param pageable informations de pagination
      * @return page de taxations pour cette propriété
      */
-    @Query("SELECT t FROM Taxation t WHERE t.declaration.propriete = :propriete AND t.actif = true")
+    @Query("SELECT t FROM Taxation t WHERE t.propriete = :propriete AND t.actif = true")
     Page<Taxation> findByProprieteAndActifTrue(@Param("propriete") com.DPRIHKAT.entity.Propriete propriete, Pageable pageable);
     
     /**
@@ -152,7 +152,7 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID>, Taxat
      * @param exercice l'exercice
      * @return la liste des taxations correspondantes
      */
-    @Query("SELECT t FROM Taxation t WHERE t.declaration.propriete = :propriete AND t.typeImpot = :typeImpot AND t.exercice = :exercice AND t.actif = true")
+    @Query("SELECT t FROM Taxation t WHERE t.propriete = :propriete AND t.typeImpot = :typeImpot AND t.exercice = :exercice AND t.actif = true")
     List<Taxation> findByProprieteAndTypeImpotAndExerciceAndActifTrue(
         @Param("propriete") com.DPRIHKAT.entity.Propriete propriete,
         @Param("typeImpot") com.DPRIHKAT.entity.enums.TypeImpot typeImpot, 
@@ -166,7 +166,7 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID>, Taxat
      * @param pageable informations de pagination
      * @return page de taxations correspondantes
      */
-    @Query("SELECT t FROM Taxation t WHERE t.declaration.propriete = :propriete AND t.typeImpot = :typeImpot AND t.exercice = :exercice AND t.actif = true")
+    @Query("SELECT t FROM Taxation t WHERE t.propriete = :propriete AND t.typeImpot = :typeImpot AND t.exercice = :exercice AND t.actif = true")
     Page<Taxation> findByProprieteAndTypeImpotAndExerciceAndActifTrue(
         @Param("propriete") com.DPRIHKAT.entity.Propriete propriete,
         @Param("typeImpot") com.DPRIHKAT.entity.enums.TypeImpot typeImpot, 
@@ -203,4 +203,11 @@ public interface TaxationRepository extends JpaRepository<Taxation, UUID>, Taxat
      * @return le nombre de taxations
      */
     long countByTypeImpotAndExercice(TypeImpot typeImpot, String exercice);
+    
+    /**
+     * Trouve toutes les taxations pour une demande de plaque donnée
+     * @param demande la demande de plaque
+     * @return la liste des taxations pour cette demande
+     */
+    List<Taxation> findByDemande(com.DPRIHKAT.entity.DemandePlaque demande);
 }

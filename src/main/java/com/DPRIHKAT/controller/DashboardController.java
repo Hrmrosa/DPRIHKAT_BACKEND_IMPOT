@@ -195,4 +195,34 @@ public class DashboardController {
                     ));
         }
     }
+
+    /**
+     * Endpoint public pour récupérer les statistiques générales
+     * Accessible sans authentification pour affichage sur le site web
+     * Retourne les données publiques : nombre de contribuables, propriétés, véhicules, plaques, etc.
+     */
+    @GetMapping("/public/statistics")
+    public ResponseEntity<?> getPublicStatistics() {
+        try {
+            logger.info("Récupération des statistiques publiques du dashboard");
+            Map<String, Object> statistics = dashboardService.getPublicStatistics();
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "success", true,
+                            "data", statistics,
+                            "timestamp", System.currentTimeMillis()
+                    ));
+        } catch (Exception e) {
+            logger.error("Erreur lors de la récupération des statistiques publiques", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "error", Map.of(
+                                    "code", "PUBLIC_STATISTICS_ERROR",
+                                    "message", "Erreur lors de la récupération des statistiques publiques",
+                                    "details", e.getMessage()
+                            )
+                    ));
+        }
+    }
 }

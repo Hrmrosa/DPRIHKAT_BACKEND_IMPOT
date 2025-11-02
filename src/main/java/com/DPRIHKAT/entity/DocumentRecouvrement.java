@@ -46,7 +46,9 @@ public class DocumentRecouvrement {
     private String observations;
     
     private boolean actif = true;
-
+    
+    private String codeQR;
+    
     @ManyToOne
     @JoinColumn(name = "dossier_recouvrement_id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -201,6 +203,14 @@ public class DocumentRecouvrement {
 
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+
+    public String getCodeQR() {
+        return codeQR;
+    }
+
+    public void setCodeQR(String codeQR) {
+        this.codeQR = codeQR;
     }
 
     public DossierRecouvrement getDossierRecouvrement() {

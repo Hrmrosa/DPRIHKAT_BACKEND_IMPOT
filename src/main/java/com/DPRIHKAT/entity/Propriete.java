@@ -10,6 +10,7 @@ import com.DPRIHKAT.entity.enums.TypeContribuable;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Propriete {
 
     @Id
@@ -90,8 +92,12 @@ public class Propriete {
     public void calculerImpôt() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            File jsonFile = new File("taux_if.json"); // Chemin vers le fichier JSON
-            Map<String, Object> tauxData = mapper.readValue(jsonFile, Map.class);
+            // Lire le fichier depuis le classpath
+            var inputStream = getClass().getClassLoader().getResourceAsStream("taux_if.json");
+            if (inputStream == null) {
+                throw new IOException("Fichier taux_if.json introuvable dans le classpath");
+            }
+            Map<String, Object> tauxData = mapper.readValue(inputStream, Map.class);
 
             String typeKey;
             switch (type) {

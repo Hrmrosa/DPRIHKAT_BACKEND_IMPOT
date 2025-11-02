@@ -15,9 +15,26 @@ import java.util.UUID;
 @Repository
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID> {
     Optional<Utilisateur> findByLogin(String login);
-    Boolean existsByLogin(String login);
-    Page<Utilisateur> findByRole(Role role, Pageable pageable);
+    Optional<Utilisateur> findByEmail(String email);
+    Optional<Utilisateur> findByMatricule(String matricule);
     
-    @Query("SELECT u FROM Utilisateur u WHERE u.login LIKE %:searchTerm% OR u.role LIKE %:searchTerm%")
+    Boolean existsByLogin(String login);
+    Boolean existsByEmail(String email);
+    Boolean existsByMatricule(String matricule);
+
+    Page<Utilisateur> findByRole(Role role, Pageable pageable);
+
+    @Query("SELECT u FROM Utilisateur u WHERE " +
+           "LOWER(u.nomComplet) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.matricule) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.login) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     Page<Utilisateur> findBySearchTerm(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    @Query("SELECT u FROM Utilisateur u WHERE u.role = :role AND " +
+           "(LOWER(u.nomComplet) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.matricule) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.login) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    Page<Utilisateur> findByRoleAndSearchTerm(@Param("role") Role role, @Param("searchTerm") String searchTerm, Pageable pageable);
 }

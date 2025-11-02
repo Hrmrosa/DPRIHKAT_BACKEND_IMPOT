@@ -1,25 +1,20 @@
 package com.DPRIHKAT.controller;
 
-import com.DPRIHKAT.entity.Certificat;
+import com.DPRIHKAT.dto.response.ApiResponse;
 import com.DPRIHKAT.entity.Utilisateur;
+import com.DPRIHKAT.entity.enums.Role;
 import com.DPRIHKAT.repository.UtilisateurRepository;
 import com.DPRIHKAT.service.CertificatService;
-import com.DPRIHKAT.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.security.Principal;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/certificats")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class CertificatController {
 
     @Autowired
@@ -28,167 +23,35 @@ public class CertificatController {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
-    @PostMapping("/property/{declarationId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT','ADMIN')")
-    public ResponseEntity<?> generatePropertyCertificate(
-            @PathVariable UUID declarationId,
-            Authentication authentication) {
+    @PostMapping("/emettre")
+    @PreAuthorize("hasRole('RECEVEUR_DES_IMPOTS') or hasRole('APUREUR')")
+    public ResponseEntity<?> emettreCertificat(Principal principal) {
         try {
-            // Get the authenticated user
-            String login = authentication.getName();
-            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
-                    .orElse(null);
+            Utilisateur agent = utilisateurRepository.findByLogin(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Agent non trouvé"));
 
-            if (utilisateur == null || utilisateur.getAgent() == null) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les agents peuvent générer des certificats"));
+            if (!agent.getRole().equals(Role.RECEVEUR_DES_IMPOTS) && !agent.getRole().equals(Role.APUREUR)) {
+                return ResponseEntity.badRequest()
+                        .body(new ApiResponse(false, "Seuls les receveurs des impôts et les apureurs peuvent émettre des certificats"));
             }
 
-            Certificat certificat = certificatService.generatePropertyCertificate(declarationId, utilisateur.getId());
+            String certificat = certificatService.emettreCertificat(agent);
+            return ResponseEntity.ok(new ApiResponse(true, "Certificat émis avec succès", certificat));
 
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "certificat", certificat,
-                    "message", "Certificat généré avec succès"
-            )));
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_GENERATION_ERROR", "Erreur lors de la génération du certificat", e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, "Erreur lors de l'émission du certificat: " + e.getMessage()));
         }
     }
 
-    @PostMapping("/vehicle/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT','ADMIN')")
-    public ResponseEntity<?> generateVehicleCertificate(
-            @PathVariable UUID vehiculeId,
-            Authentication authentication) {
+    @GetMapping("/verifier/{numeroCertificat}")
+    public ResponseEntity<?> verifierCertificat(@PathVariable String numeroCertificat) {
         try {
-            // Get the authenticated user
-            String login = authentication.getName();
-            Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
-                    .orElse(null);
-
-            if (utilisateur == null || utilisateur.getAgent() == null) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(ResponseUtil.createErrorResponse("INVALID_USER", "Utilisateur non valide", "Seuls les agents peuvent générer des certificats"));
-            }
-
-            Certificat certificat = certificatService.generateVehicleCertificate(vehiculeId, utilisateur.getId());
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of(
-                    "certificat", certificat,
-                    "message", "Certificat généré avec succès"
-            )));
+            boolean estValide = certificatService.verifierCertificat(numeroCertificat);
+            return ResponseEntity.ok(new ApiResponse(true, "Vérification effectuée", estValide));
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_GENERATION_ERROR", "Erreur lors de la génération du certificat", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
-    public ResponseEntity<?> getCertificatById(@PathVariable UUID id) {
-        try {
-            Certificat certificat = certificatService.getCertificatById(id);
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(Map.of("certificat", certificat)));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_FETCH_ERROR", "Erreur lors de la récupération du certificat", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/declaration/{declarationId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
-    public ResponseEntity<?> getCertificatsByDeclaration(
-            @PathVariable UUID declarationId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            List<Certificat> certificats = certificatService.getCertificatsByDeclaration(declarationId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("certificats", certificats);
-            response.put("currentPage", page);
-            response.put("totalItems", certificats.size());
-            response.put("totalPages", (int) Math.ceil((double) certificats.size() / size));
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_FETCH_ERROR", "Erreur lors de la récupération des certificats", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/vehicle/{vehiculeId}")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR', 'CONTRIBUABLE','ADMIN')")
-    public ResponseEntity<?> getCertificatsByVehicle(
-            @PathVariable UUID vehiculeId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            List<Certificat> certificats = certificatService.getCertificatsByVehicle(vehiculeId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("certificats", certificats);
-            response.put("currentPage", page);
-            response.put("totalItems", certificats.size());
-            response.put("totalPages", (int) Math.ceil((double) certificats.size() / size));
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_FETCH_ERROR", "Erreur lors de la récupération des certificats", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
-    public ResponseEntity<?> getActiveCertificats(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            List<Certificat> certificats = certificatService.getActiveCertificats();
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("certificats", certificats);
-            response.put("currentPage", page);
-            response.put("totalItems", certificats.size());
-            response.put("totalPages", (int) Math.ceil((double) certificats.size() / size));
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_FETCH_ERROR", "Erreur lors de la récupération des certificats", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/expired")
-    @PreAuthorize("hasAnyRole('AGENT_CERTIFICAT', 'TAXATEUR', 'RECEVEUR_DES_IMPOTS', 'CHEF_DE_BUREAU', 'CHEF_DE_DIVISION', 'DIRECTEUR','ADMIN')")
-    public ResponseEntity<?> getExpiredCertificats(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            List<Certificat> certificats = certificatService.getExpiredCertificats();
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("certificats", certificats);
-            response.put("currentPage", page);
-            response.put("totalItems", certificats.size());
-            response.put("totalPages", (int) Math.ceil((double) certificats.size() / size));
-
-            return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CERTIFICATE_FETCH_ERROR", "Erreur lors de la récupération des certificats", e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, "Erreur lors de la vérification du certificat: " + e.getMessage()));
         }
     }
 }

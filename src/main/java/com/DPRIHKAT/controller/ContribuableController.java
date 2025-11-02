@@ -1,6 +1,7 @@
 package com.DPRIHKAT.controller;
 
 import com.DPRIHKAT.entity.Contribuable;
+import com.DPRIHKAT.repository.ContribuableRepository;
 import com.DPRIHKAT.service.ContribuableService;
 import com.DPRIHKAT.service.ContribuableDetailsService;
 import com.DPRIHKAT.util.ResponseUtil;
@@ -10,7 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,11 +26,14 @@ public class ContribuableController {
     private static final Logger logger = LoggerFactory.getLogger(ContribuableController.class);
     private final ContribuableService contribuableService;
     private final ContribuableDetailsService contribuableDetailsService;
+    private final ContribuableRepository contribuableRepository;
 
     public ContribuableController(ContribuableService contribuableService, 
-                                ContribuableDetailsService contribuableDetailsService) {
+                                ContribuableDetailsService contribuableDetailsService,
+                                ContribuableRepository contribuableRepository) {
         this.contribuableService = contribuableService;
         this.contribuableDetailsService = contribuableDetailsService;
+        this.contribuableRepository = contribuableRepository;
     }
 
     /**
@@ -96,17 +102,41 @@ public class ContribuableController {
     }
 
     /**
-     * Crée un nouveau contribuable
+     * Crée un nouveau contribuable ou retourne un contribuable existant si un doublon est détecté
      * @param contribuable Données du contribuable à créer
-     * @return Contribuable créé
+     * @return Contribuable créé ou existant
      */
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN')")
     public ResponseEntity<?> createContribuable(@RequestBody Contribuable contribuable) {
         try {
-            logger.info("Création d'un nouveau contribuable: {}", contribuable.getNom());
-            Map<String, Object> nouveauContribuable = contribuableService.createContribuable(contribuable);
-            return ResponseEntity.ok(nouveauContribuable);
+            logger.info("Tentative de création d'un nouveau contribuable: {}", contribuable.getNom());
+            Map<String, Object> result = contribuableService.createContribuable(contribuable);
+            
+            // Vérifier si c'est un contribuable existant
+            Map<String, Object> data = (Map<String, Object>) result.get("data");
+            boolean isExisting = data.containsKey("isExisting") && (boolean) data.get("isExisting");
+            
+            if (isExisting) {
+                logger.info("Contribuable similaire trouvé, retournant les informations existantes");
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("code", "CONTRIBUABLE_ALREADY_EXISTS");
+                responseData.put("message", "Un contribuable avec des informations similaires existe déjà");
+                responseData.put("contribuable", data.get("contribuable"));
+                responseData.put("isExisting", true);
+                
+                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(responseData));
+            } else {
+                logger.info("Nouveau contribuable créé avec succès");
+                return ResponseEntity.ok(result);
+            }
+        } catch (IllegalArgumentException e) {
+            logger.error("Erreur de validation lors de la création du contribuable", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLE_VALIDATION_ERROR", 
+                            "Erreur de validation", 
+                            e.getMessage()));
         } catch (Exception e) {
             logger.error("Erreur lors de la création du contribuable", e);
             return ResponseEntity
@@ -130,12 +160,19 @@ public class ContribuableController {
             logger.info("Mise à jour du contribuable avec ID: {}", id);
             Map<String, Object> contribuableMisAJour = contribuableService.updateContribuable(id, contribuable);
             return ResponseEntity.ok(contribuableMisAJour);
+        } catch (IllegalArgumentException e) {
+            logger.error("Erreur de validation lors de la mise à jour du contribuable avec ID: {}", id, e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLE_VALIDATION_ERROR",
+                            "Erreur de validation",
+                            e.getMessage()));
         } catch (Exception e) {
             logger.error("Erreur lors de la mise à jour du contribuable avec ID: {}", id, e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLE_UPDATE_ERROR", 
-                            "Erreur lors de la mise à jour du contribuable", 
+                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLE_UPDATE_ERROR",
+                            "Erreur lors de la mise à jour du contribuable",
                             e.getMessage()));
         }
     }
@@ -156,8 +193,70 @@ public class ContribuableController {
             logger.error("Erreur lors de la désactivation du contribuable avec ID: {}", id, e);
             return ResponseEntity
                     .badRequest()
-                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLE_DEACTIVATION_ERROR", 
-                            "Erreur lors de la désactivation du contribuable", 
+                    .body(ResponseUtil.createErrorResponse("CONTRIBUABLE_DEACTIVATION_ERROR",
+                            "Erreur lors de la désactivation du contribuable",
+                            e.getMessage()));
+        }
+    }
+
+    /**
+     * Recherche un contribuable par téléphone, email ou nom
+     * @param critere Critère de recherche (téléphone, email ou nom)
+     * @param valeur Valeur à rechercher
+     * @return Contribuable trouvé ou message d'erreur
+     */
+    @GetMapping("/recherche")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DIRECTEUR', 'INFORMATICIEN', 'CONTROLLEUR', 'CHEF_DE_BUREAU')")
+    public ResponseEntity<?> rechercheContribuable(
+            @RequestParam String critere,
+            @RequestParam String valeur) {
+        try {
+            logger.info("Recherche de contribuable par {} avec valeur: {}", critere, valeur);
+            
+            Optional<Contribuable> contribuable = Optional.empty();
+            
+            switch (critere.toLowerCase()) {
+                case "telephone":
+                    contribuable = contribuableRepository.findByTelephonePrincipal(valeur);
+                    break;
+                case "email":
+                    contribuable = contribuableRepository.findByEmail(valeur);
+                    break;
+                case "nom":
+                    contribuable = contribuableRepository.findByNomIgnoreCase(valeur);
+                    break;
+                case "numero":
+                    contribuable = contribuableRepository.findByNumeroIdentificationContribuable(valeur);
+                    break;
+                default:
+                    return ResponseEntity
+                            .badRequest()
+                            .body(ResponseUtil.createErrorResponse("CRITERE_INVALIDE", 
+                                    "Critère de recherche invalide", 
+                                    "Les critères valides sont: telephone, email, nom, numero"));
+            }
+            
+            if (contribuable.isPresent()) {
+                Map<String, Object> response = new HashMap<>();
+                Map<String, Object> data = new HashMap<>();
+                data.put("contribuable", contribuable.get());
+                response.put("success", true);
+                response.put("data", data);
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, Object> notFoundData = new HashMap<>();
+                notFoundData.put("code", "CONTRIBUABLE_NOT_FOUND");
+                notFoundData.put("message", "Aucun contribuable trouvé avec ce critère");
+                notFoundData.put("found", false);
+                
+                return ResponseEntity.ok(ResponseUtil.createSuccessResponse(notFoundData));
+            }
+        } catch (Exception e) {
+            logger.error("Erreur lors de la recherche de contribuable", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ResponseUtil.createErrorResponse("RECHERCHE_ERROR", 
+                            "Erreur lors de la recherche du contribuable", 
                             e.getMessage()));
         }
     }

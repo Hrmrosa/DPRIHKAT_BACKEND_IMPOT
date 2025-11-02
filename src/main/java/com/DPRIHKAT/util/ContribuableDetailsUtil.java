@@ -47,16 +47,16 @@ public class ContribuableDetailsUtil {
         if (detailsQuery == null) {
             throw new RuntimeException("La requête SQL n'a pas été chargée correctement");
         }
-        
+
         try {
             // Exécuter la requête SQL avec les paramètres
             return jdbcTemplate.queryForObject(
-                detailsQuery,
-                new Object[]{contribuableId, contribuableId, contribuableId, contribuableId},
-                (rs, rowNum) -> {
-                    String jsonResult = rs.getString("details");
-                    return JsonUtil.fromJson(jsonResult, Map.class);
-                }
+                    detailsQuery,
+                    new Object[]{contribuableId, contribuableId, contribuableId, contribuableId},
+                    (rs, rowNum) -> {
+                        String jsonResult = rs.getString("details");
+                        return JsonUtil.fromJson(jsonResult, Map.class);
+                    }
             );
         } catch (Exception e) {
             logger.error("Erreur lors de l'exécution de la requête SQL", e);

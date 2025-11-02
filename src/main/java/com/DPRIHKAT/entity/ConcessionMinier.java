@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,16 +45,32 @@ public class ConcessionMinier {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    private String numeroPermis;
+
     private Double nombreCarresMinier;
 
     private Double superficie;
 
+    private Date dateDebut;
+    
+    private Date dateFin;
+
     private Date dateAcquisition;
 
+    @Enumerated(EnumType.STRING)
+    private TypeConcession typeConcession;
+    
     @Enumerated(EnumType.STRING)
     private TypeConcession type;
 
     private String annexe;
+    
+    private String localisation;
+    
+    @ElementCollection
+    private List<String> minerais = new ArrayList<>();
+    
+    private Double tauxRedevance;
 
     @Column(columnDefinition = "geometry")
     private Geometry location;
@@ -195,5 +212,62 @@ public class ConcessionMinier {
 
     public void setTaxation(Taxation taxation) {
         this.taxation = taxation;
+    }
+
+    public String getNumeroPermis() {
+        return numeroPermis;
+    }
+
+    public void setNumeroPermis(String numeroPermis) {
+        this.numeroPermis = numeroPermis;
+    }
+
+    public Date getDateDebut() {
+        return dateDebut;
+    }
+
+    public void setDateDebut(Date dateDebut) {
+        this.dateDebut = dateDebut;
+    }
+
+    public Date getDateFin() {
+        return dateFin;
+    }
+
+    public void setDateFin(Date dateFin) {
+        this.dateFin = dateFin;
+    }
+
+    public TypeConcession getTypeConcession() {
+        return typeConcession;
+    }
+
+    public void setTypeConcession(TypeConcession typeConcession) {
+        this.typeConcession = typeConcession;
+        this.type = typeConcession; // Synchroniser avec l'ancien champ
+    }
+
+    public String getLocalisation() {
+        return localisation;
+    }
+
+    public void setLocalisation(String localisation) {
+        this.localisation = localisation;
+    }
+
+    public List<String> getMinerais() {
+        return minerais;
+    }
+
+    public void setMinerais(List<String> minerais) {
+        this.minerais = minerais;
+    }
+
+    public Double getTauxRedevance() {
+        return tauxRedevance;
+    }
+
+    public void setTauxRedevance(Double tauxRedevance) {
+        this.tauxRedevance = tauxRedevance;
     }
 }
