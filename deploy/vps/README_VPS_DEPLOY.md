@@ -87,12 +87,39 @@ Note:
 - L'application lit ces variables via `application.properties`.
 - Flyway exécutera automatiquement `db/migration/V1__enable_postgis.sql`. Comme PostGIS est installé, l'extension sera activée si nécessaire.
 
-## 7) Pare-feu et reverse proxy (optionnel)
-- Ouvrir le port 8080 (ou celui que vous utilisez):
+## 7) Configuration SSL (REQUIS pour HTTPS)
+
+Si votre frontend utilise HTTPS (comme Vercel), vous devez configurer SSL. Deux options:
+
+### Option A: SSL dans Spring Boot (SIMPLE - RECOMMANDÉ)
+
 ```bash
-sudo ufw allow 8080/tcp
+# Transférer le script depuis votre machine locale
+scp deploy/vps/setup-ssl-springboot.sh root@<server>:/tmp/
+
+# Sur le VPS, exécuter le script
+sudo bash /tmp/setup-ssl-springboot.sh
 ```
-- Pour https et un nom de domaine, installez Nginx et Certbot, et faites un reverse proxy vers `http://127.0.0.1:8080`.
+
+Ce script configure SSL directement dans Spring Boot/Tomcat sur le port 8443.
+
+**Documentation:** `deploy/vps/SETUP_SSL_LETSENCRYPT_SPRINGBOOT.md`
+
+### Option B: Nginx comme reverse proxy
+
+```bash
+# Transférer le script depuis votre machine locale
+scp deploy/vps/setup-nginx-quick.sh root@<server>:/tmp/
+
+# Sur le VPS, exécuter le script
+sudo bash /tmp/setup-nginx-quick.sh
+```
+
+Ce script configure Nginx avec SSL sur le port 8443 qui redirige vers Spring Boot sur le port 8080.
+
+**Documentation:** `deploy/vps/SETUP_NGINX_SSL.md`
+
+**Note:** Choisissez UNE seule option. Les deux ne peuvent pas fonctionner en même temps sur le port 8443.
 
 ## 8) Mise à jour (nouvelles versions)
 ```bash

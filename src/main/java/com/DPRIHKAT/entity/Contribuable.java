@@ -53,11 +53,11 @@ public class Contribuable extends Agent {
 
     private String sigle;
     private String numeroIdentificationContribuable;
-    private boolean actif = true;
+    private Boolean actif = true;
     private String codeQR;
 
     @Column(name = "commercant")
-    private boolean commercant = false;
+    private Boolean commercant = false;
 
     @OneToMany(mappedBy = "contribuable", fetch = FetchType.LAZY)
     @JsonIgnore
@@ -112,14 +112,14 @@ public class Contribuable extends Agent {
      * @return true si le contribuable est un commerçant, false sinon
      */
     public boolean isCommercant() {
-        return commercant;
+        return Boolean.TRUE.equals(commercant);
     }
 
-    public void setCommercant(boolean commercant) {
+    public void setCommercant(Boolean commercant) {
         this.commercant = commercant;
         // Si on définit le contribuable comme commerçant et qu'il n'a pas de NRC,
         // on génère un NRC temporaire
-        if (commercant && (this.NRC == null || this.NRC.trim().isEmpty())) {
+        if (Boolean.TRUE.equals(commercant) && (this.NRC == null || this.NRC.trim().isEmpty())) {
             this.NRC = "TEMP-" + UUID.randomUUID().toString().substring(0, 8);
         }
     }
@@ -216,10 +216,10 @@ public class Contribuable extends Agent {
     }
 
     public boolean isActif() {
-        return actif;
+        return Boolean.TRUE.equals(actif);
     }
 
-    public void setActif(boolean actif) {
+    public void setActif(Boolean actif) {
         this.actif = actif;
     }
 
