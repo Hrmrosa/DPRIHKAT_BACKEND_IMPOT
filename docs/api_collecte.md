@@ -47,7 +47,7 @@ Récupère toutes les propriétés avec leurs informations de déclaration et pa
             "superficie": 500.0,
             "montantImpot": 75000.0
           },
-          "proprietaire": {
+          "contribuable": {
             "id": "550e8400-e29b-41d4-a716-446655440001",
             "nom": "KABILA",
             "numeroIdentificationContribuable": "NIF-123456789"
@@ -144,9 +144,10 @@ Pour chaque propriété, le système retourne :
    - Montant de l'impôt calculé
    - Statut de déclaration
 
-2. **Propriétaire**
-   - Informations du contribuable
-   - Numéro d'identification fiscale
+2. **Contribuable (Propriétaire)**
+   - Informations complètes du contribuable
+   - Numéro d'identification fiscale (NIF)
+   - Nom, adresse, contact
 
 3. **Déclarations**
    - Historique des déclarations

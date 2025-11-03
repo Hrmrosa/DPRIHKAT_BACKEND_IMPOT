@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de Bord - Recouvrement</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Tableau de Bord Recouvrement</h1>
+        
+        <!-- Section Financière -->
+        <div class="financial-section">
+            <h2>Statistiques Financières</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Taxations</h3>
+                    <p th:text="${#numbers.formatCurrency(dashboard.montantTotalTaxations)}">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Paiements</h3>
+                    <p th:text="${#numbers.formatCurrency(dashboard.montantTotalPaiements)}">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Impayés</h3>
+                    <p th:text="${#numbers.formatCurrency(dashboard.montantTotalImpayes)}">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section Alertes -->
+        <div class="alerts-section">
+            <h2>Actions Requises</h2>
+            <div class="stats-grid">
+                <div class="stat-card alert">
+                    <h3>Paiements en retard</h3>
+                    <p th:text="${dashboard.paiementsEnRetard}">0</p>
+                </div>
+                <div class="stat-card alert">
+                    <h3>Relances en cours</h3>
+                    <p th:text="${dashboard.relancesEnCours}">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Graphique d'évolution -->
+        <div class="chart-section">
+            <h2>Évolution des recouvrements</h2>
+            <div id="recouvrement-chart" class="chart-container"></div>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/charts.js"></script>
+</body>
+</html>

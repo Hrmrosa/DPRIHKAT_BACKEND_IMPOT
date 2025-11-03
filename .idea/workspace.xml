@@ -4,29 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 021125">
+    <list default="true" id="24274227-7161-4869-a51c-2c6fac94e5d6" name="Changes" comment="commit 031125">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/COMMANDES_RAPIDES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CONFIGURATION_PRODUCTION.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEPLOIEMENT_VPS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PRET_POUR_VPS.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build-for-production.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deploy/vps/README_VPS_DEPLOY.md" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/vps/README_VPS_DEPLOY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/CorsConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Contribuable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/entity/Contribuable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/CorsConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/CorsConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SecurityConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/config/SecurityConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/entity/Contribuable.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ContribuableService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/ContribuableService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/db/seed/1-utilisateurs.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/impots-0.0.1-SNAPSHOT.jar.original" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-archiver/pom.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/api_audit.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/api_audit.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/api_collecte.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/api_collecte.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/api_utilisateurs.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/api_utilisateurs.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/CollecteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/CollecteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/TaxationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/DPRIHKAT/service/TaxationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/CollecteService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/DPRIHKAT/service/CollecteService.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -252,7 +237,15 @@
       <option name="project" value="LOCAL" />
       <updated>1762061709153</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="commit 031125">
+      <option name="closed" value="true" />
+      <created>1762165468158</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1762165468158</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -278,6 +271,7 @@
     <MESSAGE value="commit 101025" />
     <MESSAGE value="commit 151025" />
     <MESSAGE value="commit 021125" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit 021125" />
+    <MESSAGE value="commit 031125" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit 031125" />
   </component>
 </project>

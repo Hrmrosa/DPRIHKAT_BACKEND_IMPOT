@@ -235,17 +235,42 @@ public class TaxationService {
      * @return Le montant de la taxation
      */
     public double calculateTaxForProperty(Propriete propriete) throws IOException {
-        // Vérifications préalables
+        logger.info("Calcul de taxation pour la propriété ID: {}, Type: {}, Adresse: {}", 
+                    propriete.getId(), 
+                    propriete.getType() != null ? propriete.getType().name() : "NULL",
+                    propriete.getAdresse());
+        
+        // Vérifications préalables avec messages détaillés
         if (propriete.getProprietaire() == null) {
-            throw new RuntimeException("La propriété n'a pas de propriétaire défini");
+            logger.error("Propriété {} sans propriétaire", propriete.getId());
+            throw new RuntimeException("La propriété (ID: " + propriete.getId() + ") n'a pas de propriétaire défini. Veuillez associer un contribuable à cette propriété.");
         }
         
         if (propriete.getRangLocalite() == null) {
-            throw new RuntimeException("La propriété n'a pas de rang de localité défini");
+            logger.error("Propriété {} sans rang de localité", propriete.getId());
+            throw new RuntimeException("La propriété (ID: " + propriete.getId() + ", Adresse: " + propriete.getAdresse() + ") n'a pas de rang de localité défini. Veuillez définir le rang de localité (1, 2, 3 ou 4).");
         }
         
-        if (propriete.getSuperficie() == null || propriete.getSuperficie() <= 0) {
-            throw new RuntimeException("La propriété n'a pas de superficie valide");
+        // Utiliser une superficie par défaut si non définie (pour les appartements et domestic qui ont un taux fixe)
+        Double superficie = propriete.getSuperficie();
+        logger.debug("Superficie de la propriété {}: {}", propriete.getId(), superficie);
+        
+        if (superficie == null || superficie <= 0) {
+            // Pour les types à taux fixe, la superficie n'est pas critique
+            String propertyTypeCode = propriete.getType() != null ? propriete.getType().name() : "UNKNOWN";
+            String propertyType = mapPropertyTypeToJsonKey(propertyTypeCode);
+            
+            logger.warn("Superficie invalide ({}) pour propriété {} de type {}", superficie, propriete.getId(), propertyTypeCode);
+            
+            if ("appartements".equals(propertyType) || "domestic".equals(propertyType)) {
+                // Taux fixe - la superficie n'est pas utilisée
+                logger.info("Type {} utilise un taux fixe, superficie non requise", propertyType);
+                superficie = 1.0; // Valeur symbolique
+            } else {
+                // Pour villas et commercial, la superficie est obligatoire
+                logger.error("Superficie obligatoire manquante pour propriété {} de type {}", propriete.getId(), propertyTypeCode);
+                throw new RuntimeException("La propriété (ID: " + propriete.getId() + ", Type: " + propertyTypeCode + ", Adresse: " + propriete.getAdresse() + ") n'a pas de superficie valide. Ce type de propriété nécessite une superficie en m².");
+            }
         }
         
         // Charger les taux depuis le fichier JSON
@@ -266,21 +291,33 @@ public class TaxationService {
 
         JsonNode rateNode = rootNode.path(propertyType).path(rang).path(contribuableType);
         if (rateNode.isMissingNode()) {
+            logger.error("Taux IF introuvable - Type: {}, Rang: {}, Contribuable: {}", propertyType, rang, contribuableType);
             throw new RuntimeException("Taux IF non trouvé pour le type de propriété: " + propertyTypeCode + " (" + propertyType + "), rang: " + rang + ", contribuable: " + contribuableTypeEnum + " (" + contribuableType + ")");
         }
 
         double rate = rateNode.asDouble();
+        logger.debug("Taux trouvé: {} pour {}/{}/{}", rate, propertyType, rang, contribuableType);
         
         // Calculer selon le type de propriété
+        double montantCalcule;
         if ("villas".equals(propertyType) || "commercial".equals(propertyType)) {
             // Taux par mètre carré
-            return rate * propriete.getSuperficie();
+            montantCalcule = rate * superficie;
+            logger.info("Calcul (taux/m²): {} x {} = {}", rate, superficie, montantCalcule);
         } else if ("appartements".equals(propertyType) || "domestic".equals(propertyType)) {
             // Taux fixe
-            return rate;
+            montantCalcule = rate;
+            logger.info("Calcul (taux fixe): {}", montantCalcule);
+        } else {
+            montantCalcule = 0.0;
+            logger.warn("Type de propriété non reconnu pour le calcul: {}", propertyType);
         }
         
-        return 0.0;
+        // Arrondir à 2 décimales
+        double montantFinal = Math.round(montantCalcule * 100.0) / 100.0;
+        logger.info("Montant final calculé pour propriété {}: {} USD", propriete.getId(), montantFinal);
+        
+        return montantFinal;
     }
     
     /**

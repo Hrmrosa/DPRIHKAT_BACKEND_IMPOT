@@ -43,6 +43,11 @@ public class CollecteService {
             Map<String, Object> proprieteEnrichie = new HashMap<>();
             proprieteEnrichie.put("propriete", propriete);
             
+            // Ajouter le contribuable/propriétaire
+            if (propriete.getProprietaire() != null) {
+                proprieteEnrichie.put("contribuable", propriete.getProprietaire());
+            }
+            
             // Récupérer les déclarations associées à cette propriété
             List<Declaration> declarations = propriete.getDeclarations();
             

@@ -19,23 +19,46 @@ Le système d'audit permet de tracer toutes les actions effectuées dans le syst
 
 ### 1. Rechercher dans les logs d'audit
 
-Recherche des logs d'audit selon différents critères.
+Recherche des logs d'audit selon différents critères avec pagination.
 
 - **URL**: `/api/audit-logs`
 - **Méthode**: `GET`
-- **Rôles autorisés**: `DIRECTEUR`, `ADMIN`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
 - **Paramètres**:
-  - `username` (query, optionnel): Nom d'utilisateur
-  - `action` (query, optionnel): Type d'action
-  - `entityType` (query, optionnel): Type d'entité
-  - `startDate` (query, optionnel): Date de début (format: ISO 8601)
-  - `endDate` (query, optionnel): Date de fin (format: ISO 8601)
-  - `page`, `size`, `sort` (query, optionnel): Paramètres de pagination
+  - `username` (query, optionnel): Nom d'utilisateur à filtrer
+  - `action` (query, optionnel): Type d'action (CREATE, UPDATE, DELETE, etc.)
+  - `entityType` (query, optionnel): Type d'entité (Contribuable, Propriete, etc.)
+  - `startDate` (query, optionnel): Date de début au format ISO 8601 (ex: 2024-01-01T00:00:00)
+  - `endDate` (query, optionnel): Date de fin au format ISO 8601 (ex: 2024-12-31T23:59:59)
+  - `page` (query, optionnel): Numéro de page (défaut: 0)
+  - `size` (query, optionnel): Taille de page (défaut: 10)
+  - `sort` (query, optionnel): Critère de tri (ex: timestamp,desc)
 
-#### Exemple de requête
+#### Exemples de requêtes
 
+**Tous les logs (paginés)**
 ```
-GET /api/audit-logs?username=agent1&action=CREATE&entityType=Contribuable&startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59
+GET /api/audit-logs?page=0&size=10
+```
+
+**Filtrer par utilisateur**
+```
+GET /api/audit-logs?username=agent1&page=0&size=10
+```
+
+**Filtrer par action et entité**
+```
+GET /api/audit-logs?action=CREATE&entityType=Contribuable&page=0&size=10
+```
+
+**Filtrer par période**
+```
+GET /api/audit-logs?startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59&page=0&size=10
+```
+
+**Recherche combinée avec tri**
+```
+GET /api/audit-logs?username=agent1&action=CREATE&entityType=Contribuable&startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59&page=0&size=20&sort=timestamp,desc
 ```
 
 #### Réponse en cas de succès
@@ -154,9 +177,10 @@ Toutes les entités principales du système sont tracées :
 - **Détails**: Description de l'action
 
 ### Accès restreint
-- Seuls les directeurs et administrateurs peuvent consulter les logs
+- Seuls les administrateurs (ADMIN) et informaticiens (INFORMATICIEN) peuvent consulter les logs
 - Logs filtrables par utilisateur, action, entité, période
-- Pagination obligatoire pour les grandes listes
+- Pagination automatique pour optimiser les performances
+- Tri par timestamp décroissant recommandé pour voir les actions récentes
 
 ### Conformité
 - Respect des normes de sécurité
@@ -193,6 +217,31 @@ Toutes les entités principales du système sont tracées :
 
 | Code | Description |
 |------|-------------|
-| AUDIT_LOGS_FETCH_ERROR | Erreur récupération logs |
-| INVALID_DATE_RANGE | Période invalide |
-| UNAUTHORIZED_ACCESS | Accès non autorisé |
+| AUDIT_LOGS_FETCH_ERROR | Erreur lors de la récupération des logs |
+| INVALID_DATE_RANGE | Période de dates invalide |
+| UNAUTHORIZED_ACCESS | Accès non autorisé (403 Forbidden) |
+
+---
+
+## Notes techniques
+
+### Format des dates
+- Les paramètres `startDate` et `endDate` doivent être au format ISO 8601
+- Exemple: `2024-10-27T12:00:00`
+- Le fuseau horaire est celui du serveur
+
+### Pagination
+- La pagination utilise Spring Data Pageable
+- Les pages commencent à 0
+- Taille par défaut: 10 éléments
+- Tri par défaut: timestamp décroissant
+
+### Performance
+- Les requêtes sont optimisées avec des index sur username, action, entityType et timestamp
+- Utiliser les filtres pour réduire le volume de données
+- Éviter de charger toutes les pages en une seule fois
+
+### Sécurité
+- Authentification JWT requise
+- Rôles ADMIN ou INFORMATICIEN obligatoires
+- Les logs ne peuvent pas être modifiés ou supprimés via l'API

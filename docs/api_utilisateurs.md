@@ -10,7 +10,7 @@ Les utilisateurs sont les agents de l'administration et les contribuables qui ac
 
 ### Base URL
 ```
-/api/utilisateurs
+/api/users
 ```
  
 ---
@@ -19,9 +19,17 @@ Les utilisateurs sont les agents de l'administration et les contribuables qui ac
 
 ### 1. Récupérer tous les utilisateurs
 
-- **URL**: `/api/utilisateurs`
+Récupère la liste paginée de tous les utilisateurs avec options de tri et recherche.
+
+- **URL**: `/api/users`
 - **Méthode**: `GET`
-- **Rôles autorisés**: `ADMIN`, `DIRECTEUR`, `INFORMATICIEN`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
+- **Paramètres**:
+  - `page` (query, optionnel): Numéro de page (défaut: 0)
+  - `size` (query, optionnel): Taille de page (défaut: 10)
+  - `sortBy` (query, optionnel): Champ de tri (défaut: id)
+  - `sortDir` (query, optionnel): Direction du tri - asc/desc (défaut: asc)
+  - `search` (query, optionnel): Terme de recherche
 
 #### Réponse en cas de succès
 
@@ -29,7 +37,7 @@ Les utilisateurs sont les agents de l'administration et les contribuables qui ac
 {
   "success": true,
   "data": {
-    "utilisateurs": [
+    "users": [
       {
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "login": "agent1",
@@ -42,7 +50,10 @@ Les utilisateurs sont les agents de l'administration et les contribuables qui ac
         "bloque": false,
         "premierConnexion": false
       }
-    ]
+    ],
+    "currentPage": 0,
+    "totalItems": 150,
+    "totalPages": 15
   }
 }
 ```
@@ -51,9 +62,30 @@ Les utilisateurs sont les agents de l'administration et les contribuables qui ac
 
 ### 2. Récupérer un utilisateur par ID
 
-- **URL**: `/api/utilisateurs/{id}`
+Récupère les détails d'un utilisateur spécifique.
+
+- **URL**: `/api/users/{id}`
 - **Méthode**: `GET`
-- **Rôles autorisés**: `ADMIN`, `DIRECTEUR`, `INFORMATICIEN`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
+- **Paramètres**:
+  - `id` (path): UUID de l'utilisateur
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "login": "agent1",
+      "nomComplet": "KABILA Joseph",
+      "email": "agent1@dprihkat.cd",
+      "role": "ADMIN",
+      "bloque": false
+    }
+  }
+}
 
 ---
 
@@ -61,7 +93,7 @@ Les utilisateurs sont les agents de l'administration et les contribuables qui ac
 
 Crée un nouveau compte utilisateur.
 
-- **URL**: `/api/utilisateurs`
+- **URL**: `/api/users`
 - **Méthode**: `POST`
 - **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
 
@@ -85,50 +117,181 @@ Crée un nouveau compte utilisateur.
 #### Champs obligatoires
 - `login`: Identifiant de connexion unique
 - `motDePasse`: Mot de passe (min 8 caractères)
+- `role`: Rôle de l'utilisateur (enum Role)
+
+#### Champs optionnels
 - `nomComplet`: Nom complet
-- `role`: Rôle de l'utilisateur
-- `agentId`: UUID de l'agent (si applicable)
+- `email`: Adresse email
+- `telephone`: Numéro de téléphone
+- `grade`: Grade administratif
+- `sexe`: Genre (M/F)
+- `adresse`: Adresse physique
+- `matricule`: Matricule de l'agent
+- `contribuable`: Objet Contribuable (pour rôle CONTRIBUABLE)
+- `agent`: Objet Agent (pour rôles internes)
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "login": "agent1",
+      "nomComplet": "KABILA Joseph",
+      "role": "TAXATEUR",
+      "premierConnexion": true
+    }
+  }
+}
 
 ---
 
 ### 4. Mettre à jour un utilisateur
 
-- **URL**: `/api/utilisateurs/{id}`
+Met à jour les informations d'un utilisateur existant.
+
+- **URL**: `/api/users/{id}`
 - **Méthode**: `PUT`
 - **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
-
----
-
-### 5. Bloquer/Débloquer un utilisateur
-
-- **URL**: `/api/utilisateurs/{id}/bloquer`
-- **Méthode**: `POST`
-- **Rôles autorisés**: `ADMIN`, `DIRECTEUR`
-
----
-
-### 6. Réinitialiser le mot de passe
-
-- **URL**: `/api/utilisateurs/{id}/reset-password`
-- **Méthode**: `POST`
-- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
-
----
-
-### 7. Changer mon mot de passe
-
-Permet à un utilisateur de changer son propre mot de passe.
-
-- **URL**: `/api/utilisateurs/change-password`
-- **Méthode**: `POST`
-- **Rôles autorisés**: Tous (authentifiés)
+- **Paramètres**:
+  - `id` (path): UUID de l'utilisateur
 
 #### Corps de la requête
 
 ```json
 {
-  "ancienMotDePasse": "OldPassword123!",
-  "nouveauMotDePasse": "NewPassword123!"
+  "login": "agent1_updated",
+  "role": "CONTROLLEUR",
+  "premierConnexion": false,
+  "bloque": false
+}
+```
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "login": "agent1_updated",
+      "role": "CONTROLLEUR"
+    }
+  }
+}
+
+---
+
+### 5. Supprimer un utilisateur
+
+Supprime un utilisateur du système.
+
+- **URL**: `/api/users/{id}`
+- **Méthode**: `DELETE`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
+- **Paramètres**:
+  - `id` (path): UUID de l'utilisateur
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Utilisateur supprimé avec succès"
+  }
+}
+```
+
+---
+
+### 6. Bloquer un utilisateur
+
+Bloque l'accès d'un utilisateur au système.
+
+- **URL**: `/api/users/{id}/block`
+- **Méthode**: `POST`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
+- **Paramètres**:
+  - `id` (path): UUID de l'utilisateur
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "login": "agent1",
+      "bloque": true
+    }
+  }
+}
+
+---
+
+### 7. Débloquer un utilisateur
+
+Débloque l'accès d'un utilisateur au système.
+
+- **URL**: `/api/users/{id}/unblock`
+- **Méthode**: `POST`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
+- **Paramètres**:
+  - `id` (path): UUID de l'utilisateur
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "login": "agent1",
+      "bloque": false
+    }
+  }
+}
+
+---
+
+### 8. Récupérer les utilisateurs par rôle
+
+Récupère tous les utilisateurs ayant un rôle spécifique.
+
+- **URL**: `/api/users/role/{role}`
+- **Méthode**: `GET`
+- **Rôles autorisés**: `ADMIN`, `INFORMATICIEN`
+- **Paramètres**:
+  - `role` (path): Rôle à filtrer (enum Role)
+  - `page` (query, optionnel): Numéro de page (défaut: 0)
+  - `size` (query, optionnel): Taille de page (défaut: 10)
+  - `sortBy` (query, optionnel): Champ de tri (défaut: id)
+  - `sortDir` (query, optionnel): Direction du tri - asc/desc (défaut: asc)
+
+#### Réponse en cas de succès
+
+```json
+{
+  "success": true,
+  "data": {
+    "users": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "login": "agent1",
+        "nomComplet": "KABILA Joseph",
+        "role": "TAXATEUR"
+      }
+    ],
+    "currentPage": 0,
+    "totalItems": 25,
+    "totalPages": 3
+  }
 }
 ```
 
@@ -187,6 +350,22 @@ Permet à un utilisateur de changer son propre mot de passe.
 - Seuls les administrateurs peuvent bloquer/débloquer
 
 ### Sécurité
-- Les mots de passe sont hashés (BCrypt)
+- Les mots de passe sont hashés avec l'algorithme LetsCrypt
 - Les sessions sont gérées par JWT
 - Expiration du token: 24 heures
+- Le préfixe `ROLE_` n'est pas nécessaire dans les vérifications Spring Security
+
+---
+
+## Codes d'erreur
+
+| Code | Description |
+|------|-------------|
+| USER_FETCH_ERROR | Erreur lors de la récupération des utilisateurs |
+| USER_NOT_FOUND | Utilisateur non trouvé |
+| USER_EXISTS | Login déjà utilisé |
+| USER_CREATE_ERROR | Erreur lors de la création de l'utilisateur |
+| USER_UPDATE_ERROR | Erreur lors de la mise à jour de l'utilisateur |
+| USER_DELETE_ERROR | Erreur lors de la suppression de l'utilisateur |
+| USER_BLOCK_ERROR | Erreur lors du blocage de l'utilisateur |
+| USER_UNBLOCK_ERROR | Erreur lors du déblocage de l'utilisateur |
